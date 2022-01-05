@@ -1,0 +1,6 @@
+.dfx/
+build/
+deploy/
+target
+.config
+.cache
