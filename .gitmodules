@@ -4,3 +4,6 @@
 [submodule "DIP721"]
 	path = DIP721
 	url = git@github.com:Psychedelic/DIP721
+[submodule "DIP20"]
+	path = DIP20
+	url = git@github.com:Psychedelic/DIP20
