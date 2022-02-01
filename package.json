@@ -1,12 +1,16 @@
 {
   "name": "nft-marketplace",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "main": "index.js",
   "repository": "https://github.com/Psychedelic/nft-marketplace.git",
   "author": "helder@fleek.co",
-  "license": "MIT",
   "scripts": {
     "services:init": "git submodule update --init --recursive",
-    "cap:start": "cd ./cap && dfx deploy ic-history-router"
+    "services:start": "yarn cap:start",
+    "cap:start": "cd ./cap && dfx deploy ic-history-router",
+    "cap:reset": "cd ./cap && rm -rf .dfx",
+    "dip721:start": "./.scripts/dip721/start-service.sh",
+    "dip721:reset": "cd ./DIP721 && rm -rf .dfx",
+    "reset": "dfx stop && rm -rf .dfx && yarn cap:reset && yarn dip721:reset"
   }
 }
