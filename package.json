@@ -6,13 +6,13 @@
   "author": "helder@fleek.co",
   "scripts": {
     "services:init": "git submodule update --init --recursive",
-    "services:start": "yarn cap:start",
+    "services:start": "yarn cap:start && yarn dip721:start && yarn dip20:start",
     "cap:start": "cd ./cap && dfx deploy ic-history-router",
     "cap:reset": "cd ./cap && rm -rf .dfx",
     "dip721:start": "./.scripts/dip721/start-service.sh",
     "dip721:reset": "cd ./DIP721 && rm -rf .dfx",
     "dip20:start": "./.scripts/dip20/start-service.sh",
     "dip20:reset": "cd ./DIP20 && rm -rf .dfx",
-    "reset": "dfx stop && rm -rf .dfx && yarn cap:reset && yarn dip721:reset"
+    "reset": "dfx stop && rm -rf .dfx && yarn cap:reset && yarn dip721:reset && yarn dip20:reset"
   }
 }
