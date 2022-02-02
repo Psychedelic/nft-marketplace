@@ -7,3 +7,6 @@
 [submodule "DIP20"]
 	path = DIP20
 	url = git@github.com:Psychedelic/DIP20
+[submodule "dab"]
+	path = dab
+	url = git@github.com:Psychedelic/dab
