@@ -15,6 +15,8 @@
     "dip721:reset": "cd ./DIP721 && rm -rf .dfx",
     "dip20:start": "./.scripts/dip20/start-service.sh",
     "dip20:reset": "cd ./DIP20 && rm -rf .dfx",
+    "marketplace:start": "./.scripts/marketplace/start-service.sh",
+    "marketplace:reset": "rm -rf .dfx",
     "reset": "dfx stop && rm -rf .dfx && yarn cap:reset && yarn dip721:reset && yarn dip20:reset"
   }
 }
