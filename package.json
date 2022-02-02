@@ -5,8 +5,6 @@
   "repository": "https://github.com/Psychedelic/nft-marketplace.git",
   "author": "helder@fleek.co",
   "scripts": {
-    "services:init": "git submodule update --init --recursive",
-    "services:start": "yarn cap:start && yarn dip721:start && yarn dip20:start",
     "cap:start": "cd ./cap && dfx deploy ic-history-router",
     "cap:reset": "cd ./cap && rm -rf .dfx",
     "dab:start": "cd ./dab && dfx deploy nft",
@@ -15,8 +13,11 @@
     "dip721:reset": "cd ./DIP721 && rm -rf .dfx",
     "dip20:start": "./.scripts/dip20/start-service.sh",
     "dip20:reset": "cd ./DIP20 && rm -rf .dfx",
+    "healthcheck": "./healthcheck.sh",
     "marketplace:start": "./.scripts/marketplace/start-service.sh",
     "marketplace:reset": "rm -rf .dfx",
+    "services:init": "git submodule update --init --recursive",
+    "services:start": "yarn cap:start && yarn dip721:start && yarn dip20:start",
     "reset": "dfx stop && rm -rf .dfx && yarn cap:reset && yarn dip721:reset && yarn dip20:reset"
   }
 }
