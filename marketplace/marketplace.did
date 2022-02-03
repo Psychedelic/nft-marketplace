@@ -206,7 +206,7 @@ service : (principal, principal) -> {
   cancelOfferBySeller : (nat64) -> (Result);
   getBuyOffers : (nat64, nat64) -> (vec BuyOffer) query;
   getSaleOffers : () -> (
-      vec record { record { principal; text }; SaleOffer },
+      vec record { record { principal; nat64 }; SaleOffer },
     ) query;
   listForSale : (principal, nat64, nat) -> (Result);
   directBuy : (principal, text) -> (Result);

@@ -56,6 +56,8 @@ pub async fn list_for_sale(
         .get(&non_fungible_contract_address)
         .ok_or(MPApiError::NonExistentCollection)?;
 
+    ic_cdk::println!("[debug] list_for_sale -> A");
+
     let token_owner = owner_of_non_fungible(
         &non_fungible_contract_address,
         &token_id,
@@ -63,21 +65,38 @@ pub async fn list_for_sale(
     )
     .await?;
 
+    ic_cdk::println!("[debug] list_for_sale -> B");
+
     if (caller != token_owner) {
         return Err(MPApiError::Unauthorized);
     }
 
+    ic_cdk::println!("[debug] list_for_sale -> C");
+
     let mut mp = marketplace();
+
+    ic_cdk::println!("[debug] list_for_sale -> D");
 
     let mut sale_offer = mp
         .sale_offers
         .entry((non_fungible_contract_address, token_id.clone()))
         .or_default();
+
+    ic_cdk::println!("[debug] list_for_sale -> E");
+
     if (sale_offer.status == SaleOfferStatus::Selling) {
+        ic_cdk::println!("[debug] list_for_sale -> sale_offer -> status -> 1");
+
         return Err(MPApiError::InvalidSaleOfferStatus);
+    } else {
+        ic_cdk::println!("[debug] list_for_sale -> sale_offer -> status -> 2");
     }
 
+    ic_cdk::println!("[debug] list_for_sale -> F");
+
     *sale_offer = SaleOffer::new(true, list_price.clone(), caller, SaleOfferStatus::Created);
+
+    ic_cdk::println!("[debug] list_for_sale -> G");
 
     capq()
         .insert_into_cap(
@@ -525,12 +544,28 @@ pub async fn direct_buy(non_fungible_contract_address: Principal, token_id: u64)
 #[query(name = "getSaleOffers")]
 #[candid_method(query, rename = "getSaleOffers")]
 pub async fn get_sale_offers() -> Vec<((Principal, u64), SaleOffer)> {
-    marketplace()
+    let data: Vec<((Principal, u64), SaleOffer)> = marketplace()
         .sale_offers
         .clone()
         .into_iter()
         .map(|offer| offer)
-        .collect()
+        .collect();
+
+    ic_cdk::println!("[debug] get_sale_offers -> data.len() -> {:?}", data.len());
+
+    for x in &data {
+        let principal: Principal = x.0.0;
+        let token_id: u64 = x.0.1;
+        let sale_offer: &SaleOffer = &x.1;
+
+        ic_cdk::println!("[debug] get_sale_offers -> x.0.0 -> principal {:?}", principal.to_string());
+        ic_cdk::println!("[debug] get_sale_offers -> x.0.0 -> token_id {:?}", token_id);
+        ic_cdk::println!("[debug] get_sale_offers -> sale_offer.is_direct_buyable -> {:?}", sale_offer.is_direct_buyable);
+        ic_cdk::println!("[debug] get_sale_offers -> sale_offer.list_price -> {:?}", sale_offer.list_price);
+        ic_cdk::println!("[debug] get_sale_offers -> sale_offer.payment_address -> {:?}", sale_offer.payment_address.to_string());
+    }
+
+    data
 }
 
 #[query(name = "getBuyOffers")]

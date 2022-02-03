@@ -8,7 +8,7 @@ marketplaceIcxPrologue="--candid=./marketplace/marketplace.did"
 marketplaceId=""
 ownerPrincipalId=$DEFAULT_PRINCIPAL_ID
 nonFungibleContractAddress=""
-fungibleContractAddress=$(cd ./DIP20/motoko && dfx canister id token)
+fungibleContractAddress=""
 icHistoryRouter=$(cd ./cap && dfx canister id ic-history-router)
 
 deployMarketplace() {
@@ -41,6 +41,8 @@ deployToken() {
   printf "🤖 Deploy DIP20 Token Canister\n"
 
   yarn dip20:deploy
+
+  fungibleContractAddress=$(cd ./DIP20/motoko && dfx canister id token)
 }
 
 mintDip721() {
@@ -85,7 +87,7 @@ listForSale() {
   echo "🤖 List for sale"
 
     token_id=0
-    list_price="(10:nat)"
+    list_price="(123:nat)"
 
     icx --pem="$DEFAULT_PEM" \
       update "$marketplaceId" \
@@ -97,7 +99,11 @@ listForSale() {
       "$marketplaceIcxPrologue"
 }
 
-getSaleOffers() {  
+getSaleOffers() {
+    printf "🤖 Call getSaleOffers\n"
+
+    echo "🤖 marketplaceId is ($marketplaceId)"
+
     icx --pem="$DEFAULT_PEM" \
       query "$marketplaceId" \
       getSaleOffers "()" \
@@ -114,7 +120,7 @@ run() {
   mintDip721
   addCrownCollection
   listForSale
-  # getSaleOffers
+  getSaleOffers
 }
 
 run
