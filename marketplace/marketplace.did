@@ -208,7 +208,7 @@ service : (principal, principal) -> {
   getSaleOffers : () -> (
       vec record { record { principal; text }; SaleOffer },
     ) query;
-  listForSale : (principal, text, nat) -> (Result);
+  listForSale : (principal, nat64, nat) -> (Result);
   directBuy : (principal, text) -> (Result);
   makeBuyOffer : (principal, text, nat) -> (Result_1);
   withdrawFungible : (principal, FungibleTokenType) -> (Result);

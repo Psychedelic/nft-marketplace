@@ -54,7 +54,7 @@ impl Default for SaleOffer {
 #[derive(Clone, CandidType, Deserialize, new)]
 pub struct BuyOffer {
     pub non_fungible_contract_address: Principal,
-    pub token_id: String,
+    pub token_id: u64,
     pub price: Nat,
     pub payment_address: Principal,
     pub status: BuyOfferStatus,
@@ -92,7 +92,7 @@ pub struct TxLogEntry {
 
 #[derive(Default)]
 pub(crate) struct Marketplace {
-    pub sale_offers: HashMap<(Principal, String), SaleOffer>,
+    pub sale_offers: HashMap<(Principal, u64), SaleOffer>,
     pub buy_offers: Vec<BuyOffer>,
 }
 

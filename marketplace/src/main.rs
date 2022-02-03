@@ -30,6 +30,9 @@ mod vendor_types;
 #[init]
 #[candid_method(init)]
 pub fn init(cap: Principal, owner: Principal) {
+    ic_cdk::println!("[debug] main.rs -> init -> cap -> {:?}", cap.to_string());
+    ic_cdk::println!("[debug] main.rs -> init -> owner -> {:?}", owner.to_string());
+
     ic_kit::ic::store(InitData { cap, owner });
     handshake(1_000_000_000_000, Some(cap));
 }
@@ -38,9 +41,13 @@ pub fn init(cap: Principal, owner: Principal) {
 #[candid_method(update, rename = "listForSale")]
 pub async fn list_for_sale(
     non_fungible_contract_address: Principal,
-    token_id: String,
+    token_id: u64,
     list_price: Nat,
 ) -> MPApiResult {
+    ic_cdk::println!("[debug] listForSale non_fungible_contract_address {:?}", non_fungible_contract_address.to_string());
+    ic_cdk::println!("[debug] listForSale token_id {:?}", token_id);
+    ic_cdk::println!("[debug] listForSale list_price {:?}", list_price);
+
     let caller = ic::caller();
     let self_id = ic::id();
     let init_data = &init_data();
@@ -55,44 +62,45 @@ pub async fn list_for_sale(
         collection.non_fungible_token_type.clone(),
     )
     .await?;
-    if (caller != token_owner) {
-        return Err(MPApiError::Unauthorized);
-    }
 
-    let mut mp = marketplace();
+    // if (caller != token_owner) {
+    //     return Err(MPApiError::Unauthorized);
+    // }
 
-    let mut sale_offer = mp
-        .sale_offers
-        .entry((non_fungible_contract_address, token_id.clone()))
-        .or_default();
-    if (sale_offer.status == SaleOfferStatus::Selling) {
-        return Err(MPApiError::InvalidSaleOfferStatus);
-    }
+    // let mut mp = marketplace();
 
-    *sale_offer = SaleOffer::new(true, list_price.clone(), caller, SaleOfferStatus::Created);
+    // let mut sale_offer = mp
+    //     .sale_offers
+    //     .entry((non_fungible_contract_address, token_id.clone()))
+    //     .or_default();
+    // if (sale_offer.status == SaleOfferStatus::Selling) {
+    //     return Err(MPApiError::InvalidSaleOfferStatus);
+    // }
 
-    capq()
-        .insert_into_cap(
-            IndefiniteEventBuilder::new()
-                .caller(caller)
-                .operation("makeSaleOffer")
-                .details(vec![
-                    ("token_id".into(), DetailValue::Text(token_id)),
-                    (
-                        "non_fungible_contract_address".into(),
-                        DetailValue::Principal(collection.non_fungible_contract_address),
-                    ),
-                    (
-                        "list_price".into(),
-                        DetailValue::U64(convert_nat_to_u64(list_price.clone()).unwrap()),
-                    ),
-                    ("payment_address".into(), DetailValue::Principal(caller)),
-                ])
-                .build()
-                .unwrap(),
-        )
-        .await
-        .map_err(|_| MPApiError::CAPInsertionError)?;
+    // *sale_offer = SaleOffer::new(true, list_price.clone(), caller, SaleOfferStatus::Created);
+
+    // capq()
+    //     .insert_into_cap(
+    //         IndefiniteEventBuilder::new()
+    //             .caller(caller)
+    //             .operation("makeSaleOffer")
+    //             .details(vec![
+    //                 ("token_id".into(), DetailValue::Text(token_id.to_string())),
+    //                 (
+    //                     "non_fungible_contract_address".into(),
+    //                     DetailValue::Principal(collection.non_fungible_contract_address),
+    //                 ),
+    //                 (
+    //                     "list_price".into(),
+    //                     DetailValue::U64(convert_nat_to_u64(list_price.clone()).unwrap()),
+    //                 ),
+    //                 ("payment_address".into(), DetailValue::Principal(caller)),
+    //             ])
+    //             .build()
+    //             .unwrap(),
+    //     )
+    //     .await
+    //     .map_err(|_| MPApiError::CAPInsertionError)?;
 
     Ok(())
 }
@@ -101,7 +109,7 @@ pub async fn list_for_sale(
 #[candid_method(update, rename = "makeBuyOffer")]
 pub async fn make_buy_offer(
     non_fungible_contract_address: Principal,
-    token_id: String,
+    token_id: u64,
     price: Nat,
 ) -> U64Result {
     let caller = ic::caller();
@@ -144,7 +152,7 @@ pub async fn make_buy_offer(
                         "non_fungible_contract_address".into(),
                         DetailValue::Principal(non_fungible_contract_address),
                     ),
-                    ("token_id".into(), DetailValue::Text(token_id.clone())),
+                    ("token_id".into(), DetailValue::U64(token_id.clone())),
                     (
                         "price".into(),
                         DetailValue::U64(convert_nat_to_u64(price.clone()).unwrap()),
@@ -331,7 +339,7 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
                     ),
                     (
                         "token_id".into(),
-                        DetailValue::Text(buy_offer.token_id.clone()),
+                        DetailValue::U64(buy_offer.token_id.clone()),
                     ),
                     (
                         "price".into(),
@@ -353,7 +361,7 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
 
 #[update(name = "directBuy")]
 #[candid_method(update, rename = "directBuy")]
-pub async fn direct_buy(non_fungible_contract_address: Principal, token_id: String) -> MPApiResult {
+pub async fn direct_buy(non_fungible_contract_address: Principal, token_id: u64) -> MPApiResult {
     let caller = ic::caller();
     let self_id = ic::id();
     let init_data = &init_data();
@@ -495,7 +503,7 @@ pub async fn direct_buy(non_fungible_contract_address: Principal, token_id: Stri
                         "non_fungible_contract_address".into(),
                         DetailValue::Principal(non_fungible_contract_address),
                     ),
-                    ("token_id".into(), DetailValue::Text(token_id.clone())),
+                    ("token_id".into(), DetailValue::U64(token_id.clone())),
                     (
                         "price".into(),
                         DetailValue::U64(convert_nat_to_u64(list_price).unwrap()),
@@ -516,7 +524,7 @@ pub async fn direct_buy(non_fungible_contract_address: Principal, token_id: Stri
 
 #[query(name = "getSaleOffers")]
 #[candid_method(query, rename = "getSaleOffers")]
-pub async fn get_sale_offers() -> Vec<((Principal, String), SaleOffer)> {
+pub async fn get_sale_offers() -> Vec<((Principal, u64), SaleOffer)> {
     marketplace()
         .sale_offers
         .clone()
@@ -576,7 +584,7 @@ pub async fn withdraw_fungible(
 #[candid_method(update, rename = "cancelListingBySeller")]
 pub async fn cancel_listing_by_seller(
     non_fungible_contract_address: Principal,
-    token_id: String,
+    token_id: u64,
 ) -> MPApiResult {
     let caller = ic::caller();
     let mut mp = marketplace();
@@ -603,7 +611,7 @@ pub async fn cancel_listing_by_seller(
                     "non_fungible_contract_address".into(),
                     DetailValue::Principal(non_fungible_contract_address),
                 )])
-                .details(vec![("token_id".into(), DetailValue::Text(token_id))])
+                .details(vec![("token_id".into(), DetailValue::U64(token_id))])
                 .build()
                 .unwrap(),
         )
@@ -704,6 +712,9 @@ fn add_collection(
     fungible_contract_address: Principal,
     fungible_token_type: FungibleTokenType,
 ) {
+    ic_cdk::println!("[debug] main.rs -> ic::caller -> {}", ic::caller().to_string());
+    ic_cdk::println!("[debug] main.rs -> owner -> {:?}", init_data().owner.to_string());
+
     assert_eq!(ic::caller(), init_data().owner);
 
     collections().collections.insert(
