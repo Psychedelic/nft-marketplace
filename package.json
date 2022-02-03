@@ -9,15 +9,16 @@
     "cap:reset": "cd ./cap && rm -rf .dfx",
     "dab:start": "cd ./dab && dfx deploy nft",
     "dab:reset": "cd ./dab && rm -rf .dfx",
-    "dip721:start": "./.scripts/dip721/start-service.sh",
+    "dip721:deploy-nft": "./.scripts/dip721/deploy-nft.sh",
+    "dip721:set-controllers": "./.scripts/dip721/set-controllers.sh",
     "dip721:reset": "cd ./DIP721 && rm -rf .dfx",
-    "dip20:start": "./.scripts/dip20/start-service.sh",
-    "dip20:reset": "cd ./DIP20 && rm -rf .dfx",
+    "dip20:deploy": "./.scripts/dip20/deploy-token.sh",
+    "dip20:reset": "cd ./DIP20/motoko && rm -rf .dfx",
     "healthcheck": "./healthcheck.sh",
-    "marketplace:start": "./.scripts/marketplace/start-service.sh",
+    "marketplace:deploy": "./.scripts/marketplace/deploy-marketplace.sh",
     "marketplace:reset": "rm -rf .dfx",
     "services:init": "git submodule update --init --recursive",
-    "services:start": "yarn cap:start && yarn dip721:start && yarn dip20:start",
+    "services:start": "yarn cap:start",
     "reset": "dfx stop && rm -rf .dfx && yarn cap:reset && yarn dip721:reset && yarn dip20:reset"
   }
 }

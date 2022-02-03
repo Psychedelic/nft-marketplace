@@ -1,3 +1,5 @@
+#!/bin/bash
+
 dfxDir="/home/dan/.config/dfx"
 candidDir="/home/dan/dev/psy/marketplace/marketplace"
 
@@ -18,8 +20,8 @@ CharliePrincipalId=$(dfx identity use Charlie 2>/dev/null;dfx identity get-princ
 
 dfx identity use default 2>/dev/null
 
-declare -A nameToPrincipal=( ["Alice"]="$AlicePrincipalId" ["Bob"]="$BobPrincipalId" ["Charlie"]="$CharliePrincipalId" ["default"]="$DefaultPrincipalId")
-declare -A nameToPem=( ["Alice"]="$AlicePem" ["Bob"]="$BobPem" ["Charlie"]="$CharliePem" ["Default"]="$DefaultPem")
+nameToPrincipal=( ["Alice"]="$AlicePrincipalId" ["Bob"]="$BobPrincipalId" ["Charlie"]="$CharliePrincipalId" ["default"]="$DefaultPrincipalId")
+nameToPem=( ["Alice"]="$AlicePem" ["Bob"]="$BobPem" ["Charlie"]="$CharliePem" ["Default"]="$DefaultPem")
 
 help()
 {
