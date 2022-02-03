@@ -63,44 +63,44 @@ pub async fn list_for_sale(
     )
     .await?;
 
-    // if (caller != token_owner) {
-    //     return Err(MPApiError::Unauthorized);
-    // }
+    if (caller != token_owner) {
+        return Err(MPApiError::Unauthorized);
+    }
 
-    // let mut mp = marketplace();
+    let mut mp = marketplace();
 
-    // let mut sale_offer = mp
-    //     .sale_offers
-    //     .entry((non_fungible_contract_address, token_id.clone()))
-    //     .or_default();
-    // if (sale_offer.status == SaleOfferStatus::Selling) {
-    //     return Err(MPApiError::InvalidSaleOfferStatus);
-    // }
+    let mut sale_offer = mp
+        .sale_offers
+        .entry((non_fungible_contract_address, token_id.clone()))
+        .or_default();
+    if (sale_offer.status == SaleOfferStatus::Selling) {
+        return Err(MPApiError::InvalidSaleOfferStatus);
+    }
 
-    // *sale_offer = SaleOffer::new(true, list_price.clone(), caller, SaleOfferStatus::Created);
+    *sale_offer = SaleOffer::new(true, list_price.clone(), caller, SaleOfferStatus::Created);
 
-    // capq()
-    //     .insert_into_cap(
-    //         IndefiniteEventBuilder::new()
-    //             .caller(caller)
-    //             .operation("makeSaleOffer")
-    //             .details(vec![
-    //                 ("token_id".into(), DetailValue::Text(token_id.to_string())),
-    //                 (
-    //                     "non_fungible_contract_address".into(),
-    //                     DetailValue::Principal(collection.non_fungible_contract_address),
-    //                 ),
-    //                 (
-    //                     "list_price".into(),
-    //                     DetailValue::U64(convert_nat_to_u64(list_price.clone()).unwrap()),
-    //                 ),
-    //                 ("payment_address".into(), DetailValue::Principal(caller)),
-    //             ])
-    //             .build()
-    //             .unwrap(),
-    //     )
-    //     .await
-    //     .map_err(|_| MPApiError::CAPInsertionError)?;
+    capq()
+        .insert_into_cap(
+            IndefiniteEventBuilder::new()
+                .caller(caller)
+                .operation("makeSaleOffer")
+                .details(vec![
+                    ("token_id".into(), DetailValue::Text(token_id.to_string())),
+                    (
+                        "non_fungible_contract_address".into(),
+                        DetailValue::Principal(collection.non_fungible_contract_address),
+                    ),
+                    (
+                        "list_price".into(),
+                        DetailValue::U64(convert_nat_to_u64(list_price.clone()).unwrap()),
+                    ),
+                    ("payment_address".into(), DetailValue::Principal(caller)),
+                ])
+                .build()
+                .unwrap(),
+        )
+        .await
+        .map_err(|_| MPApiError::CAPInsertionError)?;
 
     Ok(())
 }
