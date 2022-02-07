@@ -11,7 +11,7 @@ use std::collections::{HashMap, VecDeque};
 
 use derive_new::*;
 
-#[derive(Clone, CandidType, Deserialize, Eq, PartialEq)]
+#[derive(Clone, CandidType, Debug, Deserialize, Eq, PartialEq)]
 pub enum BuyOfferStatus {
     Uninitialized,
     Created,
@@ -51,7 +51,7 @@ impl Default for SaleOffer {
     }
 }
 
-#[derive(Clone, CandidType, Deserialize, new)]
+#[derive(Clone, CandidType, Debug, Deserialize, new)]
 pub struct BuyOffer {
     pub non_fungible_contract_address: Principal,
     pub token_id: u64,

@@ -153,7 +153,7 @@ type TxError = variant {
 type BuyOffer = record {
   status : BuyOfferStatus;
   non_fungible_contract_address : principal;
-  token_id : text;
+  token_id : nat64;
   price : nat;
   payment_address : principal;
 };

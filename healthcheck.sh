@@ -169,6 +169,29 @@ makeBuyOffer() {
     "$marketplaceIcxPrologue"
 }
 
+getBuyOffers() {
+    printf "🤖 Call getBuyOffers\n"
+
+    begin=$1
+    limit=$2
+  
+    printf "🤖 The getBuyOffers was called with being (%s) and limit (%s)\n" "$begin" "$limit"
+
+    dfx canister --no-wallet call "$marketplaceId" getBuyOffers "($begin, $limit)"
+}
+
+acceptBuyOffer() {
+    printf "🤖 Call acceptBuyOffer\n"
+
+    ownerPem=$1
+    buy_id=$2
+
+    icx --pem="$ownerPem" \
+      update "$marketplaceId" \
+      acceptBuyOffer "($buy_id)" \
+     "$marketplaceIcxPrologue"
+}
+
 run() {
   printf "🚑 Healthcheck runtime details"
   printf "Owner address -> %s\n" "$ownerPrincipalId"
@@ -181,6 +204,8 @@ run() {
   listForSale
   getSaleOffers
   makeBuyOffer
+  getBuyOffers 0 10
+  # acceptBuyOffer "$DEFAULT_PEM" 0
 }
 
 run

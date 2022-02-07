@@ -530,9 +530,13 @@ pub async fn get_sale_offers() -> Vec<((Principal, u64), SaleOffer)> {
 #[query(name = "getBuyOffers")]
 #[candid_method(query, rename = "getBuyOffers")]
 pub async fn get_buy_offers(begin: u64, limit: u64) -> Vec<BuyOffer> {
-    (&marketplace().buy_offers)
-        [begin as usize..min((begin + limit) as usize, marketplace().buy_offers.len())]
-        .to_vec()
+    let buy_offers = &marketplace()
+        .buy_offers;
+    let result = buy_offers
+        [begin as usize..min((begin + limit) as usize, buy_offers.len())]
+        .to_vec();
+
+    result
 }
 
 #[update(name = "withdrawFungible")]
