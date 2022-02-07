@@ -11,6 +11,54 @@ nonFungibleContractAddress=""
 fungibleContractAddress=""
 icHistoryRouter=$(cd ./cap && dfx canister id ic-history-router)
 
+deployWICP() {
+  printf "🤖 Deploy wICP Token Canister\n"
+
+  # args
+  name="$1"
+  owner="$2"
+  pem="$3"
+  token_id="$4"
+
+  printf "🤖 token id (%s) is for (%s), (%s) \n" "$token_id" "$name" "$owner"
+
+  yarn wicp:deploy "$owner"
+
+  fungibleContractAddress=$(cd ./wicp && dfx canister id wicp)
+
+  printf "🤖 Balance of name (%s), address (%s) of token id (%s)" "$name" "$owner" "$token_id"
+
+  yarn wicp:balance-of "$owner"
+
+  (
+    cd ./wicp || exit 1
+
+    # Top-up Alice's account balance
+    dfx canister --no-wallet \
+      call wicp \
+      transfer "(
+        principal \"$ALICE_PRINCIPAL_ID\",
+        1000000:nat
+      )"
+
+    printf "🤖 Balance of name (%s), address (%s) of token id (%s)" "Alice" "$ALICE_PRINCIPAL_ID" "$token_id"
+
+    yarn wicp:balance-of "$ALICE_PRINCIPAL_ID"
+
+    # Top-up Bob's account balance
+    dfx canister --no-wallet \
+      call wicp \
+      transfer "(
+        principal \"$BOB_PRINCIPAL_ID\",
+        1000000:nat
+      )"
+
+    printf "🤖 Balance of name (%s), address (%s) of token id (%s)" "Bob" "$BOB_PRINCIPAL_ID" "$token_id"
+
+    yarn wicp:balance-of "$BOB_PRINCIPAL_ID"
+  )
+}
+
 deployMarketplace() {
   printf "🤖 Call the deployMarketplace\n"
 
@@ -37,22 +85,17 @@ deployNft() {
   printf "NFT Contract address -> %s\n" "$nonFungibleContractAddress"
 }
 
-deployToken() {
-  printf "🤖 Deploy DIP20 Token Canister\n"
-
-  yarn dip20:deploy
-
-  fungibleContractAddress=$(cd ./DIP20/motoko && dfx canister id token)
-}
-
 mintDip721() {
   printf "🤖 Call the mintDip721\n"
 
-  mint_for="$ownerPrincipalId"
+  # Args
+  name="$1"
+  mint_for="$2"
+  pem="$3"
 
-  printf "🤖 The mintDip721 has nonFungibleContractAddress (%s), mint_for (%s)\n" "$nonFungibleContractAddress" "$mint_for"
+  printf "🤖 The mintDip721 has nonFungibleContractAddress (%s), mint_for user (%s) (%s)\n" "$nonFungibleContractAddress" "$name" "$mint_for"
 
-  icx --pem="$DEFAULT_PEM" \
+  icx --pem="$pem" \
     update "$nonFungibleContractAddress" \
     mintDip721 "(
       principal \"$mint_for\",
@@ -87,7 +130,7 @@ listForSale() {
   echo "🤖 List for sale"
 
     token_id=0
-    list_price="(123:nat)"
+    list_price="(12345:nat)"
 
     icx --pem="$DEFAULT_PEM" \
       update "$marketplaceId" \
@@ -110,17 +153,34 @@ getSaleOffers() {
       "$marketplaceIcxPrologue"
 }
 
+makeBuyOffer() {
+    printf "🤖 Call makeBuyOffer\n"
+
+    token_id=0
+    list_price="(321:nat)"
+
+    icx --pem="$ALICE_PEM" \
+      update "$marketplaceId" \
+      makeBuyOffer "(
+        principal \"$nonFungibleContractAddress\",
+        $token_id,
+        $list_price
+      )" \
+    "$marketplaceIcxPrologue"
+}
+
 run() {
   printf "🚑 Healthcheck runtime details"
   printf "Owner address -> %s\n" "$ownerPrincipalId"
 
-  deployToken
+  deployWICP "Default" "$DEFAULT_PRINCIPAL_ID" "$DEFAULT_PEM" "wicp"
   deployMarketplace
   deployNft
-  mintDip721
+  mintDip721 "default" "$DEFAULT_PRINCIPAL_ID" "$DEFAULT_PEM"
   addCrownCollection
   listForSale
   getSaleOffers
+  makeBuyOffer
 }
 
 run
