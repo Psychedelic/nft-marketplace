@@ -210,6 +210,6 @@ service : (principal, principal) -> {
     ) query;
   listForSale : (principal, nat64, nat) -> (Result);
   directBuy : (principal, text) -> (Result);
-  makeBuyOffer : (principal, text, nat) -> (Result_1);
+  makeBuyOffer : (principal, nat64, nat) -> (Result_1);
   withdrawFungible : (principal, FungibleTokenType) -> (Result);
 }
