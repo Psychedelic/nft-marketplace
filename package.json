@@ -12,13 +12,14 @@
     "dip721:deploy-nft": "./.scripts/dip721/deploy-nft.sh",
     "dip721:set-controllers": "./.scripts/dip721/set-controllers.sh",
     "dip721:reset": "cd ./DIP721 && rm -rf .dfx",
-    "dip20:deploy": "./.scripts/dip20/deploy-token.sh",
-    "dip20:reset": "cd ./DIP20/motoko && rm -rf .dfx",
+    "wicp:deploy": "./.scripts/wicp/deploy-wicp.sh",
+    "wicp:balance-of": "./.scripts/wicp/balance-of.sh",
+    "wicp:reset": "cd ./wicp && rm -rf .dfx",
     "healthcheck": "./healthcheck.sh",
     "marketplace:deploy": "./.scripts/marketplace/deploy-marketplace.sh",
     "marketplace:reset": "rm -rf .dfx",
     "services:init": "git submodule update --init --recursive",
     "services:start": "yarn cap:start",
-    "reset": "dfx stop && rm -rf .dfx && yarn cap:reset && yarn dip721:reset && yarn dip20:reset"
+    "reset": "dfx stop && rm -rf .dfx && yarn cap:reset && yarn dip721:reset && yarn wicp:reset"
   }
 }
