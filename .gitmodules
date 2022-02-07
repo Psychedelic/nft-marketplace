@@ -10,3 +10,6 @@
 [submodule "dab"]
 	path = dab
 	url = git@github.com:Psychedelic/dab
+[submodule "wicp"]
+	path = wicp
+	url = git@github.com:Psychedelic/wicp
