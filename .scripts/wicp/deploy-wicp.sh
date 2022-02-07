@@ -4,22 +4,28 @@ cd $(dirname $BASH_SOURCE) || exit 1
 
 source "../dfx-identity.sh"
 
-cd ../../DIP20/motoko || exit 1
+cd ../../wicp || exit 1
 
-BASE64_LOGO="No logo"
-NAME="Test coin"
-SYMBOL="TCI"
-DECIMALS=9
-TOTAL_SUPPLY=1000000
-OWNER=$(dfx identity get-principal)
-FEE=10000
+dfx canister create wicp
 
-dfx deploy --no-wallet token --argument "(
-  \"$BASE64_LOGO\",
-  \"$NAME\",
-  \"$SYMBOL\",
-  $DECIMALS,
-  $TOTAL_SUPPLY,
-  principal \"$OWNER\",
-  $FEE
-)"
+cargo build --target wasm32-unknown-unknown --package rust --release \
+	&& ic-cdk-optimizer target/wasm32-unknown-unknown/release/rust.wasm \
+	-o target/wasm32-unknown-unknown/release/opt.wasm
+
+OWNER=$1
+FEES_TO=$1
+
+# cap test canister id glh6n-uaaaa-aaaaj-aadya-cai
+yes yes | dfx canister install wicp \
+	--argument="(
+		\"data:image/jpeg;base64,$(base64 ./WICP-logo.png)\",
+		\"wicp\",
+		\"WICP\",
+		8:nat8,
+	  1000000000000:nat,
+		principal \"$OWNER\",
+		0,
+		principal \"$FEES_TO\",
+		principal \"$(cd ../../cap && dfx canister id ic-history-router)\"
+	)" \
+  --mode="reinstall"
