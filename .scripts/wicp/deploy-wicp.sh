@@ -15,7 +15,6 @@ cargo build --target wasm32-unknown-unknown --package rust --release \
 OWNER=$1
 FEES_TO=$1
 
-# cap test canister id glh6n-uaaaa-aaaaj-aadya-cai
 yes yes | dfx canister install wicp \
 	--argument="(
 		\"data:image/jpeg;base64,$(base64 ./WICP-logo.png)\",
