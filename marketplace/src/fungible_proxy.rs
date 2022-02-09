@@ -52,13 +52,41 @@ impl Dip20Proxy {
         amount: &Nat,
         contract: &Principal,
     ) -> U64Result {
+        ic_cdk::println!("[debug] DIP20proxy > transfer_from > from {:?}, to {:?}, amount {:?}, contract {:?}", from.to_string(), to.to_string(), amount, contract.to_string());
+
         let call_res: Result<(TxReceipt,), (RejectionCode, String)> =
             ic::call(*contract, "transferFrom", (*from, *to, amount.clone())).await;
-        call_res
+
+        // match &call_res {
+        //     Ok(unwrapped) => {
+        //         ic_cdk::println!("[debug] Dip20proxy SUCCESS!");
+
+        //         unwrapped
+
+        //         // match unwrapped.0 {
+        //         //     Ok(result) => result,
+        //         //     _ => MPApiError::TransferFungibleError,
+        //         // }
+        //     },
+        //     _ => {
+        //         ic_cdk::println!("[debug] Dip20proxy FAILURE!");
+
+        //         MPApiError::TransferFungibleError
+        //     }
+        // }
+        
+        let x = call_res
             .map_err(|_| MPApiError::TransferFungibleError)?
             .0
             .map_err(|_| MPApiError::TransferFungibleError)
-            .map(|res| convert_nat_to_u64(res).unwrap())
+            .map(|res| convert_nat_to_u64(res).unwrap());
+
+        match &x {
+            Ok(r) => ic_cdk::println!("[debug] fungible_proxy -> success -> {:?}", r),
+            _ => ic_cdk::println!("[debug] fungible_proxy -> failure"),
+        };
+
+        x
     }
 
     pub async fn transfer(to: &Principal, amount: &Nat, contract: &Principal) -> U64Result {

@@ -18,6 +18,7 @@ pub async fn transfer_from_non_fungible(
 ) -> U64Result {
     match non_fungible_token_type {
         NonFungibleTokenType::DIP721 => {
+            ic_cdk::println!("[debug] non_fungible_proxy.rs -> transfer_from_non_fungible -> DIP721 -> 1 -> should transfer_from where from {:?}, to {:?}", &from.to_string(), &to.to_string());
             Dip721Proxy::transfer_from(from, to, nft_id, contract).await
         }
         NonFungibleTokenType::EXT => EXTProxy::transfer_from(from, to, nft_id, contract).await,

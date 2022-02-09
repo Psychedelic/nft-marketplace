@@ -170,6 +170,8 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
     let init_data = &init_data();
     let mut mp = marketplace();
 
+    ic_cdk::println!("[debug] accept_buy_offer -> caller -> {:#?}", &caller.to_string());
+
     let buy_offer = mp
         .buy_offers
         .get_mut(buy_id as usize)
@@ -222,6 +224,10 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
     buy_offer.status = BuyOfferStatus::Bought;
     sale_offer.status = SaleOfferStatus::Selling;
 
+    ic_cdk::println!("[debug] makeBuyOffer -> &buy_offer.payment_address {:#?}", &buy_offer.payment_address.to_string());
+    ic_cdk::println!("[debug] makeBuyOffer -> &self_id {:#?}", &self_id.to_string());
+    ic_cdk::println!("[debug] makeBuyOffer -> &collection.fungible_contract_address {:#?}", &collection.fungible_contract_address.to_string());
+
     // transfer the money from the buyer to the MP contract
     if transfer_from_fungible(
         &buy_offer.payment_address,
@@ -237,6 +243,8 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
         sale_offer.status = SaleOfferStatus::Created;
         return Err(MPApiError::TransferFungibleError);
     }
+
+    ic_cdk::println!("[debug] makeBuyOffer -> 1");
 
     // transfer the nft from the seller to the buyer
     if transfer_from_non_fungible(
@@ -257,6 +265,8 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
                 buy_offer.payment_address,
             ))
             .or_default()) += buy_offer.price.clone();
+        
+        ic_cdk::println!("[debug] makeBuyOffer -> 2");
 
         balances().failed_tx_log_entries.push(TxLogEntry::new(
             self_id.clone(),
@@ -266,6 +276,8 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
                 buy_offer.payment_address, buy_id
             ),
         ));
+
+        ic_cdk::println!("[debug] makeBuyOffer -> 3");
 
         buy_offer.status = BuyOfferStatus::Created;
         sale_offer.status = SaleOfferStatus::Created;
@@ -306,6 +318,8 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
                 sale_offer.payment_address, buy_id
             ),
         ));
+
+        ic_cdk::println!("[debug] makeBuyOffer -> 4");
 
         buy_offer.status = BuyOfferStatus::Created;
         sale_offer.status = SaleOfferStatus::Created;
@@ -409,11 +423,11 @@ pub async fn direct_buy(non_fungible_contract_address: Principal, token_id: u64)
 
     // transfer the nft from the seller to the buyer
     if transfer_from_non_fungible(
-        &sale_offer.payment_address,
-        &caller,
-        &token_id,
-        &non_fungible_contract_address,
-        collection.non_fungible_token_type.clone(),
+        &sale_offer.payment_address, // from
+        &caller, // to
+        &token_id, // nft id
+        &non_fungible_contract_address, // contract
+        collection.non_fungible_token_type.clone(), // nft type
     )
     .await
     .is_err()
