@@ -7,3 +7,6 @@
 [submodule "DIP721"]
 	path = DIP721
 	url = git@github.com:Psychedelic/DIP721
+[submodule "wicp"]
+	path = wicp
+	url = git@github.com:Psychedelic/wicp
