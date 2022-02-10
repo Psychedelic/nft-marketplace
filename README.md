@@ -1,5 +1,7 @@
 # 🌈 NFT Marketplace
 
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-blue.svg)](https://conventionalcommits.org) [![Healthcheck](https://github.com/Psychedelic/nft-marketplace/actions/workflows/pr-healthcheck-runner.yml/badge.svg)](https://github.com/Psychedelic/nft-marketplace/actions/workflows/pr-healthcheck-runner.yml)
+
 The NFT Marketplace is the backend Service for our DIP-721 implementation, and soon a multi-standard NFT Marketplace.
 
 ### ⚙️ Requirements
