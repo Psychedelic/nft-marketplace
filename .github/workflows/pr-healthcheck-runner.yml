@@ -28,11 +28,11 @@ jobs:
           override: true
 
       - name: Cache IC CDK Optimizer
-          id: cache-ic-cdk-optimizer
-          uses: actions/cache@v2
-          with:
-            path: |
-              $CARGO_HOME/bin
+        id: cache-ic-cdk-optimizer
+        uses: actions/cache@v2
+        with:
+          path: |
+            $CARGO_HOME/bin
           key: cache-ic-cdk-opt-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install IC CDK Optimizer
