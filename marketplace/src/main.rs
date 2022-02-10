@@ -38,7 +38,7 @@ pub fn init(cap: Principal, owner: Principal) {
 #[candid_method(update, rename = "listForSale")]
 pub async fn list_for_sale(
     non_fungible_contract_address: Principal,
-    token_id: String,
+    token_id: u64,
     list_price: Nat,
 ) -> MPApiResult {
     let caller = ic::caller();
@@ -55,6 +55,7 @@ pub async fn list_for_sale(
         collection.non_fungible_token_type.clone(),
     )
     .await?;
+
     if (caller != token_owner) {
         return Err(MPApiError::Unauthorized);
     }
@@ -65,6 +66,7 @@ pub async fn list_for_sale(
         .sale_offers
         .entry((non_fungible_contract_address, token_id.clone()))
         .or_default();
+
     if (sale_offer.status == SaleOfferStatus::Selling) {
         return Err(MPApiError::InvalidSaleOfferStatus);
     }
@@ -77,7 +79,7 @@ pub async fn list_for_sale(
                 .caller(caller)
                 .operation("makeSaleOffer")
                 .details(vec![
-                    ("token_id".into(), DetailValue::Text(token_id)),
+                    ("token_id".into(), DetailValue::Text(token_id.to_string())),
                     (
                         "non_fungible_contract_address".into(),
                         DetailValue::Principal(collection.non_fungible_contract_address),
@@ -101,7 +103,7 @@ pub async fn list_for_sale(
 #[candid_method(update, rename = "makeBuyOffer")]
 pub async fn make_buy_offer(
     non_fungible_contract_address: Principal,
-    token_id: String,
+    token_id: u64,
     price: Nat,
 ) -> U64Result {
     let caller = ic::caller();
@@ -144,7 +146,7 @@ pub async fn make_buy_offer(
                         "non_fungible_contract_address".into(),
                         DetailValue::Principal(non_fungible_contract_address),
                     ),
-                    ("token_id".into(), DetailValue::Text(token_id.clone())),
+                    ("token_id".into(), DetailValue::U64(token_id.clone())),
                     (
                         "price".into(),
                         DetailValue::U64(convert_nat_to_u64(price.clone()).unwrap()),
@@ -255,7 +257,7 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
                 buy_offer.payment_address,
             ))
             .or_default()) += buy_offer.price.clone();
-
+        
         balances().failed_tx_log_entries.push(TxLogEntry::new(
             self_id.clone(),
             buy_offer.payment_address.clone(),
@@ -331,7 +333,7 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
                     ),
                     (
                         "token_id".into(),
-                        DetailValue::Text(buy_offer.token_id.clone()),
+                        DetailValue::U64(buy_offer.token_id.clone()),
                     ),
                     (
                         "price".into(),
@@ -353,7 +355,7 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
 
 #[update(name = "directBuy")]
 #[candid_method(update, rename = "directBuy")]
-pub async fn direct_buy(non_fungible_contract_address: Principal, token_id: String) -> MPApiResult {
+pub async fn direct_buy(non_fungible_contract_address: Principal, token_id: u64) -> MPApiResult {
     let caller = ic::caller();
     let self_id = ic::id();
     let init_data = &init_data();
@@ -407,11 +409,11 @@ pub async fn direct_buy(non_fungible_contract_address: Principal, token_id: Stri
 
     // transfer the nft from the seller to the buyer
     if transfer_from_non_fungible(
-        &sale_offer.payment_address,
-        &caller,
-        &token_id,
-        &non_fungible_contract_address,
-        collection.non_fungible_token_type.clone(),
+        &sale_offer.payment_address, // from
+        &caller, // to
+        &token_id, // nft id
+        &non_fungible_contract_address, // contract
+        collection.non_fungible_token_type.clone(), // nft type
     )
     .await
     .is_err()
@@ -495,7 +497,7 @@ pub async fn direct_buy(non_fungible_contract_address: Principal, token_id: Stri
                         "non_fungible_contract_address".into(),
                         DetailValue::Principal(non_fungible_contract_address),
                     ),
-                    ("token_id".into(), DetailValue::Text(token_id.clone())),
+                    ("token_id".into(), DetailValue::U64(token_id.clone())),
                     (
                         "price".into(),
                         DetailValue::U64(convert_nat_to_u64(list_price).unwrap()),
@@ -516,7 +518,7 @@ pub async fn direct_buy(non_fungible_contract_address: Principal, token_id: Stri
 
 #[query(name = "getSaleOffers")]
 #[candid_method(query, rename = "getSaleOffers")]
-pub async fn get_sale_offers() -> Vec<((Principal, String), SaleOffer)> {
+pub async fn get_sale_offers() -> Vec<((Principal, u64), SaleOffer)> {
     marketplace()
         .sale_offers
         .clone()
@@ -528,9 +530,13 @@ pub async fn get_sale_offers() -> Vec<((Principal, String), SaleOffer)> {
 #[query(name = "getBuyOffers")]
 #[candid_method(query, rename = "getBuyOffers")]
 pub async fn get_buy_offers(begin: u64, limit: u64) -> Vec<BuyOffer> {
-    (&marketplace().buy_offers)
-        [begin as usize..min((begin + limit) as usize, marketplace().buy_offers.len())]
-        .to_vec()
+    let buy_offers = &marketplace()
+        .buy_offers;
+    let result = buy_offers
+        [begin as usize..min((begin + limit) as usize, buy_offers.len())]
+        .to_vec();
+
+    result
 }
 
 #[update(name = "withdrawFungible")]
@@ -576,7 +582,7 @@ pub async fn withdraw_fungible(
 #[candid_method(update, rename = "cancelListingBySeller")]
 pub async fn cancel_listing_by_seller(
     non_fungible_contract_address: Principal,
-    token_id: String,
+    token_id: u64,
 ) -> MPApiResult {
     let caller = ic::caller();
     let mut mp = marketplace();
@@ -603,7 +609,7 @@ pub async fn cancel_listing_by_seller(
                     "non_fungible_contract_address".into(),
                     DetailValue::Principal(non_fungible_contract_address),
                 )])
-                .details(vec![("token_id".into(), DetailValue::Text(token_id))])
+                .details(vec![("token_id".into(), DetailValue::U64(token_id))])
                 .build()
                 .unwrap(),
         )
