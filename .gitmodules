@@ -1,3 +1,6 @@
 [submodule "cap"]
 	path = cap
 	url = git@github.com:Psychedelic/cap
+[submodule "dab"]
+	path = dab
+	url = git@github.com:Psychedelic/dab
