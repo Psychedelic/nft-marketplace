@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "cap:start": "cd ./cap && dfx deploy ic-history-router",
-    "cap:reset": "cd ./cap && rm -rf .dfx"
+    "cap:reset": "cd ./cap && rm -rf .dfx",
+    "dab:start": "cd ./dab && dfx deploy nft",
+    "dab:reset": "cd ./dab && rm -rf .dfx"
   },
   "repository": {
     "type": "git",
