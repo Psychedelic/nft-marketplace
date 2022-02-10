@@ -32,6 +32,9 @@ jobs:
           target: wasm32-unknown-unknown
           override: true
 
+      - name: Install optimizer
+        run: cargo install ic-cdk-optimizer
+
       - name: Install DFX
         env:
           DFX_VERSION: 0.8.1
