@@ -13,16 +13,30 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/psychedelic/ci-dip-721
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ secrets.PAT }}
+    # container:
+    #   image: ghcr.io/psychedelic/ci-dip-721
+    #   credentials:
+    #     username: ${{ github.actor }}
+    #     password: ${{ secrets.PAT }}
 
     steps:
-      # - uses: actions/checkout@v2
-      #   with:
-      #     submodules: 'recursive'
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: wasm32-unknown-unknown
+          override: true
+
+      - name: Install DFX
+        env:
+          DFX_VERSION: 0.8.4
+        run: |
+          curl -fsSL https://sdk.dfinity.org/install.sh | bash
 
       # - name: Path setup
       #   run: |
@@ -36,16 +50,16 @@ jobs:
       # - name: Rust toolchain
       #   run: rustup install stable && rustup default stable && rustup target add wasm32-unknown-unknown
 
-      # - name: Healthcheck 
-      #   run: dfx start --background && yarn cap:start && yarn marketplace:healthcheck
-      #   env:
-      #     NODE_ENV: ci
+      - name: Healthcheck 
+        run: dfx start --background && yarn cap:start && yarn marketplace:healthcheck
+        env:
+          NODE_ENV: ci
 
-      - name: Debug
-        run: |
-          echo "What is the Cargo path?"
-          which cargo
-          echo "What is PATH?"
-          echo $PATH
-          echo "What is the pwd?"
-          pwd
+      # - name: Debug
+      #   run: |
+      #     echo "What is the Cargo path?"
+      #     which cargo
+      #     echo "What is PATH?"
+      #     echo $PATH
+      #     echo "What is the pwd?"
+      #     pwd
