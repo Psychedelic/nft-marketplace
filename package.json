@@ -4,7 +4,8 @@
   "description": "NFT Marketplace template",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "cap:start": "cd ./cap && dfx deploy ic-history-router",
+    "cap:reset": "cd ./cap && rm -rf .dfx"
   },
   "repository": {
     "type": "git",
