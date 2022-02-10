@@ -51,98 +51,20 @@ The following assumes that the local replica network is available and running.
 yarn services:start
 ```
 
-If you'd like to know which services and how they are initialised then keep reading, as this might be useful for troubleshooting.
+If you'd like to know which services and how they are initialised then check the [Service dependencies](docs/service-dependencies.md) document, as this might be useful for troubleshooting.
 
-## Cap
+## 🙏 Contributing
 
-Deploy the Cap service to the local replica by running:
+Create branches from the `main` branch and name it in accordance to **conventional commits** [here](https://www.conventionalcommits.org/en/v1.0.0/), or follow the examples bellow:
 
-```sh
-yarn cap:start
+```txt
+test: 💍 Adding missing tests
+feat: 🎸 A new feature
+fix: 🐛 A bug fix
+chore: 🤖 Build process or auxiliary tool changes
+docs: ✏️ Documentation only changes
+refactor: 💡 A code change that neither fixes a bug or adds a feature
+style: 💄 Markup, white-space, formatting, missing semi-colons...
 ```
 
-For the cases where you'd like to reset the Cap Service, run the command:
-
-```sh
-yarn cap:reset
-```
-
-💡 The reset clears the `.dfx` directory and the Rust artifacts are kept in the target directory. If you wish to clear the Rust artifacts, you must do it manually (e.g. rm -rf ./cap/target).
-
-## Marketplace
-
-Deploy the Marketplace Service Canister to the local replica by running:
-
-```sh
-yarn marketplace:deploy
-```
-
-For the cases where you'd like to reset the Marketplace Service, run the command:
-
-```sh
-yarn marketplace:reset
-```
-
-💡 The reset clears the `.dfx` directory and the Rust artifacts are kept in the target directory. If you wish to clear the Rust artifacts, you must do it manually (e.g. rm -rf ./cap/target).
-
-## Dab
-
-Deploy the Dab service to the local replica by running:
-
-```sh
-yarn dab:start
-```
-
-For the cases where you'd like to reset the Dab Service, run the command:
-
-```sh
-yarn dab:reset
-```
-
-💡 The reset clears the `.dfx` directory and the Rust artifacts are kept in the target directory. If you wish to clear the Rust artifacts, you must do it manually (e.g. rm -rf ./cap/target).
-
-
-## DIP-721
-
-To deploy an NFT Canister run:
-
-```sh
-yarn dip721:deploy-nft
-```
-
-Set a controller by running:
-
-```sh
-yarn dip721:set-controllers <Principal ID>
-```
-
-For the cases where you'd like to reset the DIP-721 Canister, run the command:
-
-```sh
-yarn dip721:reset
-```
-
-💡 The reset clears the `.dfx` directory and the Rust artifacts are kept in the target directory. If you wish to clear the Rust artifacts, you must do it manually (e.g. rm -rf ./cap/target).
-
-# wICP
-
-To deploy the wICP Canister run:
-
-```sh
-yarn wicp:deploy
-```
-
-Check a balance of by:
-
-```sh
-yarn wicp:balance-of
-```
-
-For the cases where you'd like to reset the DIP-721 Canister, run the command:
-
-```sh
-yarn wicp:reset
-```
-
-💡 The reset clears the `.dfx` directory and the Rust artifacts are kept in the target directory. If you wish to clear the Rust artifacts, you must do it manually (e.g. rm -rf ./cap/target).
-
+Find more about contributing [here](docs/contributing.md), please!
