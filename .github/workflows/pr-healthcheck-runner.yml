@@ -27,12 +27,16 @@ jobs:
           target: wasm32-unknown-unknown
           override: true
 
+      - name: Has CARGO_HOME
+        run: |
+          echo "CARGO_HOME -> ($CARGO_HOME)"
+
       - name: Cache IC CDK Optimizer
         id: cache-ic-cdk-optimizer
         uses: actions/cache@v2
         with:
           path: |
-            $CARGO_HOME/bin
+            $HOME/.cargo/ic-cdk-optimizer
           key: cache-ic-cdk-opt-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install IC CDK Optimizer
