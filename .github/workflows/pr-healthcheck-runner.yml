@@ -50,6 +50,9 @@ jobs:
       # - name: Rust toolchain
       #   run: rustup install stable && rustup default stable && rustup target add wasm32-unknown-unknown
 
+      - name: Install Yarn
+        uses: bahmutov/npm-install@v1
+
       - name: Healthcheck 
         run: dfx start --background && yarn cap:start && yarn marketplace:healthcheck
         env:
