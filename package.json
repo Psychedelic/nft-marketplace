@@ -1,0 +1,27 @@
+{
+  "name": "nft-marketplace",
+  "version": "0.0.1",
+  "description": "NFT Marketplace template",
+  "main": "index.js",
+  "scripts": {
+    "cap:start": "cd ./cap && dfx deploy ic-history-router",
+    "cap:reset": "cd ./cap && rm -rf .dfx",
+    "dab:start": "cd ./dab && dfx deploy nft",
+    "dab:reset": "cd ./dab && rm -rf .dfx",
+    "services:init": "git submodule update --init --recursive",
+    "services:start": "echo 'TODO: Initialise all Services'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Psychedelic/nft-marketplace.git"
+  },
+  "author": {
+    "name": "Helder Oliveira",
+    "email": "helder@fleek.co"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Psychedelic/nft-marketplace/issues"
+  },
+  "homepage": "https://github.com/Psychedelic/nft-marketplace#readme"
+}
