@@ -153,7 +153,7 @@ type TxError = variant {
 type BuyOffer = record {
   status : BuyOfferStatus;
   non_fungible_contract_address : principal;
-  token_id : text;
+  token_id : nat64;
   price : nat;
   payment_address : principal;
 };
@@ -206,10 +206,10 @@ service : (principal, principal) -> {
   cancelOfferBySeller : (nat64) -> (Result);
   getBuyOffers : (nat64, nat64) -> (vec BuyOffer) query;
   getSaleOffers : () -> (
-      vec record { record { principal; text }; SaleOffer },
+      vec record { record { principal; nat64 }; SaleOffer },
     ) query;
-  listForSale : (principal, text, nat) -> (Result);
+  listForSale : (principal, nat64, nat) -> (Result);
   directBuy : (principal, text) -> (Result);
-  makeBuyOffer : (principal, text, nat) -> (Result_1);
+  makeBuyOffer : (principal, nat64, nat) -> (Result_1);
   withdrawFungible : (principal, FungibleTokenType) -> (Result);
 }

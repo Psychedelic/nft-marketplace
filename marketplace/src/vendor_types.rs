@@ -3,7 +3,7 @@ use ic_kit::candid::{CandidType, Deserialize, Nat, Principal};
 // BEGIN EXT //
 
 pub type AccountIdentifier = String;
-pub type TokenIdentifier = String;
+pub type TokenIdentifier = u64;
 pub type Balance = Nat;
 pub type Blob = Vec<u8>;
 pub type Memo = Blob;

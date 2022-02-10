@@ -12,7 +12,7 @@ use ic_kit::{
 pub async fn transfer_from_non_fungible(
     from: &Principal,
     to: &Principal,
-    nft_id: &String,
+    nft_id: &u64,
     contract: &Principal,
     non_fungible_token_type: NonFungibleTokenType,
 ) -> U64Result {
@@ -26,7 +26,7 @@ pub async fn transfer_from_non_fungible(
 
 pub async fn transfer_non_fungible(
     to: &Principal,
-    nft_id: &String,
+    nft_id: &u64,
     contract: &Principal,
     non_fungible_token_type: NonFungibleTokenType,
 ) -> U64Result {
@@ -38,7 +38,7 @@ pub async fn transfer_non_fungible(
 
 pub async fn owner_of_non_fungible(
     contract: &Principal,
-    token_id: &String,
+    token_id: &u64,
     non_fungible_token_type: NonFungibleTokenType,
 ) -> PrincipalResult {
     match non_fungible_token_type {
@@ -53,13 +53,13 @@ impl Dip721Proxy {
     pub async fn transfer_from(
         from: &Principal,
         to: &Principal,
-        token_id: &String,
+        token_id: &u64,
         contract: &Principal,
     ) -> U64Result {
         let call_res: Result<(TxReceiptDIP721,), (RejectionCode, String)> = ic::call(
             *contract,
             "transferFromDip721",
-            (*from, *to, token_id.parse::<u64>().unwrap()),
+            (*from, *to, token_id),
         )
         .await;
         call_res
@@ -69,21 +69,22 @@ impl Dip721Proxy {
             .map(|res| convert_nat_to_u64(res).unwrap())
     }
 
-    pub async fn transfer(to: &Principal, nft_id: &String, contract: &Principal) -> U64Result {
+    pub async fn transfer(to: &Principal, nft_id: &u64, contract: &Principal) -> U64Result {
         Dip721Proxy::transfer_from(&ic::caller(), to, nft_id, contract).await
     }
 
-    pub async fn owner_of(contract: &Principal, token_id: &String) -> PrincipalResult {
+    pub async fn owner_of(contract: &Principal, token_id: &u64) -> PrincipalResult {
         let call_res: Result<(OwnerResult,), (RejectionCode, String)> = ic::call(
             *contract,
             "ownerOfDip721",
-            (token_id.parse::<u64>().unwrap(),),
+            (token_id,),
         )
         .await;
+
         call_res
             .map_err(|_| MPApiError::TransferFungibleError)?
             .0
-            .map_err(|_| MPApiError::TransferFungibleError)
+            .map_err(|_| MPApiError::TransferFungibleError) 
     }
 }
 
@@ -93,7 +94,7 @@ impl EXTProxy {
     pub async fn transfer_from(
         from: &Principal,
         to: &Principal,
-        nft_id: &String,
+        nft_id: &u64,
         contract: &Principal,
     ) -> U64Result {
         let call_res: Result<(TxReceiptDIP721,), (RejectionCode, String)> = ic::call(
@@ -117,7 +118,7 @@ impl EXTProxy {
             .map(|res| convert_nat_to_u64(res).unwrap())
     }
 
-    pub async fn transfer(to: &Principal, nft_id: &String, contract: &Principal) -> U64Result {
+    pub async fn transfer(to: &Principal, nft_id: &u64, contract: &Principal) -> U64Result {
         Dip721Proxy::transfer_from(&ic::caller(), to, nft_id, contract).await
     }
 }
