@@ -51,7 +51,7 @@ jobs:
       #   run: rustup install stable && rustup default stable && rustup target add wasm32-unknown-unknown
 
       - name: Healthcheck 
-        run: dfx start --background && yarn cap:start && yarn marketplace:healthcheck
+        run: dfx start --background && npm run cap:start && npm run marketplace:healthcheck
         env:
           NODE_ENV: ci
 
