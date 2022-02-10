@@ -8,8 +8,17 @@
     "cap:reset": "cd ./cap && rm -rf .dfx",
     "dab:start": "cd ./dab && dfx deploy nft",
     "dab:reset": "cd ./dab && rm -rf .dfx",
+    "dip721:deploy-nft": "./.scripts/dip721/deploy-nft.sh",
+    "dip721:set-controllers": "./.scripts/dip721/set-controllers.sh",
+    "dip721:reset": "cd ./DIP721 && rm -rf .dfx",
+    "wicp:deploy": "./.scripts/wicp/deploy-wicp.sh",
+    "wicp:balance-of": "./.scripts/wicp/balance-of.sh",
+    "wicp:reset": "cd ./wicp && rm -rf .dfx",
+    "marketplace:deploy": "./.scripts/marketplace/deploy-marketplace.sh",
+    "marketplace:reset": "rm -rf .dfx",
     "services:init": "git submodule update --init --recursive",
-    "services:start": "echo 'TODO: Initialise all Services'"
+    "services:start": "yarn cap:start",
+    "reset": "dfx stop && rm -rf .dfx && yarn cap:reset && yarn dip721:reset && yarn wicp:reset"
   },
   "repository": {
     "type": "git",
