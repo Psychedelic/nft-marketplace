@@ -7,7 +7,9 @@
     "cap:start": "cd ./cap && dfx deploy ic-history-router",
     "cap:reset": "cd ./cap && rm -rf .dfx",
     "dab:start": "cd ./dab && dfx deploy nft",
-    "dab:reset": "cd ./dab && rm -rf .dfx"
+    "dab:reset": "cd ./dab && rm -rf .dfx",
+    "services:init": "git submodule update --init --recursive",
+    "services:start": "echo 'TODO: Initialise all Services'"
   },
   "repository": {
     "type": "git",
