@@ -45,7 +45,7 @@ The following assumes that the local replica network is available and running.
 💡 If you don't know how to start a local replica check the [getting started](#getting-started), or the documentations in the [Dfinity docs](https://smartcontracts.org/docs/quickstart/local-quickstart.html) for more details.
 
 
-😅 TLDR; Run all the required services by executing the `sergices:start` command.
+😅 TLDR; Run all the required services by executing the `services:start` command.
 
 ```sh
 yarn services:start
