@@ -34,7 +34,7 @@ jobs:
 
       - name: Install DFX
         env:
-          DFX_VERSION: 0.8.4
+          DFX_VERSION: 0.8.1
         run: |
           curl -fsSL https://sdk.dfinity.org/install.sh | bash
 
@@ -49,9 +49,6 @@ jobs:
 
       # - name: Rust toolchain
       #   run: rustup install stable && rustup default stable && rustup target add wasm32-unknown-unknown
-
-      - name: Install Yarn
-        uses: bahmutov/npm-install@v1
 
       - name: Healthcheck 
         run: dfx start --background && yarn cap:start && yarn marketplace:healthcheck
