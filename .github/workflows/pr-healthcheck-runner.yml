@@ -41,6 +41,10 @@ jobs:
           echo "🤖 Install IC CDK Optimizer (not cached)"
           cargo install ic-cdk-optimizer
 
+      - name: Env variables
+        run: |
+          echo "PATH=$HOME/.cargo/bin:$PATH" >> $GITHUB_ENV
+
       - name: Cache Dfx
         id: cache-dfx
         uses: actions/cache@v2
