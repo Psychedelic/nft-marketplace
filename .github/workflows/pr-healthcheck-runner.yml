@@ -28,15 +28,15 @@ jobs:
           override: true
 
       - name: Cache IC CDK Optimizer
-        id: cache-ic-cdk-optimizer
+        id: cache-ic-cdk
         uses: actions/cache@v2
         with:
           path: |
             $HOME/.cargo/bin/ic-cdk-optimizer
-          key: cache-ic-cdk-opt-${{ hashFiles('**/Cargo.lock') }}
+          key: cache-ic-cdk-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install IC CDK Optimizer
-        if: steps.cache-ic-cdk-optimizer.outputs.cache-hit != 'true'
+        if: steps.cache-ic-cdk.outputs.cache-hit != 'true'
         run: |
           echo "🤖 Install IC CDK Optimizer (not cached)"
           cargo install ic-cdk-optimizer
