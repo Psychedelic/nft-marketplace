@@ -73,6 +73,9 @@ jobs:
           key: cache-rust-target-${{ hashFiles('package.json') }}
 
       - name: Healthcheck
-        run: dfx start --background && npm run cap:start && npm run marketplace:healthcheck
+        run: |
+          dfx start --background
+          npm run cap:start
+          npm run marketplace:healthcheck
         env:
           NODE_ENV: ci
