@@ -42,10 +42,9 @@ jobs:
           cargo install ic-cdk-optimizer
           echo "which ic-cdk?"
           which ic-cdk-optimizer
-          echo "what is $HOME/.cargo/?"
-          ls -la $HOME/.cargo/
-          echo "what is root/.cargo/?"
-          ls -la /root/.cargo
+          echo "what is $HOME/.cargo/bin?"
+          ls -la $HOME/.cargo/bin
+
 
       # - name: Cache Dfx
       #   id: cache-dfx
