@@ -54,6 +54,11 @@ jobs:
         run: |
           curl -fsSL https://sdk.dfinity.org/install.sh | bash
 
+      - name: Dfx identity
+        run: |
+          dfx identity new ci
+          dfx identity use ci
+
       - name: Cache build artifacts
         id: cache-rust-target
         uses: actions/cache@v2
