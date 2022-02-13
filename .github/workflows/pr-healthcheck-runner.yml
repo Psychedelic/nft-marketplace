@@ -29,11 +29,15 @@ jobs:
 
       - name: Adds ic-cdk-optimizer
         run: |
-          cp ./.bin/stable-x86_64-unknown-linux-gnu/ic-cdk-optimizer /usr/local/bin
+          cd ./.bin/stable-x86_64-unknown-linux-gnu
+          gzip -d ic-cdk-optimizer.gz
+          cp ic-cdk-optimizer /usr/local/bin
 
       - name: Adds agent-rs
         run: |
-          cp ./.bin/stable-x86_64-unknown-linux-gnu/icx /usr/local/bin
+          cd ./.bin/stable-x86_64-unknown-linux-gnu
+          gzip -d icx.gz
+          cp icx /usr/local/bin
 
       - name: Cache Dfx
         id: cache-dfx
