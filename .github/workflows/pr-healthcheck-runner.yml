@@ -26,47 +26,52 @@ jobs:
           toolchain: stable
           target: wasm32-unknown-unknown
           override: true
-          components: ic-cdk-optimizer
 
-      - name: Env variables
-        run: |
-          echo "PATH=$HOME/.cargo/bin:$PATH" >> $GITHUB_ENV
-          echo "PATH=/home/runner/.cargo/bin:$PATH" >> $GITHUB_ENV
-          echo "PATH=/root/.cargo/bin:$PATH" >> $GITHUB_ENV
-          echo "[debug] ⚠️ Do we have the ic-cdk-optimizer?"
-          which ic-cdk-optimizer
-
-      - name: Cache Dfx
-        id: cache-dfx
-        uses: actions/cache@v2
+      - name: Install ic-cdk-optimizer
+        uses: baptiste0928/cargo-install@v1
         with:
-          path: |
-            /usr/local/bin/dfx
-          key: cache-dfx-${{ hashFiles('dfx.json') }}
+          crate: ic-cdk-optimizer
+          version: "0.3.4"
 
-      - name: Install DFX
-        if: steps.cache-dfx.outputs.cache-hit != 'true'
-        env:
-          DFX_VERSION: 0.8.1
-        run: |
-          curl -fsSL https://sdk.dfinity.org/install.sh | bash
+      # - name: Env variables
+      #   run: |
+      #     echo "PATH=$HOME/.cargo/bin:$PATH" >> $GITHUB_ENV
+      #     echo "PATH=/home/runner/.cargo/bin:$PATH" >> $GITHUB_ENV
+      #     echo "PATH=/root/.cargo/bin:$PATH" >> $GITHUB_ENV
+      #     echo "[debug] ⚠️ Do we have the ic-cdk-optimizer?"
+      #     which ic-cdk-optimizer
 
-      - name: Cache build artifacts
-        id: cache-rust-target
-        uses: actions/cache@v2
-        with:
-          path: |
-            ./target
-            ./cap/target
-            ./dab/target
-            ./DIP721/target
-            ./wicp/target
-          key: cache-rust-target-${{ hashFiles('package.json') }}
+      # - name: Cache Dfx
+      #   id: cache-dfx
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: |
+      #       /usr/local/bin/dfx
+      #     key: cache-dfx-${{ hashFiles('dfx.json') }}
 
-      - name: Healthcheck
-        run: |
-          dfx start --background
-          npm run cap:start
-          npm run marketplace:healthcheck
-        env:
-          NODE_ENV: ci
+      # - name: Install DFX
+      #   if: steps.cache-dfx.outputs.cache-hit != 'true'
+      #   env:
+      #     DFX_VERSION: 0.8.1
+      #   run: |
+      #     curl -fsSL https://sdk.dfinity.org/install.sh | bash
+
+      # - name: Cache build artifacts
+      #   id: cache-rust-target
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: |
+      #       ./target
+      #       ./cap/target
+      #       ./dab/target
+      #       ./DIP721/target
+      #       ./wicp/target
+      #     key: cache-rust-target-${{ hashFiles('package.json') }}
+
+      # - name: Healthcheck
+      #   run: |
+      #     dfx start --background
+      #     npm run cap:start
+      #     npm run marketplace:healthcheck
+      #   env:
+      #     NODE_ENV: ci
