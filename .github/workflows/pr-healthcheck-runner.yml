@@ -27,11 +27,11 @@ jobs:
           target: wasm32-unknown-unknown
           override: true
 
-      - name: Install ic-cdk-optimizer
-        uses: baptiste0928/cargo-install@v1
+      - uses: actions-rs/install@v0.1
         with:
           crate: ic-cdk-optimizer
           version: "0.3.4"
+          use-tool-cache: true
 
       # - name: Env variables
       #   run: |
