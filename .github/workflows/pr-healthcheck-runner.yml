@@ -29,7 +29,7 @@ jobs:
 
       - name: Add ic-cdk-optimizer
         run: |
-          cp ./bin/stable-x86_64-unknown-linux-gnu/ic-cdk-optimizer /usr/local/bin
+          cp ./.bin/stable-x86_64-unknown-linux-gnu/ic-cdk-optimizer /usr/local/bin
 
       - name: Cache Dfx
         id: cache-dfx
