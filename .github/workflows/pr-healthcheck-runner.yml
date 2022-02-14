@@ -65,6 +65,11 @@ jobs:
           dfx identity new ci
           dfx identity use ci
 
+      - name: Adds pcregrep
+        run: |
+          apt-get update
+          apt-get -y install pcregrep
+
       - name: Cache build artifacts
         id: cache-rust-target
         uses: actions/cache@v2
