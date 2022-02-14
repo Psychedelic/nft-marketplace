@@ -143,7 +143,7 @@ mintDip721() {
 
 allowancesForDIP721() {
   printf "🤖 Call the allowancesForDIP721\n"
-  printf "🤖 Default approves Marketplace (%s)\n" "$marketplaceId"
+  printf "🤖 Default approves Marketplace (%s)\n for non-fungible contract address (%s)" "$marketplaceId" "$nonFungibleContractAddress"
 
   icx --pem="$DEFAULT_PEM" \
     update "$nonFungibleContractAddress" \
