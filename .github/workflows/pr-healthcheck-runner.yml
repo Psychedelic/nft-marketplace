@@ -12,8 +12,7 @@ on:
 
 jobs:
   build:
-    # runs-on: ubuntu-latest
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
@@ -30,53 +29,53 @@ jobs:
 
       - name: Adds ic-cdk-optimizer
         run: |
-          cd ./.bin/macos
+          cd ./.bin/stable-x86_64-unknown-linux-gnu
           gzip -d ic-cdk-optimizer.gz
           cp ic-cdk-optimizer /usr/local/bin
 
       - name: Adds agent-rs
         run: |
-          cd ./.bin/macos
+          cd ./.bin/stable-x86_64-unknown-linux-gnu
           gzip -d icx.gz
           cp icx /usr/local/bin
 
-      - name: Adds dfx
+      # - name: Adds dfx
+      #   run: |
+      #     cd ./.bin/stable-x86_64-unknown-linux-gnu
+      #     gzip -d dfx.gz
+      #     cp dfx /usr/local/bin
+
+      - name: Cache Dfx
+        id: cache-dfx
+        uses: actions/cache@v2
+        with:
+          path: |
+            /usr/local/bin/dfx
+          key: cache-dfx-${{ hashFiles('dfx.json') }}
+
+      - name: Install DFX
+        if: steps.cache-dfx.outputs.cache-hit != 'true'
+        env:
+          DFX_VERSION: 0.8.1
         run: |
-          cd ./.bin/macos
-          gzip -d dfx.gz
-          cp dfx /usr/local/bin
-
-      # - name: Cache Dfx
-      #   id: cache-dfx
-      #   uses: actions/cache@v2
-      #   with:
-      #     path: |
-      #       /usr/local/bin/dfx
-      #     key: cache-dfx-${{ hashFiles('dfx.json') }}
-
-      # - name: Install DFX
-        # if: steps.cache-dfx.outputs.cache-hit != 'true'
-        # env:
-        #   DFX_VERSION: 0.8.1
-        # run: |
-        #   yes Y | DFX_VERSION="$DFX_VERSION" sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)"
+          yes Y | DFX_VERSION="$DFX_VERSION" sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)"
 
       - name: Dfx identity
         run: |
           dfx identity new ci
           dfx identity use ci
 
-      # - name: Cache build artifacts
-      #   id: cache-rust-target
-      #   uses: actions/cache@v2
-      #   with:
-      #     path: |
-      #       ./target
-      #       ./cap/target
-      #       ./dab/target
-      #       ./DIP721/target
-      #       ./wicp/target
-      #     key: cache-rust-target-${{ hashFiles('package.json') }}
+      - name: Cache build artifacts
+        id: cache-rust-target
+        uses: actions/cache@v2
+        with:
+          path: |
+            ./target
+            ./cap/target
+            ./dab/target
+            ./DIP721/target
+            ./wicp/target
+          key: cache-rust-target-${{ hashFiles('package.json') }}
 
       - name: Healthcheck
         run: |
