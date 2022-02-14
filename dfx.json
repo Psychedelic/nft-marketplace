@@ -48,5 +48,6 @@
       "type": "ephemeral"
     }
   },
+  "dfx": "0.8.4",
   "version": 1
 }
