@@ -2,8 +2,6 @@
 
 cd $(dirname $BASH_SOURCE) || exit 1
 
-source "../dfx-identity.sh"
-
 IC_HISTORY_ROUTER=$(cd ../../cap && dfx canister id ic-history-router)
 
 cd ../../wicp || exit 1

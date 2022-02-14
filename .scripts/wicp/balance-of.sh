@@ -2,8 +2,6 @@
 
 cd $(dirname $BASH_SOURCE) || exit 1
 
-source "../dfx-identity.sh"
-
 cd ../../wicp || exit 1
 
 # args

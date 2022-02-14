@@ -2,8 +2,6 @@
 
 cd $(dirname $BASH_SOURCE) || exit 1
 
-source "../dfx-identity.sh"
-
 cd ../../ || exit 1
 
 # Args
