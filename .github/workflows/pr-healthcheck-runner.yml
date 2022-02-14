@@ -45,20 +45,20 @@ jobs:
       #     gzip -d dfx.gz
       #     cp dfx /usr/local/bin
 
-      - name: Cache Dfx
-        id: cache-dfx
-        uses: actions/cache@v2
-        with:
-          path: |
-            /usr/local/bin/dfx
-          key: cache-dfx-${{ hashFiles('dfx.json') }}
+      # - name: Cache Dfx
+      #   id: cache-dfx
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: |
+      #       /usr/local/bin/dfx
+      #     key: cache-dfx-${{ hashFiles('dfx.json') }}
 
       - name: Install DFX
-        if: steps.cache-dfx.outputs.cache-hit != 'true'
-        env:
-          DFX_VERSION: 0.8.1
+        # if: steps.cache-dfx.outputs.cache-hit != 'true'
+        # env:
+        #   DFX_VERSION: 0.8.1
         run: |
-          yes Y | DFX_VERSION="$DFX_VERSION" sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)"
+          yes Y | DFX_VERSION="0.8.1" sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)"
 
       - name: Dfx identity
         run: |
