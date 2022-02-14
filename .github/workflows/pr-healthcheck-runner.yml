@@ -52,7 +52,7 @@ jobs:
         env:
           DFX_VERSION: 0.8.1
         run: |
-          curl -fsSL https://sdk.dfinity.org/install.sh | bash
+          yes Y | DFX_VERSION="$DFX_VERSION" sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)"
 
       - name: Dfx identity
         run: |
