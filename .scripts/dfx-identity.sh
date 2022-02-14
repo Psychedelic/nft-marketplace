@@ -11,7 +11,7 @@ export ALICE_PEM="$ALICE_HOME/.config/dfx/identity/default/identity.pem"
 export BOB_PEM="$BOB_HOME/.config/dfx/identity/default/identity.pem"
 export DEFAULT_PEM="$HOME/.config/dfx/identity/default/identity.pem"
 
-echo "[debug] identities"
+echo "🙋‍♀️ Identities"
 echo "ALICE_PRINCIPAL_ID $ALICE_PRINCIPAL_ID"
 echo "BOB_PRINCIPAL_ID $BOB_PRINCIPAL_ID"
 echo "DEFAULT_PRINCIPAL_ID $DEFAULT_PRINCIPAL_ID"
