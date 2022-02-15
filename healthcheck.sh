@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -X
+
 source "${BASH_SOURCE%/*}/.scripts/required/cap.sh"
 source "${BASH_SOURCE%/*}/.scripts/required/default-identity.sh"
 source "${BASH_SOURCE%/*}/.scripts/dfx-identity.sh"
@@ -287,3 +289,6 @@ run() {
 }
 
 run
+
+echo "[debug] The Exit code is?"
+echo $?
