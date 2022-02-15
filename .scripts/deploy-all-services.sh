@@ -29,10 +29,6 @@ deployDip721() {
 
   yarn dip721:deploy-nft "$ownerPrincipalId" "$tokenSymbol" "$tokenName"
 
-  printf "🤖 Set controller as (%s)\n" "$ownerPrincipalId"
-
-  yarn dip721:set-controllers "$ownerPrincipalId"
-
   nonFungibleContractAddress=$(cd ./DIP721 && dfx canister id nft)
 
   printf "NFT Contract address -> %s\n" "$nonFungibleContractAddress"

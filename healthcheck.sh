@@ -18,9 +18,11 @@ wicpId="$(cd ./wicp && dfx canister id wicp)"
 nft_token_id_for_alice=""
 
 updateControllers() {
+  printf "🤖 Call updateControllers\n"
   ownerPrincipalId=$1
+  nonFungibleContractAddress=$2
 
-  printf "🤖 Set controller as (%s)\n" "$ownerPrincipalId"
+  printf "🤖 Set contract (%s) controller as (%s)\n" "$nonFungibleContractAddress" "$ownerPrincipalId"
 
   yarn dip721:set-controllers "$ownerPrincipalId" "$nonFungibleContractAddress"
 }
@@ -236,7 +238,7 @@ run() {
   printf "🚑 Healthcheck runtime details"
   printf "Owner address -> %s\n" "$ownerPrincipalId"
 
-  updateControllers "$DEFAULT_PRINCIPAL_ID"
+  updateControllers "$DEFAULT_PRINCIPAL_ID" "$nonFungibleContractAddress"
   [ "$DEBUG" == 1 ] && echo $?
 
   allowancesForWICP
