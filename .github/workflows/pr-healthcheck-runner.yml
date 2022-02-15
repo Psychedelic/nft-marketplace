@@ -76,10 +76,18 @@ jobs:
             ./wicp/target
           key: cache-rust-target-${{ hashFiles('package.json') }}
 
-      - name: Healthcheck
+      - name: Dfx local network replica
         run: |
           dfx start --background
+
+      - name: Cap
+        run: |
           npm run cap:start
+        env:
+          DFX_WARNING: -version_check 
+
+      - name: Healthcheck
+        run: |
           npm run marketplace:healthcheck
         env:
           NODE_ENV: ci
