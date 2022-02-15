@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -X
+set -x
 
 source "${BASH_SOURCE%/*}/.scripts/required/cap.sh"
 source "${BASH_SOURCE%/*}/.scripts/required/default-identity.sh"
