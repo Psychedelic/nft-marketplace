@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+[ "$DEBUG" == 1 ] && set -x
 
 source "${BASH_SOURCE%/*}/.scripts/required/cap.sh"
 source "${BASH_SOURCE%/*}/.scripts/required/default-identity.sh"
@@ -290,5 +290,8 @@ run() {
 
 run
 
-echo "[debug] The Exit code is?"
 echo $?
+
+echo "👆 the exit code"
+
+echo "👍 Done!"
