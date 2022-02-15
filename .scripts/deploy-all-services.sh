@@ -4,8 +4,6 @@ DEBUG=1
 DEFAULT_PRINCIPAL_ID=$(HOME=$HOME dfx identity get-principal)
 IC_HISTORY_ROUTER=""
 
-echo "[debug] deploy-all-services.sh: DEFAULT_PRINCIPAL_ID $DEFAULT_PRINCIPAL_ID"
-
 deployCapRouter() {
   printf "🤖 Deploy Cap\n"
 
