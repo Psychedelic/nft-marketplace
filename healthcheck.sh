@@ -9,42 +9,13 @@ source "${BASH_SOURCE%/*}/.scripts/dfx-identity.sh"
 dip721IcxPrologue="--candid=./DIP721/nft/candid/nft.did"
 wicpIcxPrologue="--candid=./wicp/src/wicp.did"
 marketplaceIcxPrologue="--candid=./marketplace/marketplace.did"
-marketplaceId=""
+marketplaceId=$(dfx canister id marketplace)
 ownerPrincipalId=$DEFAULT_PRINCIPAL_ID
-nonFungibleContractAddress=""
-fungibleContractAddress=""
+nonFungibleContractAddress=$(cd ./DIP721 && dfx canister id nft)
+fungibleContractAddress=$(cd ./wicp && dfx canister id wicp)
 icHistoryRouter=$(cd ./cap && dfx canister id ic-history-router)
-wicpId=""
+wicpId="$(cd ./wicp && dfx canister id wicp)"
 nft_token_id_for_alice=""
-
-deployCapRouter() {
-  printf "🤖 Deploy Cap\n"
-
-  yarn cap:start
-}
-
-deployWICP() {
-  printf "🤖 Deploy wICP Token Canister\n"
-
-  # args
-  name="$1"
-  owner="$2"
-  token_id="$3"
-
-  printf "🤖 token id (%s) is for (%s), (%s) \n" "$token_id" "$name" "$owner"
-
-  yarn wicp:deploy "$owner"
-
-  fungibleContractAddress=$(cd ./wicp && dfx canister id wicp)
-
-  printf "🤖 Balance of name (%s), address (%s) of token id (%s)" "$name" "$owner" "$token_id"
-
-  yarn wicp:balance-of "$owner"
-
-  wicpId="$(cd ./wicp && dfx canister id wicp)"
-
-  printf "🤖 wICP Canister id is %s\n" "$wicpId"
-}
 
 allowancesForWICP() {
   printf "🤖 Call allowancesForWICP\n"
@@ -149,11 +120,10 @@ mintDip721() {
   printf "\n"
 }
 
+# TODO: Throwing error (variant { Err = variant { Other } })
 allowancesForDIP721() {
   printf "🤖 Call the allowancesForDIP721\n"
   printf "🤖 Default approves Marketplace (%s)\n for non-fungible contract address (%s)" "$marketplaceId" "$nonFungibleContractAddress"
-
-  # dfx canister call qaa6y-5yaaa-aaaaa-aaafa-cai approveDip721 "( principal \"renrk-eyaaa-aaaaa-aaada-cai\", 0:nat64)"
 
   icx --pem="$DEFAULT_PEM" \
     update "$nonFungibleContractAddress" \
@@ -278,21 +248,14 @@ run() {
   printf "🚑 Healthcheck runtime details"
   printf "Owner address -> %s\n" "$ownerPrincipalId"
 
-  deployCapRouter
-  deployWICP "Default" "$DEFAULT_PRINCIPAL_ID" "wicp"
-  [ "$DEBUG" == 1 ] && echo $?
-
-  deployMarketplace
-  [ "$DEBUG" == 1 ] && echo $?
-
   allowancesForWICP
   [ "$DEBUG" == 1 ] && echo $?
 
   topupWICP
   [ "$DEBUG" == 1 ] && echo $?
 
-  deployNft
-  [ "$DEBUG" == 1 ] && echo $?
+  # deployNft
+  # [ "$DEBUG" == 1 ] && echo $?
 
   mintDip721 "Alice" "$ALICE_PRINCIPAL_ID"
   [ "$DEBUG" == 1 ] && echo $?
@@ -324,4 +287,4 @@ run() {
 
 run
 
-echo "👍 Done!"
+echo "👍 Healthcheck completed!"

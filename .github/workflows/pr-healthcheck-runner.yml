@@ -76,9 +76,9 @@ jobs:
         run: |
           dfx start --background
 
-      - name: Cap
+      - name: Services
         run: |
-          npm run cap:start
+          npm run services:start
         env:
           DFX_WARNING: -version_check 
 
