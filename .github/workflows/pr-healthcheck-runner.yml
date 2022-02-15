@@ -54,11 +54,6 @@ jobs:
         run: |
           yes Y | DFX_VERSION="$DFX_VERSION" sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)"
 
-      - name: Dfx identity
-        run: |
-          dfx identity new ci
-          dfx identity use ci
-
       - name: Adds pcregrep
         run: |
           sudo apt-get update
@@ -76,13 +71,17 @@ jobs:
         run: |
           dfx start --background
 
+      - name: Dfx identity
+        run: |
+          dfx identity use default
+
       - name: Services
         run: |
           npm run services:start
         env:
           DFX_WARNING: -version_check 
           DEBUG: 1
-
+          
       - name: Healthcheck
         run: |
           npm run marketplace:healthcheck
