@@ -17,6 +17,14 @@ icHistoryRouter=$(cd ./cap && dfx canister id ic-history-router)
 wicpId="$(cd ./wicp && dfx canister id wicp)"
 nft_token_id_for_alice=""
 
+updateControllers() {
+  ownerPrincipalId=$1
+
+  printf "🤖 Set controller as (%s)\n" "$ownerPrincipalId"
+
+  yarn dip721:set-controllers "$ownerPrincipalId"
+}
+
 allowancesForWICP() {
   printf "🤖 Call allowancesForWICP\n"
 
@@ -228,6 +236,9 @@ run() {
   printf "🚑 Healthcheck runtime details"
   printf "Owner address -> %s\n" "$ownerPrincipalId"
 
+  updateControllers "$DEFAULT_PRINCIPAL_ID"
+  [ "$DEBUG" == 1 ] && echo $?
+  
   allowancesForWICP
   [ "$DEBUG" == 1 ] && echo $?
 
