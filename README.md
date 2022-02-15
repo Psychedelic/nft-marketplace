@@ -40,7 +40,11 @@ dfx start --clean
 
 ## Running the Service dependencies
 
-The following assumes that the local replica network is available and running.
+The following assumes that the local replica network is available and running. It's recommended to run the reset command everytime you need to initialse it.
+
+```sh
+yarn reset
+```
 
 💡 If you don't know how to start a local replica check the [getting started](#getting-started), or the documentations in the [Dfinity docs](https://smartcontracts.org/docs/quickstart/local-quickstart.html) for more details.
 
@@ -53,7 +57,11 @@ yarn services:start
 
 Bare in mind that you'll have to deploy the DIP-721, set allowances, etc on your own, depending on your use-case.
 
-💡 The 🚑 [Healtcheck](healthcheck.sh) provides a description of how this can look like for the use-case where a DIP-721 is listed for sale, a user gets a sale offer and accepts it.
+The 🚑 [Healtcheck](healthcheck.sh) provides a description of how this can look like for the use-case where a DIP-721 is listed for sale, a user gets a sale offer and accepts it.
+
+```sh
+yarn marketplace:healthcheck
+```
 
 💡 If you'd like to know which services and how they are initialised then check the [Service dependencies](docs/service-dependencies.md) document, as this might be useful for troubleshooting.
 
