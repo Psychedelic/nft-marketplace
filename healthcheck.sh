@@ -9,35 +9,22 @@ source "${BASH_SOURCE%/*}/.scripts/dfx-identity.sh"
 dip721IcxPrologue="--candid=./DIP721/nft/candid/nft.did"
 wicpIcxPrologue="--candid=./wicp/src/wicp.did"
 marketplaceIcxPrologue="--candid=./marketplace/marketplace.did"
-marketplaceId=""
+marketplaceId=$(dfx canister id marketplace)
 ownerPrincipalId=$DEFAULT_PRINCIPAL_ID
-nonFungibleContractAddress=""
-fungibleContractAddress=""
+nonFungibleContractAddress=$(cd ./DIP721 && dfx canister id nft)
+fungibleContractAddress=$(cd ./wicp && dfx canister id wicp)
 icHistoryRouter=$(cd ./cap && dfx canister id ic-history-router)
-wicpId=""
+wicpId="$(cd ./wicp && dfx canister id wicp)"
 nft_token_id_for_alice=""
 
-deployWICP() {
-  printf "🤖 Deploy wICP Token Canister\n"
+updateControllers() {
+  printf "🤖 Call updateControllers\n"
+  ownerPrincipalId=$1
+  nonFungibleContractAddress=$2
 
-  # args
-  name="$1"
-  owner="$2"
-  token_id="$3"
+  printf "🤖 Set contract (%s) controller as (%s)\n" "$nonFungibleContractAddress" "$ownerPrincipalId"
 
-  printf "🤖 token id (%s) is for (%s), (%s) \n" "$token_id" "$name" "$owner"
-
-  yarn wicp:deploy "$owner"
-
-  fungibleContractAddress=$(cd ./wicp && dfx canister id wicp)
-
-  printf "🤖 Balance of name (%s), address (%s) of token id (%s)" "$name" "$owner" "$token_id"
-
-  yarn wicp:balance-of "$owner"
-
-  wicpId="$(cd ./wicp && dfx canister id wicp)"
-
-  printf "🤖 wICP Canister id is %s\n" "$wicpId"
+  yarn dip721:set-controllers "$ownerPrincipalId" "$nonFungibleContractAddress"
 }
 
 allowancesForWICP() {
@@ -79,26 +66,6 @@ deployMarketplace() {
   marketplaceId=$(dfx canister id marketplace)
 }
 
-deployNft() {
-  printf "🤖 Deploy DIP721 NFT Canister\n"
-
-  ownerPrincipalId=$DEFAULT_PRINCIPAL_ID
-  tokenSymbol="FOO"
-  tokenName="Foobar"
-
-  printf "🤖 Deploying NFT with %s %s %s\n" "$ownerPrincipalId" "$tokenSymbol" "$tokenName"
-
-  yarn dip721:deploy-nft "$ownerPrincipalId" "$tokenSymbol" "$tokenName"
-
-  printf "🤖 Set controller as (%s)\n" "$ownerPrincipalId"
-
-  yarn dip721:set-controllers "$ownerPrincipalId"
-
-  nonFungibleContractAddress=$(cd ./DIP721 && dfx canister id nft)
-
-  printf "NFT Contract address -> %s\n" "$nonFungibleContractAddress"
-}
-
 mintDip721() {
   printf "🤖 Call the mintDip721\n"
 
@@ -122,7 +89,7 @@ mintDip721() {
 
   printf "🤖 Minted Dip721 for user %s, has token ID (%s)\n" "$name" "$nft_token_id_for_alice"
 
-  printf "🤖 The Balance of for user %s of id (%s)\n" "$name" "$mint_for"
+  printf "🤖 The Balance for user %s of id (%s)\n" "$name" "$mint_for"
 
   icx --pem="$DEFAULT_PEM" \
     query "$nonFungibleContractAddress" \
@@ -143,11 +110,10 @@ mintDip721() {
   printf "\n"
 }
 
+# TODO: Throwing error (variant { Err = variant { Other } })
 allowancesForDIP721() {
   printf "🤖 Call the allowancesForDIP721\n"
   printf "🤖 Default approves Marketplace (%s)\n for non-fungible contract address (%s)" "$marketplaceId" "$nonFungibleContractAddress"
-
-  # dfx canister call qaa6y-5yaaa-aaaaa-aaafa-cai approveDip721 "( principal \"renrk-eyaaa-aaaaa-aaada-cai\", 0:nat64)"
 
   icx --pem="$DEFAULT_PEM" \
     update "$nonFungibleContractAddress" \
@@ -272,19 +238,13 @@ run() {
   printf "🚑 Healthcheck runtime details"
   printf "Owner address -> %s\n" "$ownerPrincipalId"
 
-  deployWICP "Default" "$DEFAULT_PRINCIPAL_ID" "wicp"
-  [ "$DEBUG" == 1 ] && echo $?
-
-  deployMarketplace
+  updateControllers "$DEFAULT_PRINCIPAL_ID" "$nonFungibleContractAddress"
   [ "$DEBUG" == 1 ] && echo $?
 
   allowancesForWICP
   [ "$DEBUG" == 1 ] && echo $?
 
   topupWICP
-  [ "$DEBUG" == 1 ] && echo $?
-
-  deployNft
   [ "$DEBUG" == 1 ] && echo $?
 
   mintDip721 "Alice" "$ALICE_PRINCIPAL_ID"
@@ -317,4 +277,4 @@ run() {
 
 run
 
-echo "👍 Done!"
+echo "👍 Healthcheck completed!"

@@ -6,16 +6,17 @@ cd ../../DIP721 || exit 1
 
 # Args
 CONTROLLER_MAIN=$1
+DIP721_TOKEN_CONTRACT_ID=$2
 
 dfx canister --no-wallet \
 call aaaaa-aa \
 update_settings "(
   record {
-    canister_id=principal \"$(dfx canister id nft)\";
+    canister_id=principal \"$DIP721_TOKEN_CONTRACT_ID\";
     settings=record {
       controllers=opt vec{
-        principal\"$CONTROLLER_MAIN\";
-        principal\"$(dfx canister id nft)\";
+        principal \"$CONTROLLER_MAIN\";
+        principal \"$DIP721_TOKEN_CONTRACT_ID\";
       }
     }
   }

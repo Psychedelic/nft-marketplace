@@ -2,7 +2,9 @@
 
 The following is a brief breakdown of the utility methods to help interact with the required Services for the Marketplace Service Canister. These are created for your own convinience and while it offers a good start, it does not attempt to replace the knowledge you can get by checking the original Service documentation (e.g. if you'd like to learn more about Cap, then you're advised to check the original repository [here](https://github.com/Psychedelic/cap) and so on for the remaining Services).
 
-## Cap
+An 🚑 Healthcheck check-up is available to quickly go through some common feature or use-case. It does not serve as a complete test suit but can be used for quick verification in scenarios like the CI runner, or locally.
+
+## Cap
 
 [CAP](https://github.com/Psychedelic/cap) is an open internet service providing transaction history & asset provenance for NFT’s & Tokens on the Internet Computer. If you are interested in finding more, follow the link [here](https://github.com/Psychedelic/cap).
 
@@ -36,7 +38,7 @@ yarn marketplace:reset
 
 💡 The reset clears the `.dfx` directory and the Rust artifacts are kept in the target directory. If you wish to clear the Rust artifacts, you must do it manually (e.g. rm -rf ./cap/target).
 
-## Dab
+## Dab
 
 [Dab](https://github.com/Psychedelic/dab) is an open internet service for NFT, Token, Canister, and Dapp registries. If you're interested, learn more about it [here](https://github.com/Psychedelic/dab).
 

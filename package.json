@@ -18,7 +18,7 @@
     "marketplace:healthcheck": "./healthcheck.sh",
     "marketplace:reset": "rm -rf .dfx",
     "services:init": "git submodule update --init --recursive",
-    "services:start": "yarn cap:start",
+    "services:start": "./.scripts/deploy-all-services.sh",
     "reset": "dfx stop && rm -rf .dfx && yarn cap:reset && yarn dip721:reset && yarn wicp:reset"
   },
   "repository": {
