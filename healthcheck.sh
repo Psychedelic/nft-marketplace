@@ -273,25 +273,48 @@ run() {
   printf "Owner address -> %s\n" "$ownerPrincipalId"
 
   deployWICP "Default" "$DEFAULT_PRINCIPAL_ID" "wicp"
+  [ "$DEBUG" == 1 ] && echo $?
+
   deployMarketplace
+  [ "$DEBUG" == 1 ] && echo $?
+
   allowancesForWICP
+  [ "$DEBUG" == 1 ] && echo $?
+
   topupWICP
+  [ "$DEBUG" == 1 ] && echo $?
+
   deployNft
+  [ "$DEBUG" == 1 ] && echo $?
+
   mintDip721 "Alice" "$ALICE_PRINCIPAL_ID"
+  [ "$DEBUG" == 1 ] && echo $?
+
   allowancesForDIP721
+  [ "$DEBUG" == 1 ] && echo $?
+
   addCrownCollection
+  [ "$DEBUG" == 1 ] && echo $?
+
   listForSale "$ALICE_PEM" "$nft_token_id_for_alice" "(1_250:nat)"
+  [ "$DEBUG" == 1 ] && echo $?
+
   getSaleOffers
+  [ "$DEBUG" == 1 ] && echo $?
+
   makeBuyOffer "Bob" "$BOB_PEM" "$nft_token_id_for_alice" "(1_000:nat)"
+  [ "$DEBUG" == 1 ] && echo $?
+
   getBuyOffers 0 10
+  [ "$DEBUG" == 1 ] && echo $?
+
   approveTransferFromForAcceptBuyOffer "$ALICE_PEM" "$nft_token_id_for_alice"
+  [ "$DEBUG" == 1 ] && echo $?
+
   acceptBuyOffer "$ALICE_PEM" 0
+  [ "$DEBUG" == 1 ] &&  echo $?
 }
 
 run
-
-echo $?
-
-echo "👆 the exit code"
 
 echo "👍 Done!"
