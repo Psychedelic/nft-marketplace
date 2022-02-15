@@ -16,7 +16,7 @@ update_settings "(
     settings=record {
       controllers=opt vec{
         principal\"$CONTROLLER_MAIN\";
-        principal\"$(dfx canister id nft)\";
+        principal\"$DIP721_TOKEN_CONTRACT_ID\";
       }
     }
   }
