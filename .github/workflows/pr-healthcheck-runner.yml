@@ -65,7 +65,7 @@ jobs:
         with:
           path: |
             **/target
-          key: cache-rust-target-${{ hashFiles('package.json') }}
+          key: cache-rust-target-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Dfx local network replica
         run: |
