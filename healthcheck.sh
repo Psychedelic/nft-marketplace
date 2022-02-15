@@ -56,26 +56,6 @@ deployMarketplace() {
   marketplaceId=$(dfx canister id marketplace)
 }
 
-deployNft() {
-  printf "🤖 Deploy DIP721 NFT Canister\n"
-
-  ownerPrincipalId=$DEFAULT_PRINCIPAL_ID
-  tokenSymbol="FOO"
-  tokenName="Foobar"
-
-  printf "🤖 Deploying NFT with %s %s %s\n" "$ownerPrincipalId" "$tokenSymbol" "$tokenName"
-
-  yarn dip721:deploy-nft "$ownerPrincipalId" "$tokenSymbol" "$tokenName"
-
-  printf "🤖 Set controller as (%s)\n" "$ownerPrincipalId"
-
-  yarn dip721:set-controllers "$ownerPrincipalId"
-
-  nonFungibleContractAddress=$(cd ./DIP721 && dfx canister id nft)
-
-  printf "NFT Contract address -> %s\n" "$nonFungibleContractAddress"
-}
-
 mintDip721() {
   printf "🤖 Call the mintDip721\n"
 
@@ -99,7 +79,7 @@ mintDip721() {
 
   printf "🤖 Minted Dip721 for user %s, has token ID (%s)\n" "$name" "$nft_token_id_for_alice"
 
-  printf "🤖 The Balance of for user %s of id (%s)\n" "$name" "$mint_for"
+  printf "🤖 The Balance for user %s of id (%s)\n" "$name" "$mint_for"
 
   icx --pem="$DEFAULT_PEM" \
     query "$nonFungibleContractAddress" \
@@ -253,9 +233,6 @@ run() {
 
   topupWICP
   [ "$DEBUG" == 1 ] && echo $?
-
-  # deployNft
-  # [ "$DEBUG" == 1 ] && echo $?
 
   mintDip721 "Alice" "$ALICE_PRINCIPAL_ID"
   [ "$DEBUG" == 1 ] && echo $?

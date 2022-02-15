@@ -81,6 +81,7 @@ jobs:
           npm run services:start
         env:
           DFX_WARNING: -version_check 
+          DEBUG: 1
 
       - name: Healthcheck
         run: |
@@ -88,4 +89,4 @@ jobs:
         env:
           NODE_ENV: ci
           DFX_WARNING: -version_check 
-          DEBUG: 0
+          DEBUG: 1
