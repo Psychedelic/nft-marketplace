@@ -2,7 +2,7 @@
 
 cd $(dirname $BASH_SOURCE) || exit 1
 
-source "../dfx-identity.sh"
+IC_HISTORY_ROUTER=$(cd ../../cap && dfx canister id ic-history-router)
 
 cd ../../wicp || exit 1
 
@@ -25,6 +25,6 @@ yes yes | dfx canister install wicp \
 		principal \"$OWNER\",
 		0,
 		principal \"$FEES_TO\",
-		principal \"$(cd ../../cap && dfx canister id ic-history-router)\"
+		principal \"$IC_HISTORY_ROUTER\"
 	)" \
   --mode="reinstall"

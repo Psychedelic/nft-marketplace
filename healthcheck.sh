@@ -1,5 +1,7 @@
 #!/bin/bash
 
+[ "$DEBUG" == 1 ] && set -x
+
 source "${BASH_SOURCE%/*}/.scripts/required/cap.sh"
 source "${BASH_SOURCE%/*}/.scripts/required/default-identity.sh"
 source "${BASH_SOURCE%/*}/.scripts/dfx-identity.sh"
@@ -143,13 +145,15 @@ mintDip721() {
 
 allowancesForDIP721() {
   printf "🤖 Call the allowancesForDIP721\n"
-  printf "🤖 Default approves Marketplace (%s)\n" "$marketplaceId"
+  printf "🤖 Default approves Marketplace (%s)\n for non-fungible contract address (%s)" "$marketplaceId" "$nonFungibleContractAddress"
+
+  # dfx canister call qaa6y-5yaaa-aaaaa-aaafa-cai approveDip721 "( principal \"renrk-eyaaa-aaaaa-aaada-cai\", 0:nat64)"
 
   icx --pem="$DEFAULT_PEM" \
     update "$nonFungibleContractAddress" \
     approveDip721 "(
       principal \"$marketplaceId\",
-      0
+      0:nat64
     )" \
   "$dip721IcxPrologue"
 }
@@ -247,7 +251,7 @@ approveTransferFromForAcceptBuyOffer() {
     update "$nonFungibleContractAddress" \
     approveDip721 "(
       principal \"$marketplaceId\",
-      $nft_token_id_for_alice
+      $nft_token_id_for_alice:nat64
     )" \
   "$dip721IcxPrologue"  
 }
@@ -269,21 +273,48 @@ run() {
   printf "Owner address -> %s\n" "$ownerPrincipalId"
 
   deployWICP "Default" "$DEFAULT_PRINCIPAL_ID" "wicp"
+  [ "$DEBUG" == 1 ] && echo $?
+
   deployMarketplace
+  [ "$DEBUG" == 1 ] && echo $?
+
   allowancesForWICP
+  [ "$DEBUG" == 1 ] && echo $?
+
   topupWICP
+  [ "$DEBUG" == 1 ] && echo $?
+
   deployNft
+  [ "$DEBUG" == 1 ] && echo $?
+
   mintDip721 "Alice" "$ALICE_PRINCIPAL_ID"
+  [ "$DEBUG" == 1 ] && echo $?
+
   allowancesForDIP721
+  [ "$DEBUG" == 1 ] && echo $?
+
   addCrownCollection
+  [ "$DEBUG" == 1 ] && echo $?
+
   listForSale "$ALICE_PEM" "$nft_token_id_for_alice" "(1_250:nat)"
+  [ "$DEBUG" == 1 ] && echo $?
+
   getSaleOffers
+  [ "$DEBUG" == 1 ] && echo $?
+
   makeBuyOffer "Bob" "$BOB_PEM" "$nft_token_id_for_alice" "(1_000:nat)"
+  [ "$DEBUG" == 1 ] && echo $?
+
   getBuyOffers 0 10
+  [ "$DEBUG" == 1 ] && echo $?
+
   approveTransferFromForAcceptBuyOffer "$ALICE_PEM" "$nft_token_id_for_alice"
+  [ "$DEBUG" == 1 ] && echo $?
+
   acceptBuyOffer "$ALICE_PEM" 0
+  [ "$DEBUG" == 1 ] &&  echo $?
 }
 
 run
 
-exit 0
+echo "👍 Done!"
