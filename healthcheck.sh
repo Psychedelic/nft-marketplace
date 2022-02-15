@@ -17,6 +17,12 @@ icHistoryRouter=$(cd ./cap && dfx canister id ic-history-router)
 wicpId=""
 nft_token_id_for_alice=""
 
+deployCapRouter() {
+  printf "🤖 Deploy Cap\n"
+
+  yarn cap:start
+}
+
 deployWICP() {
   printf "🤖 Deploy wICP Token Canister\n"
 
@@ -272,6 +278,7 @@ run() {
   printf "🚑 Healthcheck runtime details"
   printf "Owner address -> %s\n" "$ownerPrincipalId"
 
+  deployCapRouter
   deployWICP "Default" "$DEFAULT_PRINCIPAL_ID" "wicp"
   [ "$DEBUG" == 1 ] && echo $?
 
