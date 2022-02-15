@@ -22,7 +22,7 @@ updateControllers() {
 
   printf "🤖 Set controller as (%s)\n" "$ownerPrincipalId"
 
-  yarn dip721:set-controllers "$ownerPrincipalId"
+  yarn dip721:set-controllers "$ownerPrincipalId" "$nonFungibleContractAddress"
 }
 
 allowancesForWICP() {
@@ -238,7 +238,7 @@ run() {
 
   updateControllers "$DEFAULT_PRINCIPAL_ID"
   [ "$DEBUG" == 1 ] && echo $?
-  
+
   allowancesForWICP
   [ "$DEBUG" == 1 ] && echo $?
 
