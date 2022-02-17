@@ -16,7 +16,7 @@ icHistoryRouter=$(cd ./cap && dfx canister id ic-history-router)
 wicpId="$(cd ./wicp && dfx canister id wicp)"
 nft_token_id_for_alice=""
 
-dip721IcxPrologue="--candid=./DIP721/nft/candid/nft.did"
+marketplaceIcxPrologue="--candid=./marketplace/marketplace.did"
 
 updateControllers() {
   printf "🤖 Call updateControllers\n"
@@ -77,7 +77,7 @@ topupWICP() {
       $_amount:nat
     )"
 
-  printf "🤖 balance of Bob\n"
+  printf "🤖 balance of (%s)\n" "$_name"
 
   yarn wicp:balance-of "$_transferTo"
 }
@@ -184,7 +184,7 @@ allowancesForDIP721() {
   for non-fungible contract address (%s) 
   the token id (%s)" "$_marketplaceId"  "$_nonFungibleContractAddress" "$_nft_token_id_for_alice"
 
-  HOME=$callerHome &&
+  HOME=$_callerHome &&
   dfx canister --no-wallet \
     call "$_nonFungibleContractAddress" \
     approveDip721 "(
@@ -243,7 +243,7 @@ addCrownCollection() {
   # fungible_contract_address: Principal,
   # fungible_token_type: FungibleTokenType,
 
-  HOME=$callerHome &&
+  HOME=$_callerHome &&
   dfx canister --no-wallet \
     call "$_marketplaceId" \
     addCollection "(
@@ -319,14 +319,18 @@ makeBuyOffer() {
     printf "🤖 (%s) will makeBuyOffer for token id (%s) 
     for the amount (%s)\n" "$_name" "$_token_id" "$_offer_price"
 
-    # icx --pem="$offer_from_pem" \
-    #   update "$marketplaceId" \
-    #   makeBuyOffer "(
-    #     principal \"$nonFungibleContractAddress\",
-    #     $token_id,
-    #     $offer_price
-    #   )" \
-    # "$marketplaceIcxPrologue"
+  printf "🤖 balance of (%s) is equal to\n" "$_name"
+
+  yarn wicp:balance-of "$_transferTo"
+
+  # icx --pem="$BOB_PEM" \
+  #   update "$marketplaceId" \
+  #   makeBuyOffer "(
+  #     principal \"$nonFungibleContractAddress\",
+  #     $_token_id,
+  #     $_offer_price
+  #   )" \
+  # "$marketplaceIcxPrologue"
 
   HOME=$_callerHome &&
   dfx canister --no-wallet \
@@ -392,15 +396,15 @@ acceptBuyOffer() {
     _marketplaceId=$2
     _buy_id=$3
 
-    # icx --pem="$sale_owner_pem" \
-    #   update "$marketplaceId" \
-    #   acceptBuyOffer "($buy_id)" \
-    #  "$marketplaceIcxPrologue"
+    icx --pem="$ALICE_PEM" \
+      update "$_marketplaceId" \
+      acceptBuyOffer "($_buy_id)" \
+     "$marketplaceIcxPrologue"
 
-  HOME=$_callerHome &&
-  dfx canister --no-wallet \
-    call "$_marketplaceId" \
-    acceptBuyOffer "($_buy_id)"
+  # HOME=$_callerHome &&
+  # dfx canister --no-wallet \
+  #   call "$_marketplaceId" \
+  #   acceptBuyOffer "($_buy_id)"
 }
 
 run() {
@@ -413,7 +417,7 @@ run() {
   allowancesForWICP "$HOME" "$wicpId" "$marketplaceId" "100_000_000"
   [ "$DEBUG" == 1 ] && echo $?
 
-  topupWICP "$HOME" "$wicpId" "Bob" "$BOB_PRINCIPAL_ID" "5_000_000"
+  topupWICP "$HOME" "$wicpId" "Bob" "$BOB_PRINCIPAL_ID" "50_000_000"
   [ "$DEBUG" == 1 ] && echo $?
 
   mintDip721 "$HOME" "Alice" "$ALICE_PRINCIPAL_ID" "$nonFungibleContractAddress"
@@ -431,7 +435,7 @@ run() {
   getSaleOffers "$HOME" "$marketplaceId"
   [ "$DEBUG" == 1 ] && echo $?
 
-  makeBuyOffer "$HOME_BOB" "$marketplaceId" "Bob" "$nft_token_id_for_alice" "1_000"
+  makeBuyOffer "$BOB_HOME" "$marketplaceId" "Bob" "$nft_token_id_for_alice" "1_000"
   [ "$DEBUG" == 1 ] && echo $?
 
   getBuyOffers "$HOME" "$marketplaceId" 0 10
