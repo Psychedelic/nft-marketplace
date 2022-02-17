@@ -4,9 +4,6 @@ cd $(dirname $BASH_SOURCE) || exit 1
 
 cd ../../DIP721 || exit 1
 
-echo "[debug] pwd"
-pwd
-
 # Args
 CONTROLLER_MAIN=$1
 DIP721_TOKEN_CONTRACT_ID=$2
