@@ -100,7 +100,6 @@ pub async fn list_for_sale(
 }
 
 #[update(name = "makeBuyOffer")]
-#[candid_method(update, rename = "makeBuyOffer")]
 pub async fn make_buy_offer(
     non_fungible_contract_address: Principal,
     token_id: u64,
@@ -163,12 +162,13 @@ pub async fn make_buy_offer(
 }
 
 #[update(name = "acceptBuyOffer")]
-#[candid_method(update, rename = "acceptBuyOffer")]
 pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
     let caller = ic::caller();
     let self_id = ic::id();
     let init_data = &init_data();
     let mut mp = marketplace();
+
+    ic_cdk::println!("[debug] accept_buy_offer::caller is -> {:?}", caller.to_string());
 
     let buy_offer = mp
         .buy_offers
