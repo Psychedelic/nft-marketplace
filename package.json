@@ -15,7 +15,7 @@
     "wicp:balance-of": "./.scripts/wicp/balance-of.sh",
     "wicp:reset": "cd ./wicp && rm -rf .dfx",
     "marketplace:deploy": "./.scripts/marketplace/deploy-marketplace.sh",
-    "marketplace:healthcheck": "./healthcheck.sh",
+    "marketplace:healthcheck": "./.scripts/healthcheck.sh",
     "marketplace:reset": "rm -rf .dfx",
     "services:init": "git submodule update --init --recursive",
     "services:start": "./.scripts/deploy-all-services.sh",
