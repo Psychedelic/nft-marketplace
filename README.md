@@ -12,7 +12,7 @@ The NFT Marketplace is the backend Service for our DIP-721 implementation, and s
 
 TLDR; We're providing implementation examples and related test or use-cases for your convinence, if you are just interested in the specifications find it [here](spec.md).
 
-The requirements listed here are for running the [DIP-721](spec.md) example implementations that are available in this repository. If you are just interested in the specification for [DIP-721](spec.md) followed the link [here](spec.md).
+The requirements listed here are for running the [DIP-721](spec.md) example implementations that are available in this repository. If you are just interested in the specification for [DIP-721](spec.md) follow the link [here](spec.md).
 
 - Nodejs
 - Yarn or NPM
