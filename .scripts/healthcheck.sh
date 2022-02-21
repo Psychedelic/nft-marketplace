@@ -17,19 +17,6 @@ wicpId="$(cd ./wicp && dfx canister id wicp)"
 nft_token_id_for_alice=""
 buy_offer_id=""
 
-updateControllers() {
-  printf "🤖 Call updateControllers\n"
-
-  _callerHome=$1
-  _ownerPrincipalId=$2
-  _nonFungibleContractAddress=$3
-
-  printf "🤖 Set contract (%s) controller as (%s)\n" "$_nonFungibleContractAddress" "$_ownerPrincipalId"
-
-  HOME=$_callerHome \
-  yarn dip721:set-controllers "$_ownerPrincipalId" "$_nonFungibleContractAddress"
-}
-
 topupWICP() {
   printf "🤖 Call topupWICP\n"
 
@@ -330,9 +317,6 @@ acceptBuyOffer() {
 run() {
   printf "🚑 Healthcheck runtime details"
   printf "Owner address -> %s\n" "$ownerPrincipalId"
-
-  updateControllers "$DEFAULT_HOME" "$DEFAULT_PRINCIPAL_ID" "$nonFungibleContractAddress"
-  [ "$DEBUG" == 1 ] && echo $?
 
   topupWICP "$DEFAULT_HOME" "$wicpId" "Bob" "$BOB_PRINCIPAL_ID" "50_000_000"
   [ "$DEBUG" == 1 ] && echo $?
