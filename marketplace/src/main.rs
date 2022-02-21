@@ -168,8 +168,6 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
     let init_data = &init_data();
     let mut mp = marketplace();
 
-    ic_cdk::println!("[debug] accept_buy_offer::caller is -> {:?}", caller.to_string());
-
     let buy_offer = mp
         .buy_offers
         .get_mut(buy_id as usize)
