@@ -6,9 +6,21 @@ cd ../../ || exit 1
 
 # Args
 IC_HISTORY_ROUTER=$1
-OWNER_ID=$2
+OWNER_PRINCIPAL_ID=$2
 
-dfx deploy --no-wallet marketplace --argument "(
-  principal \"$IC_HISTORY_ROUTER\",
-  principal \"$OWNER_ID\"
-)"
+dfx canister --no-wallet \
+  create marketplace --controller "$OWNER_PRINCIPAL_ID"
+
+CREATED_MARKETPLACE_CANISTER_ID=$(dfx canister id marketplace)
+
+dfx canister --no-wallet \
+  update-settings \
+    --controller "$OWNER_PRINCIPAL_ID" \
+    --controller "$CREATED_MARKETPLACE_CANISTER_ID" \
+  "$CREATED_MARKETPLACE_CANISTER_ID"
+
+dfx deploy --no-wallet \
+  marketplace --argument "(
+    principal \"$IC_HISTORY_ROUTER\",
+    principal \"$OWNER_PRINCIPAL_ID\"
+  )"

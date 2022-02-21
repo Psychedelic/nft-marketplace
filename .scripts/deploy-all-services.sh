@@ -3,7 +3,7 @@
 (cd "$(dirname $BASH_SOURCE)" && cd ..) || exit 1
 
 DEBUG=1
-DEFAULT_PRINCIPAL_ID=$(HOME=$HOME dfx identity get-principal)
+DEFAULT_PRINCIPAL_ID=$(dfx identity get-principal)
 IC_HISTORY_ROUTER=""
 
 deployCapRouter() {
