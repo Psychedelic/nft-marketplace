@@ -1,5 +1,7 @@
 #!/bin/bash
 
+(cd "$(dirname $BASH_SOURCE)" && cd ../../) || exit 1
+
 # The NFT Canister id
 nftCanisterId=$1
 
@@ -91,6 +93,23 @@ generateMock() {
     call "$nftCanisterId" ownerOfDip721 "($mintTokenId:nat64)"
 
 }
+
+userIdentityWarning() {
+  # The extra white space is intentional, used for alignment
+  read -r -p "⚠️  Are you are aware that the dfx identity should be Plug's (SECP256K1) [Y/n]? " CONT
+
+  if [ "$CONT" = "Y" ]; then
+    printf "🌈 The DFX Identity is set to (%s)\n\n" "$(dfx identity get-principal), make sure it matches Plug's"
+  else
+    printf "🚩 Make sure you configure DFX cli to use Plug's exported identity (PEM) \n\n"
+
+    exit 1;
+  fi
+}
+
+# Warn the user about identity requirement
+# as the end user will be interacting with the Marketplace via Plug's
+userIdentityWarning
 
 # Iterator exec the mock generation incrementally
 for i in $(seq 1 "$totalNumberOfTokens");
