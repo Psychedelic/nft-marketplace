@@ -12,6 +12,8 @@ deployCapRouter() {
   yarn cap:start
 
   IC_HISTORY_ROUTER=$(cd ./cap && dfx canister id ic-history-router)
+
+  printf "CAP IC History router -> %s\n" "$IC_HISTORY_ROUTER"
 }
 
 deployDab() {
@@ -23,17 +25,21 @@ deployDab() {
 deployDip721() {
   printf "🤖 Deploy DIP721 NFT Canister\n"
 
-  ownerPrincipalId=$DEFAULT_PRINCIPAL_ID
-  tokenSymbol="FOO"
-  tokenName="Foobar"
+  (
+    cd ./DIP721 || exit 1
 
-  printf "🤖 Deploying NFT with %s %s %s\n" "$ownerPrincipalId" "$tokenSymbol" "$tokenName"
+    ownerPrincipalId=$DEFAULT_PRINCIPAL_ID
+    tokenSymbol="FOO"
+    tokenName="Foobar"
 
-  yarn dip721:deploy-nft "$ownerPrincipalId" "$tokenSymbol" "$tokenName"
+    printf "🤖 Deploying NFT with owner id (%s), token (%s), token name (%s), cap (%s)\n" "$ownerPrincipalId" "$tokenSymbol" "$tokenName" "$IC_HISTORY_ROUTER"
 
-  nonFungibleContractAddress=$(cd ./DIP721 && dfx canister id nft)
+    yarn dip721:deploy-nft "local" "$ownerPrincipalId" "$tokenSymbol" "$tokenName" "$IC_HISTORY_ROUTER"
 
-  printf "NFT Contract address -> %s\n" "$nonFungibleContractAddress"
+    nonFungibleContractAddress=$(dfx canister id nft)
+
+    printf "NFT Contract address -> %s\n" "$nonFungibleContractAddress"
+  )
 }
 
 deployMarketplace() {
