@@ -8,8 +8,6 @@
     "cap:reset": "cd ./cap && rm -rf .dfx",
     "dab:start": "cd ./dab && dfx deploy nft",
     "dab:reset": "cd ./dab && rm -rf .dfx",
-    "dip721:deploy-nft": "./.scripts/dip721/deploy-nft.sh",
-    "dip721:set-controllers": "./.scripts/dip721/set-controllers.sh",
     "dip721:reset": "cd ./DIP721 && rm -rf .dfx",
     "wicp:deploy": "./.scripts/wicp/deploy-wicp.sh",
     "wicp:balance-of": "./.scripts/wicp/balance-of.sh",

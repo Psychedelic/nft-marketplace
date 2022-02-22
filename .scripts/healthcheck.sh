@@ -5,7 +5,6 @@
 [ "$DEBUG" == 1 ] && set -x
 
 . ".scripts/required/cap.sh"
-. ".scripts/required/default-identity.sh"
 . ".scripts/dfx-identity.sh"
 
 marketplaceId=$(dfx canister id marketplace)
