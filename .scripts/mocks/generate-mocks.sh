@@ -2,18 +2,17 @@
 
 (cd "$(dirname $BASH_SOURCE)" && cd ../../) || exit 1
 
+. ".scripts/mocks/identity-mocks.sh"
+
 # The NFT Canister id
 nftCanisterId=$1
 
-# Which user principal to mint for
-mintForPrincipalId=$2
-
 # The total tokens to generate
-totalNumberOfTokens=$3
+totalNumberOfTokens=$2
 
 generateMock() {
-  token_index=$1
-
+  mintForPrincipalId=$1
+  token_index=$2
   crownsNftCanisterId="vlhm2-4iaaa-aaaam-qaatq-cai"
   filename=$(printf "%04d.mp4" "$token_index")
   assetUrl="https://$crownsNftCanisterId.raw.ic0.app/$filename"
@@ -96,10 +95,10 @@ generateMock() {
 
 userIdentityWarning() {
   # The extra white space is intentional, used for alignment
-  read -r -p "⚠️  Are you are aware that the dfx identity should be Plug's (SECP256K1) [Y/n]? " CONT
+  read -r -p "⚠️  Is your dfx identity Plug's (exported PEM) [Y/n]? " CONT
 
   if [ "$CONT" = "Y" ]; then
-    printf "🌈 The DFX Identity is set to (%s)\n\n" "$(dfx identity get-principal), make sure it matches Plug's"
+    printf "🌈 The DFX Identity is set to (%s), make sure it matches Plug's!\n\n" "$dfxUserPrincipalId"
   else
     printf "🚩 Make sure you configure DFX cli to use Plug's exported identity (PEM) \n\n"
 
@@ -107,11 +106,29 @@ userIdentityWarning() {
   fi
 }
 
+generatorHandler() {
+  principalId=$1
+  total=$2
+
+  # Iterator exec the mock generation incrementally
+  for i in $(seq 1 "$total");
+    do generateMock "$principalId" "$i"
+  done
+}
+
+# Distribute the total number of tokens
+dividedTotal=$((totalNumberOfTokens / 3))
+dividedTotal=$(echo "$dividedTotal" | awk '{print int($1+0.5)}')
+
 # Warn the user about identity requirement
 # as the end user will be interacting with the Marketplace via Plug's
 userIdentityWarning
 
-# Iterator exec the mock generation incrementally
-for i in $(seq 1 "$totalNumberOfTokens");
-  do generateMock "$i"
-done
+# generates mock data for the dfx user principal
+generatorHandler "$dfxUserPrincipalId" "$dividedTotal"
+
+# generates mock data for Alice
+generatorHandler "$alicePrincipalId" "$dividedTotal"
+
+# generates mock data for Bob
+generatorHandler "$bobPrincipalId" "$dividedTotal"
