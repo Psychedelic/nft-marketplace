@@ -8,6 +8,16 @@
 
 The NFT Marketplace is the backend Service for our DIP-721 implementation, and soon a multi-standard NFT Marketplace.
 
+## 📒 Table of Contents 
+
+- [Requirements](#-requirements)
+- [Getting started](#-getting-started)
+- [Integrations](/docs/integrations.md)
+  - [Tools](/docs/integrations.md#-tools)
+  - [Create non-fungible tokens mock](/docs/integrations.md#-create-non-fungible-tokens-mock)
+- [Contribution guideline](#-contributing)
+
+
 ### ⚙️ Requirements
 
 TLDR; We're providing implementation examples and related test or use-cases for your convinence, if you are just interested in the specifications find it [here](spec.md).

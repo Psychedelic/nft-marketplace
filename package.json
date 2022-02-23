@@ -17,7 +17,8 @@
     "marketplace:reset": "rm -rf .dfx",
     "services:init": "git submodule update --init --recursive",
     "services:start": "./.scripts/deploy-all-services.sh",
-    "reset": "dfx stop && rm -rf .dfx && yarn cap:reset && yarn dip721:reset && yarn wicp:reset"
+    "reset": "dfx stop && rm -rf .dfx && yarn cap:reset && yarn dip721:reset && yarn wicp:reset",
+    "mock:generate-tokens": "./.scripts/mocks/generate-mocks.sh"
   },
   "repository": {
     "type": "git",
