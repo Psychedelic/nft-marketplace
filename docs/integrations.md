@@ -45,5 +45,13 @@ Here's what the process does for you:
 - Mint DIP721 tokens for the users (yourself, Alice and Bob)
 - The "number of tokens" are evenly distributed to all users
 
+The NFT Canister Id can be found in the logs of the `services:start` command you previously run; or get it dynamically.
+
+Here's an example of getting the NFT Canister Id dynamically when generating 9 tokens.
+
+```sh
+yarn mock:generate-tokens $(cd ./nft-marketplace/DIP721 && dfx canister id nft) 9
+```
+
 💡 Evently distributed means that if you pass a number of tokens that equals 9, we'd have 3 tokens assigned to you, 3 tokens to Alice and 3 tokens to Bob, because these are distributed failry among the users in the system. This is done so that you have data to reason about, you can of course change this to whatever your needs are.
 
