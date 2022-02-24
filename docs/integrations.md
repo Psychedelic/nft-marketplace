@@ -8,6 +8,13 @@ Bare in mind that the integration looks into the development environment and as 
 
 Also, we'll use `Yarn` as our package manager to run our examples, but `npm run` can be used accordingly if that's your preference.
 
+## 🤔 Requirements
+
+- The pcrgrep cli (e.g. for macOS [pcrgreg](https://formulae.brew.sh/formula/pcre))
+- A DFX identity set to use a [Plug exported PEM](/docs/dfx.md) identity
+
+It's recommended to check how to import the [Plug exported PEM](/docs/dfx.md) identity, it'll save you a lot of time troubleshooting, as there are known issues or bugs when attempting to import via DFX.
+
 ## 🪚 Tools
 
 A set of tools are provided to:
