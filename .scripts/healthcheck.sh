@@ -9,7 +9,7 @@
 
 marketplaceId=$(dfx canister id marketplace)
 ownerPrincipalId=$DEFAULT_PRINCIPAL_ID
-nonFungibleContractAddress=$(cd ./DIP721 && dfx canister id nft)
+nonFungibleContractAddress=$(cd ./crowns && dfx canister id nft)
 fungibleContractAddress=$(cd ./wicp && dfx canister id wicp)
 icHistoryRouter=$(cd ./cap && dfx canister id ic-history-router)
 wicpId="$(cd ./wicp && dfx canister id wicp)"
