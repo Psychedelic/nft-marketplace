@@ -74,25 +74,40 @@ mintDip721() {
   _result=$(
     # TODO: When using DFX the error is thrown
     # The Replica returned an error: code 5, message: "Canister r7inp-6aaaa-aaaaa-aaabq-cai trapped explicitly: Custom(Fail to decode argument 1 from table0 to vec record
-    # HOME=$_callerHome \
-    # dfx canister --no-wallet \
-    #   call --update "$_nonFungibleContractAddress" \
-    #   mintDip721 "(
-    #     principal \"$_mint_for\",
-    #     vec{}
-    #   )"
+    HOME=$_callerHome \
+    dfx canister --no-wallet \
+      call --update "$_nonFungibleContractAddress" \
+      mintDip721 "(
+        principal \"$_mint_for\",
+        vec {
+          record {
+            data = vec { (0:nat8) };
+            key_val_data = vec {
+              record {
+                key= \"location\";
+                val = variant {
+                  TextContent = \"https://vqcq7-gqaaa-aaaam-qaara-cai.raw.ic0.app/0000.mp4\"
+                }
+              }
+            };
+            purpose = variant {
+              Rendered
+            };
+          }
+        }
+      )"
     # TODO: While the ICX version works
     # Although the DFX version in the DIP721 works fine...
-    icx --pem="$DEFAULT_PEM" \
-    update "$_nonFungibleContractAddress" \
-    mintDip721 "(
-      principal \"$_mint_for\",
-      vec{}
-    )" \
-    --candid=./crowns/nft/candid/nft.did
+    # icx --pem="$DEFAULT_PEM" \
+    # update "$_nonFungibleContractAddress" \
+    # mintDip721 "(
+    #   principal \"$_mint_for\",
+    #   vec{}
+    # )" \
+    # --candid=./crowns/nft/candid/nft.did
   )
 
-  nft_token_id_for_alice=$(echo "$_result" | pcregrep -o1  'token_id = ([0-9]*)')
+  nft_token_id_for_alice=$(echo "$_result" | pcregrep -o1  '726_683_809 = ([0-9]*)')
 
   printf "🤖 Minted Dip721 for user %s, has token ID (%s)\n" "$_name" "$nft_token_id_for_alice"
 
