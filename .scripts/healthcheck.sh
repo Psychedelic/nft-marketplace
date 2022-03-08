@@ -89,7 +89,7 @@ mintDip721() {
       principal \"$_mint_for\",
       vec{}
     )" \
-    --candid=./DIP721/nft/candid/nft.did
+    --candid=./crowns/nft/candid/nft.did
   )
 
   nft_token_id_for_alice=$(echo "$_result" | pcregrep -o1  'token_id = ([0-9]*)')
