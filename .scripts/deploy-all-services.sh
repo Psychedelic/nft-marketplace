@@ -23,10 +23,10 @@ deployDab() {
 }
 
 deployDip721() {
-  printf "🤖 Deploy DIP721 NFT Canister\n"
+  printf "🤖 Deploy DIP721 Crowns NFT Canister\n"
 
   (
-    cd ./DIP721 || exit 1
+    cd ./crowns || exit 1
 
     ownerPrincipalId=$DEFAULT_PRINCIPAL_ID
     tokenSymbol="FOO"
@@ -34,11 +34,29 @@ deployDip721() {
 
     printf "🤖 Deploying NFT with owner id (%s), token (%s), token name (%s), cap (%s)\n" "$ownerPrincipalId" "$tokenSymbol" "$tokenName" "$IC_HISTORY_ROUTER"
 
-    yarn dip721:deploy-nft "local" "$ownerPrincipalId" "$tokenSymbol" "$tokenName" "$IC_HISTORY_ROUTER"
+    # yarn dip721:deploy-nft "local" "$ownerPrincipalId" "$tokenSymbol" "$tokenName" "$IC_HISTORY_ROUTER"
+
+    dfx canister --no-wallet \
+      create nft \
+      --controller "$ownerPrincipalId"
 
     nonFungibleContractAddress=$(dfx canister id nft)
 
     printf "NFT Contract address -> %s\n" "$nonFungibleContractAddress"
+
+    dfx canister --no-wallet \
+      update-settings \
+        --controller "$ownerPrincipalId" \
+        --controller "$nonFungibleContractAddress" \
+      "$nonFungibleContractAddress"
+
+    dfx deploy --no-wallet \
+      nft --argument "(
+      principal \"$ownerPrincipalId\",
+      \"$tokenSymbol\",
+      \"$tokenName\",
+      principal \"$IC_HISTORY_ROUTER\"
+    )"
   )
 }
 
