@@ -6,6 +6,11 @@ DEBUG=1
 DEFAULT_PRINCIPAL_ID=$(dfx identity get-principal)
 IC_HISTORY_ROUTER=""
 
+DEFAULT_USER_WALLET=$(dfx identity get-wallet)
+
+echo "[debug] DEFAULT_USER_WALLET"
+echo "$DEFAULT_USER_WALLET"
+
 deployCapRouter() {
   printf "🤖 Deploy Cap\n"
 
@@ -28,7 +33,7 @@ deployDip721() {
   (
     cd ./crowns || exit 1
 
-    ownerPrincipalId=$DEFAULT_PRINCIPAL_ID
+    ownerPrincipalId=$DEFAULT_USER_WALLET
     tokenSymbol="FOO"
     tokenName="Foobar"
 
@@ -36,22 +41,22 @@ deployDip721() {
 
     # yarn dip721:deploy-nft "local" "$ownerPrincipalId" "$tokenSymbol" "$tokenName" "$IC_HISTORY_ROUTER"
 
-    dfx canister --no-wallet \
-      create nft \
+    dfx canister --wallet "$DEFAULT_USER_WALLET" \
+      create crowns \
       --controller "$ownerPrincipalId"
 
-    nonFungibleContractAddress=$(dfx canister id nft)
+    nonFungibleContractAddress=$(dfx canister id crowns)
 
     printf "NFT Contract address -> %s\n" "$nonFungibleContractAddress"
 
-    dfx canister --no-wallet \
+    dfx canister --wallet "$DEFAULT_USER_WALLET" \
       update-settings \
         --controller "$ownerPrincipalId" \
         --controller "$nonFungibleContractAddress" \
       "$nonFungibleContractAddress"
 
-    dfx deploy --no-wallet \
-      nft --argument "(
+    dfx deploy --wallet "$DEFAULT_USER_WALLET" \
+      crowns --argument "(
       principal \"$ownerPrincipalId\",
       \"$tokenSymbol\",
       \"$tokenName\",
@@ -95,7 +100,7 @@ deployCapRouter
 deployDip721
 [ "$DEBUG" == 1 ] && echo $?
 
-deployMarketplace "$IC_HISTORY_ROUTER" "$DEFAULT_PRINCIPAL_ID"
+deployMarketplace "$IC_HISTORY_ROUTER" "$DEFAULT_USER_WALLET"
 [ "$DEBUG" == 1 ] && echo $?
 
 deployWICP "$DEFAULT_PRINCIPAL_ID"

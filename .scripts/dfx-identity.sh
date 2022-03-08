@@ -12,6 +12,8 @@ ALICE_PEM="$ALICE_HOME/.config/dfx/identity/default/identity.pem"
 BOB_PEM="$BOB_HOME/.config/dfx/identity/default/identity.pem"
 DEFAULT_PEM="$HOME/.config/dfx/identity/default/identity.pem"
 
+DEFAULT_USER_WALLET=$(dfx identity get-wallet)
+
 printf "🙋‍♀️ Identities\n\n"
 
 printf "👩🏽‍🦰 ALICE_PRINCIPAL_ID (%s)\n" "$ALICE_PRINCIPAL_ID"
@@ -22,5 +24,7 @@ printf "👨🏽‍🦰 BOB_HOME (%s)\n" "$BOB_HOME"
 
 printf "👨🏾‍💻 DEFAULT_PRINCIPAL_ID (%s)\n" "$DEFAULT_PRINCIPAL_ID"
 printf "👨🏾‍💻 DEFAULT_HOME (%s)\n" "$DEFAULT_HOME"
+
+printf "🐷 DEFAULT_USER_WALLET (%s)\n" "$DEFAULT_USER_WALLET"
 
 printf "\n\n"
