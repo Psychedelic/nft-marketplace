@@ -103,7 +103,7 @@ deployDip721
 deployMarketplace "$IC_HISTORY_ROUTER" "$DEFAULT_USER_WALLET"
 [ "$DEBUG" == 1 ] && echo $?
 
-deployWICP "$DEFAULT_PRINCIPAL_ID"
+deployWICP "$DEFAULT_USER_WALLET"
 [ "$DEBUG" == 1 ] && echo $?
 
 echo "👍 Deploy services completed!"
