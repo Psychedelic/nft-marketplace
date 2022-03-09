@@ -166,7 +166,6 @@ addCrownCollection() {
   # fungible_contract_address: Principal,
   # fungible_token_type: FungibleTokenType,
 
-  HOME=$_callerHome \
   dfx canister --wallet "$DEFAULT_USER_WALLET" \
     call --update "$_marketplaceId" \
     addCollection "(
@@ -322,15 +321,15 @@ run() {
     "$nft_token_id_for_alice"
   [ "$DEBUG" == 1 ] && echo $?
 
-  # addCrownCollection "$DEFAULT_HOME" \
-  #   "$DEFAULT_PRINCIPAL_ID" \
-  #   "$marketplaceId" \
-  #   "$nonFungibleContractAddress" \
-  #   "$fungibleContractAddress" \
-  #   "Crowns Collection" \
-  #   10 \
-  #   0
-  # [ "$DEBUG" == 1 ] && echo $?
+  addCrownCollection "$DEFAULT_HOME" \
+    "$DEFAULT_PRINCIPAL_ID" \
+    "$marketplaceId" \
+    "$nonFungibleContractAddress" \
+    "$fungibleContractAddress" \
+    "Crowns Collection" \
+    10 \
+    0
+  [ "$DEBUG" == 1 ] && echo $?
 
   # listForSale "$ALICE_HOME" \
   #   "$nonFungibleContractAddress" \
