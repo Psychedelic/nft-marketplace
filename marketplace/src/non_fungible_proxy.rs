@@ -73,8 +73,8 @@ impl Dip721Proxy {
         Dip721Proxy::transfer_from(&ic::caller(), to, nft_id, contract).await
     }
 
-    pub async fn owner_of(contract: &Principal, token_id: &u64) -> PrincipalResult {
-        let call_res: Result<(OwnerResult,), (RejectionCode, String)> = ic::call(
+    pub async fn owner_of(contract: &Principal, token_id: &u64) -> Result<Principal, MPApiError> {
+        let call_res: Result<(Result<Principal, NftError>,), (RejectionCode, String)> = ic::call(
             *contract,
             "ownerOf",
             (Nat::from(token_id.clone()),),
@@ -82,9 +82,9 @@ impl Dip721Proxy {
         .await;
 
         call_res
-            .map_err(|_| MPApiError::TransferFungibleError)?
+            .map_err(|err| MPApiError::Other)?
             .0
-            .map_err(|_| MPApiError::TransferFungibleError) 
+            .map_err(|_| MPApiError::TransferFungibleError)
     }
 }
 
