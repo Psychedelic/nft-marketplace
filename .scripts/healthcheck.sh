@@ -134,7 +134,7 @@ allowancesForDIP721() {
     call "$_nonFungibleContractAddress" \
     approve "(
       principal \"$_marketplaceId\",
-      $_nft_token_id_for_alice:nat64
+      $_nft_token_id_for_alice:nat
     )"
 }
 
@@ -316,11 +316,11 @@ run() {
   mintDip721 "$DEFAULT_HOME" "Alice" "$ALICE_PRINCIPAL_ID" "$nonFungibleContractAddress"
   [ "$DEBUG" == 1 ] && echo $?
 
-  # allowancesForDIP721 "$DEFAULT_HOME" \
-  #   "$nonFungibleContractAddress" \
-  #   "$marketplaceId" \
-  #   "$nft_token_id_for_alice"
-  # [ "$DEBUG" == 1 ] && echo $?
+  allowancesForDIP721 "$DEFAULT_HOME" \
+    "$nonFungibleContractAddress" \
+    "$marketplaceId" \
+    "$nft_token_id_for_alice"
+  [ "$DEBUG" == 1 ] && echo $?
 
   # addCrownCollection "$DEFAULT_HOME" \
   #   "$DEFAULT_PRINCIPAL_ID" \
