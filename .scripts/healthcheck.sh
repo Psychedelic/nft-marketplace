@@ -69,13 +69,15 @@ mintDip721() {
 
   printf "🤖 The mintDip721 has nonFungibleContractAddress (%s), 
   mint_for user (%s) of id (%s)\n" "$_nonFungibleContractAddress" "$_name" "$_mint_for"
-  
+
+  nft_token_id_for_alice=$RANDOM
+
   _result=$(
     dfx canister --wallet "$DEFAULT_USER_WALLET" \
       call --update "$_nonFungibleContractAddress" \
       mint "(
         principal \"$_mint_for\",
-        $RANDOM:nat,
+        $nft_token_id_for_alice:nat,
         vec {
           record {
             \"location\";
@@ -87,7 +89,7 @@ mintDip721() {
       )"
   )
 
-  nft_token_id_for_alice=$(echo "$_result" | pcregrep -o1  '17_724 = ([0-9]*)')
+  # nft_token_id_for_alice=$(echo "$_result" | pcregrep -o1  '17_724 = ([0-9]*)')
 
   printf "🤖 Minted Dip721 for user %s, has token ID (%s)\n" "$_name" "$nft_token_id_for_alice"
 
@@ -192,7 +194,8 @@ listForSale() {
   printf "🤖 has market id (%s)\n" "$_marketplaceId"
   printf "🤖 the token id is %s, price %s\n" "$_token_id" "$_list_price"
 
-  dfx canister --wallet "$DEFAULT_USER_WALLET" \
+  HOME=$_callerHome \
+  dfx canister --wallet "$ALICE_WALLET" \
     call --update "$_marketplaceId" \
     listForSale "(
         principal \"$_nonFungibleContractAddress\",
@@ -311,7 +314,7 @@ run() {
   allowancesForWICP "$BOB_HOME" "$wicpId" "$marketplaceId" "100_000_000"
   [ "$DEBUG" == 1 ] && echo $?
 
-  mintDip721 "$DEFAULT_HOME" "Alice" "$ALICE_PRINCIPAL_ID" "$nonFungibleContractAddress"
+  mintDip721 "$DEFAULT_HOME" "Alice" "$ALICE_WALLET" "$nonFungibleContractAddress"
   [ "$DEBUG" == 1 ] && echo $?
 
   allowancesForDIP721 "$DEFAULT_HOME" \
