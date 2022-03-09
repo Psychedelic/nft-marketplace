@@ -76,8 +76,8 @@ impl Dip721Proxy {
     pub async fn owner_of(contract: &Principal, token_id: &u64) -> PrincipalResult {
         let call_res: Result<(OwnerResult,), (RejectionCode, String)> = ic::call(
             *contract,
-            "ownerOfDip721",
-            (token_id,),
+            "ownerOf",
+            (Nat::from(token_id.clone()),),
         )
         .await;
 

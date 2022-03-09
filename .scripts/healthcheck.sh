@@ -69,7 +69,7 @@ mintDip721() {
 
   printf "🤖 The mintDip721 has nonFungibleContractAddress (%s), 
   mint_for user (%s) of id (%s)\n" "$_nonFungibleContractAddress" "$_name" "$_mint_for"
-
+  
   _result=$(
     dfx canister --wallet "$DEFAULT_USER_WALLET" \
       call --update "$_nonFungibleContractAddress" \
@@ -192,7 +192,6 @@ listForSale() {
   printf "🤖 has market id (%s)\n" "$_marketplaceId"
   printf "🤖 the token id is %s, price %s\n" "$_token_id" "$_list_price"
 
-  HOME=$_callerHome \
   dfx canister --wallet "$DEFAULT_USER_WALLET" \
     call --update "$_marketplaceId" \
     listForSale "(
@@ -331,12 +330,12 @@ run() {
     0
   [ "$DEBUG" == 1 ] && echo $?
 
-  # listForSale "$ALICE_HOME" \
-  #   "$nonFungibleContractAddress" \
-  #   "$marketplaceId" \
-  #   "$nft_token_id_for_alice" \
-  #   "1_250"
-  # [ "$DEBUG" == 1 ] && echo $?
+  listForSale "$ALICE_HOME" \
+    "$nonFungibleContractAddress" \
+    "$marketplaceId" \
+    "$nft_token_id_for_alice" \
+    "1_250"
+  [ "$DEBUG" == 1 ] && echo $?
 
   # getSaleOffers "$HOME" "$marketplaceId"
   # [ "$DEBUG" == 1 ] && echo $?
