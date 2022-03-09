@@ -1,155 +1,3 @@
-
-/// BEGIN DIP20 ///
-type TxError = variant {
-  InsufficientAllowance;
-  InsufficientBalance;
-  ErrorOperationStyle;
-  Unauthorized;
-  LedgerTrap;
-  ErrorTo;
-  Other;
-  BlockUsed;
-  AmountTooSmall;
-};
-/// END DIP20 ///
-
-/// BEGIN DIP721 ///
-
- type ApiError =
- variant {
-   Unauthorized;
-   InvalidTokenId;
-   ZeroAddress;
-   Other;
- };
-
- type OwnerResult =
- variant {
-   Err: ApiError;
-   Ok: principal;
- };
-
- type TxReceipt =
- variant {
-   Err: ApiError;
-   Ok: nat;
- };
-
- type InterfaceId =
- variant {
-   Approval;
-   TransactionHistory;
-   Mint;
-   Burn;
-   TransferNotification;
- };
-
- type LogoResult =
- record {
-   logo_type: text; // MIME type of the logo
-   data: text; // Base64 encoded logo
- };
-
- type ExtendedMetadataResult =
- record {
-     metadata_desc: MetadataDesc;
-     token_id: nat64;
- };
-
- type MetadataResult =
- variant {
-   Err: ApiError;
-   Ok: MetadataDesc;
- };
-
- type MetadataDesc = vec MetadataPart;
-
- type MetadataPart = record {
-   purpose: MetadataPurpose;
-   key_val_data: vec MetadataKeyVal;
-   data: blob;
- };
-
- type MetadataPurpose =
- variant {
-     Preview; // used as a preview, can be used as preivew in a wallet
-     Rendered; // used as a detailed version of the NFT
- };
-
- type MetadataKeyVal =
- record {
-     key: text;
-     val: MetadataVal;
- };
-
- type MetadataVal =
- variant {
-    TextContent : text;
-    BlobContent : blob;
-    NatContent : nat;
-    Nat8Content: nat8;
-    Nat16Content: nat16;
-    Nat32Content: nat32;
-    Nat64Content: nat64;
-  };
-
- type TransactionResult =
- record {
-     fee: nat;
-     transaction_type: TransactionType;
- };
-
- type TransactionType =
- variant {
-      Transfer:
-      record {
-        token_id: nat64;
-        from: principal;
-        to: principal;
-     };
-     TransferFrom:
-      record {
-          token_id: nat64;
-          from: principal;
-          to: principal;
-      };
-      Approve:
-       record {
-          token_id: nat64;
-          from: principal;
-          to: principal;
-       };
-      SetApprovalForAll:
-       record {
-          from: principal;
-          to: principal;
-       };
-      Mint:
-       record {
-          token_id: nat64;
-          to: principal;
-       };
-      Burn:
-       record {
-          token_id: nat64;
-       };
- };
-
- type MintReceipt =
- variant {
-   Err: ApiError;
-   Ok: MintReceiptPart;
- };
-
- type MintReceiptPart =
- record {
-   token_id: nat64; // minted token id
-   id: nat; // transaction id
-  };
-
-// END DIP721 //
-
-
 type BuyOffer = record {
   status : BuyOfferStatus;
   non_fungible_contract_address : principal;
@@ -175,13 +23,13 @@ type MPApiError = variant {
   Unauthorized;
   TransferFungibleError;
   InvalidBuyOffer;
+  Unexpected : text;
   Other;
   InsufficientNonFungibleBalance;
   CAPInsertionError;
 };
 type NonFungibleTokenType = variant { EXT; DIP721 };
 type Result = variant { Ok; Err : MPApiError };
-type Result_1 = variant { Ok : nat64; Err : MPApiError };
 type SaleOffer = record {
   status : SaleOfferStatus;
   is_direct_buyable : bool;
@@ -190,7 +38,6 @@ type SaleOffer = record {
 };
 type SaleOfferStatus = variant { Selling; Uninitialized; Created };
 service : (principal, principal) -> {
-  acceptBuyOffer : (nat64) -> (Result);
   addCollection : (
       principal,
       nat16,
@@ -201,15 +48,14 @@ service : (principal, principal) -> {
       principal,
       FungibleTokenType,
     ) -> ();
-  cancelListingBySeller : (principal, text) -> (Result);
+  cancelListingBySeller : (principal, nat64) -> (Result);
   cancelOfferByBuyer : (nat64) -> (Result);
   cancelOfferBySeller : (nat64) -> (Result);
+  directBuy : (principal, nat64) -> (Result);
   getBuyOffers : (nat64, nat64) -> (vec BuyOffer) query;
   getSaleOffers : () -> (
       vec record { record { principal; nat64 }; SaleOffer },
     ) query;
   listForSale : (principal, nat64, nat) -> (Result);
-  directBuy : (principal, text) -> (Result);
-  makeBuyOffer : (principal, nat64, nat) -> (Result_1);
   withdrawFungible : (principal, FungibleTokenType) -> (Result);
 }
