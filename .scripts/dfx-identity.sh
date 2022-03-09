@@ -1,7 +1,9 @@
 #!/bin/bash
 
-ALICE_HOME=$(mktemp -d 2>/dev/null || mktemp -d -t alice-temp)
-BOB_HOME=$(mktemp -d 2>/dev/null || mktemp -d -t bob-temp)
+# ALICE_HOME=$(mktemp -d 2>/dev/null || mktemp -d -t alice-temp)
+# BOB_HOME=$(mktemp -d 2>/dev/null || mktemp -d -t bob-temp)
+ALICE_HOME=$(mkdir -p ./.dfx/identities/alice)
+BOB_HOME=$(mkdir -p ./.dfx/identities/bob)
 DEFAULT_HOME="$HOME"
 
 ALICE_PRINCIPAL_ID=$(HOME=$ALICE_HOME dfx identity get-principal)

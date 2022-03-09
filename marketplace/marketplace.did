@@ -23,13 +23,13 @@ type MPApiError = variant {
   Unauthorized;
   TransferFungibleError;
   InvalidBuyOffer;
-  Unexpected : text;
   Other;
   InsufficientNonFungibleBalance;
   CAPInsertionError;
 };
 type NonFungibleTokenType = variant { EXT; DIP721 };
 type Result = variant { Ok; Err : MPApiError };
+type Result_1 = variant { Ok : nat64; Err : MPApiError };
 type SaleOffer = record {
   status : SaleOfferStatus;
   is_direct_buyable : bool;
@@ -38,6 +38,7 @@ type SaleOffer = record {
 };
 type SaleOfferStatus = variant { Selling; Uninitialized; Created };
 service : (principal, principal) -> {
+  acceptBuyOffer : (nat64) -> (Result);
   addCollection : (
       principal,
       nat16,
@@ -57,5 +58,6 @@ service : (principal, principal) -> {
       vec record { record { principal; nat64 }; SaleOffer },
     ) query;
   listForSale : (principal, nat64, nat) -> (Result);
+  makeBuyOffer : (principal, nat64, nat) -> (Result_1);
   withdrawFungible : (principal, FungibleTokenType) -> (Result);
 }

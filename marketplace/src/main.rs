@@ -104,20 +104,27 @@ pub async fn list_for_sale(
 }
 
 #[update(name = "makeBuyOffer")]
+#[candid_method(update, rename = "makeBuyOffer")]
 pub async fn make_buy_offer(
     non_fungible_contract_address: Principal,
     token_id: u64,
     price: Nat,
 ) -> U64Result {
+    ic_cdk::println!("[debug] make_buy_offer > bp {:?}", 1);
+
     let caller = ic::caller();
     let self_id = ic::id();
     // let init_data = &init_data();
     let mut mp = marketplace();
 
+    ic_cdk::println!("[debug] make_buy_offer > bp {:?}", 2);
+
     let collection = collections()
         .collections
         .get(&non_fungible_contract_address)
         .ok_or(MPApiError::NonExistentCollection)?;
+
+    ic_cdk::println!("[debug] make_buy_offer > bp {:?}", 3);
 
     // check if the buyer still has the money to pay
     let fungible_balance = balance_of_fungible(
@@ -126,9 +133,18 @@ pub async fn make_buy_offer(
         collection.fungible_token_type.clone(),
     )
     .await?;
+
+    ic_cdk::println!("[debug] make_buy_offer > bp {:?}", 4);
+
+    ic_cdk::println!("[debug] make_buy_offer >  fungible_balance {:?}, price {:?}", fungible_balance, price);
+
     if (fungible_balance < price) {
+        ic_cdk::println!("[debug] make_buy_offer > fungible_balance < price");
+
         return Err(MPApiError::InsufficientFungibleBalance);
     }
+
+    ic_cdk::println!("[debug] make_buy_offer > bp {:?}", 5);
 
     mp.buy_offers.push(BuyOffer::new(
         non_fungible_contract_address,
@@ -138,6 +154,8 @@ pub async fn make_buy_offer(
         BuyOfferStatus::Created,
     ));
     let buy_id = mp.buy_offers.len() as u64;
+
+    ic_cdk::println!("[debug] make_buy_offer > buy_id > {:?}", buy_id);
 
     capq()
         .insert_into_cap(
@@ -162,10 +180,13 @@ pub async fn make_buy_offer(
         .await
         .map_err(|_| MPApiError::CAPInsertionError)?;
 
+    ic_cdk::println!("[debug] make_buy_offer > bp {:?}", 6);
+
     Ok(buy_id)
 }
 
 #[update(name = "acceptBuyOffer")]
+#[candid_method(update, rename = "acceptBuyOffer")]
 pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
     let caller = ic::caller();
     let self_id = ic::id();

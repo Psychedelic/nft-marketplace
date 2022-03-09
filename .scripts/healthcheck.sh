@@ -229,20 +229,23 @@ makeBuyOffer() {
   printf "🤖 (%s) will makeBuyOffer for token id (%s) 
   for the amount (%s)\n" "$_name" "$_token_id" "$_offer_price"
 
-  printf "🤖 balance of (%s) is equal to\n" "$_name"
+  # printf "🤖 balance of (%s) is equal to\n" "$_name"
 
-  yarn wicp:balance-of "$_transferTo"
+  # yarn wicp:balance-of "$_transferTo"
 
   _result=$(
     HOME=$_callerHome \
-    dfx canister --wallet "$DEFAULT_USER_WALLET" \
+    dfx canister --wallet "$BOB_WALLET" \
       call --update "$_marketplaceId" \
       makeBuyOffer "(
         principal \"$_nonFungibleContractAddress\",
-        $_token_id,
+        ($_token_id:nat64),
         ($_offer_price:nat)
       )"
   )
+
+  echo "[debug] _result -> $_result" 
+
   _result_num=$(echo "$_result" | pcregrep -o1  'Ok = ([0-9]*)')
 
   printf "🤖 Extracted the latest index in the offers (%s)\n" "$_result_num"
@@ -308,7 +311,7 @@ run() {
   printf "🚑 Healthcheck runtime details"
   printf "Owner address -> %s\n" "$ownerPrincipalId"
 
-  topupWICP "$DEFAULT_HOME" "$wicpId" "Bob" "$BOB_PRINCIPAL_ID" "50_000_000"
+  topupWICP "$DEFAULT_HOME" "$wicpId" "Bob" "$BOB_WALLET" "50_000_000"
   [ "$DEBUG" == 1 ] && echo $?
   
   allowancesForWICP "$BOB_HOME" "$wicpId" "$marketplaceId" "100_000_000"
@@ -340,11 +343,11 @@ run() {
     "1_250"
   [ "$DEBUG" == 1 ] && echo $?
 
-  # getSaleOffers "$HOME" "$marketplaceId"
-  # [ "$DEBUG" == 1 ] && echo $?
+  getSaleOffers "$DEFAULT_HOME" "$marketplaceId"
+  [ "$DEBUG" == 1 ] && echo $?
 
-  # makeBuyOffer "$BOB_HOME" "$marketplaceId" "Bob" "$nft_token_id_for_alice" "1_000"
-  # [ "$DEBUG" == 1 ] && echo $?
+  makeBuyOffer "$BOB_HOME" "$marketplaceId" "Bob" "$nft_token_id_for_alice" "1_300"
+  [ "$DEBUG" == 1 ] && echo $?
 
   # getBuyOffers "$HOME" "$marketplaceId" 0 10
   # [ "$DEBUG" == 1 ] && echo $?
