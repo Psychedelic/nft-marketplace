@@ -349,8 +349,8 @@ run() {
   makeBuyOffer "$BOB_HOME" "$marketplaceId" "Bob" "$nft_token_id_for_alice" "1_300"
   [ "$DEBUG" == 1 ] && echo $?
 
-  # getBuyOffers "$HOME" "$marketplaceId" 0 10
-  # [ "$DEBUG" == 1 ] && echo $?
+  getBuyOffers "$HOME" "$marketplaceId" 0 10
+  [ "$DEBUG" == 1 ] && echo $?
 
   # approveTransferFromForAcceptBuyOffer "$ALICE_HOME" "Alice" "$nonFungibleContractAddress" "$marketplaceId" "$nft_token_id_for_alice"
   # [ "$DEBUG" == 1 ] && echo $?
