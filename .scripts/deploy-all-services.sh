@@ -57,11 +57,19 @@ deployDip721() {
 
     dfx deploy --wallet "$DEFAULT_USER_WALLET" \
       crowns --argument "(
-      principal \"$ownerPrincipalId\",
-      \"$tokenSymbol\",
-      \"$tokenName\",
-      principal \"$IC_HISTORY_ROUTER\"
+        opt record {
+          name = opt \"$tokenName\";
+          logo = opt \"data:image/jpeg;base64,...\";
+          symbol = opt \"$tokenSymbol\";
+          owners = opt vec { principal \"$DEFAULT_USER_WALLET\" };
+        }
     )"
+
+    printf "Should copy the parent crowns wasm to the crowns directory"
+
+    targetDir=./crowns/target/wasm32-unknown-unknown/release
+    mkdir -p "$targetDir"
+    cp ./target/wasm32-unknown-unknown/release/crowns.wasm "$targetDir"
   )
 }
 
