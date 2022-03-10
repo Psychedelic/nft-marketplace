@@ -22,5 +22,4 @@ yes yes | dfx canister install wicp \
 		0,
 		principal \"$FEES_TO\",
 		principal \"$IC_HISTORY_ROUTER\"
-	)" \
-  --mode="reinstall"
+	)"
