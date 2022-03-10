@@ -43,11 +43,6 @@ pub async fn list_for_sale(
 ) -> MPApiResult {
     let caller = ic::caller();
     let self_id = ic::id();
-
-    // TODO: Throws error
-    // Panicked at 'called `Option::unwrap()` on a `None` value', marketplace/src/utils.rs:25:29
-    // let init_data = &init_data();
-
     let collection = collections()
         .collections
         .get(&non_fungible_contract_address)
@@ -112,7 +107,6 @@ pub async fn make_buy_offer(
 ) -> U64Result {
     let caller = ic::caller();
     let self_id = ic::id();
-    // let init_data = &init_data();
     let mut mp = marketplace();
 
     let collection = collections()
@@ -172,7 +166,6 @@ pub async fn make_buy_offer(
 pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
     let caller = ic::caller();
     let self_id = ic::id();
-    // let init_data = &init_data();
     let mut mp = marketplace();
 
     let buy_offer = mp
@@ -366,7 +359,6 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
 pub async fn direct_buy(non_fungible_contract_address: Principal, token_id: u64) -> MPApiResult {
     let caller = ic::caller();
     let self_id = ic::id();
-    // let init_data = &init_data();
     let mut mp = marketplace();
 
     let sale_offer = mp
