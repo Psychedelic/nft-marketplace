@@ -78,6 +78,10 @@ jobs:
 
       - name: Services
         run: |
+          npm install -g json
+          cd ./cap
+          json -I -f dfx.json -e "this.dfx=\"$DFX_VERSION\""
+          cd ..
           npm run services:start
         env:
           DFX_WARNING: -version_check 
