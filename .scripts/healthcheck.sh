@@ -39,12 +39,13 @@ topupWICP() {
 
   printf "🤖 balance of (%s)\n" "$_name"
 
+  # TODO: wicp:balance-of refactor or remove
   # yarn wicp:balance-of "$_transferTo"
 
   dfx canister --wallet "$DEFAULT_USER_WALLET" \
-    call --query wicp \
+    call --query "$_wicpId" \
     balanceOf "(
-      principal \"$account\"
+      principal \"$_transferTo\"
     )"
 }
 
