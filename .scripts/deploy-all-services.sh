@@ -10,9 +10,6 @@ IC_HISTORY_ROUTER=""
 
 DEFAULT_USER_WALLET=$(dfx identity get-wallet)
 
-echo "[debug] DEFAULT_USER_WALLET"
-echo "$DEFAULT_USER_WALLET"
-
 deployCapRouter() {
   printf "🤖 Deploy Cap\n"
 
@@ -41,38 +38,8 @@ deployDip721() {
 
     printf "🤖 Deploying NFT with owner id (%s), token (%s), token name (%s), cap (%s)\n" "$ownerPrincipalId" "$tokenSymbol" "$tokenName" "$IC_HISTORY_ROUTER"
 
+    # TODO: Refactor the dip721:deploy-nft or remove it
     # yarn dip721:deploy-nft "local" "$ownerPrincipalId" "$tokenSymbol" "$tokenName" "$IC_HISTORY_ROUTER"
-
-    # dfx canister --wallet "$DEFAULT_USER_WALLET" \
-    #   create crowns \
-    #   --controller "$ownerPrincipalId"
-
-    # nonFungibleContractAddress=$(dfx canister id crowns)
-
-    # printf "NFT Contract address -> %s\n" "$nonFungibleContractAddress"
-
-    # dfx canister --wallet "$DEFAULT_USER_WALLET" \
-    #   update-settings \
-    #     --controller "$ownerPrincipalId" \
-    #     --controller "$nonFungibleContractAddress" \
-    #   "$nonFungibleContractAddress"
-
-    # dfx deploy --wallet "$DEFAULT_USER_WALLET" \
-    #   crowns --argument "(
-    #     opt record {
-    #       name = opt \"$tokenName\";
-    #       logo = opt \"data:image/jpeg;base64,...\";
-    #       symbol = opt \"$tokenSymbol\";
-    #       owners = opt vec { principal \"$DEFAULT_USER_WALLET\" };
-    #     }
-    # )"
-
-    # printf "Should copy the parent crowns wasm to the crowns directory"
-
-    # cd .. || exit 1
-    # targetDir=./crowns/target/wasm32-unknown-unknown/release
-    # mkdir -p "$targetDir" || exit 1
-    # cp ./target/wasm32-unknown-unknown/release/crowns.wasm "$targetDir" || exit 1
 
     dfx canister --wallet "$DEFAULT_USER_WALLET" \
       create crowns \
