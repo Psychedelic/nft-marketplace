@@ -66,7 +66,7 @@ impl Dip721Proxy {
         call_res
             .map_err(|_| MPApiError::Other)?
             .0
-            .map_err(|err| MPApiError::TransferFungibleError)
+            .map_err(|_| MPApiError::TransferFungibleError)
             .map(|res| convert_nat_to_u64(res).unwrap())
     }
 
@@ -81,7 +81,7 @@ impl Dip721Proxy {
         let res = call_res
             .map_err(|_| MPApiError::Other)?
             .0
-            .map_err(|err| MPApiError::TransferFungibleError)
+            .map_err(|_| MPApiError::TransferFungibleError)
             .map(|res| convert_nat_to_u64(res).unwrap());
 
         match &res {
@@ -99,7 +99,7 @@ impl Dip721Proxy {
         .await;
 
         call_res
-            .map_err(|err| MPApiError::Other)?
+            .map_err(|_| MPApiError::Other)?
             .0
             .map_err(|_| MPApiError::TransferFungibleError)
     }
