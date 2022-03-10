@@ -8,10 +8,6 @@ cd ../../wicp || exit 1
 
 dfx canister create wicp
 
-cargo build --target wasm32-unknown-unknown --package rust --release \
-	&& ic-cdk-optimizer target/wasm32-unknown-unknown/release/rust.wasm \
-	-o target/wasm32-unknown-unknown/release/opt.wasm
-
 OWNER=$1
 FEES_TO=$1
 
