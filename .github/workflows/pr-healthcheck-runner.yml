@@ -51,7 +51,7 @@ jobs:
       - name: Install DFX
         if: steps.cache-dfx.outputs.cache-hit != 'true'
         env:
-          DFX_VERSION: 0.8.4
+          DFX_VERSION: 0.9.2
         run: |
           yes Y | DFX_VERSION="$DFX_VERSION" sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)"
 
