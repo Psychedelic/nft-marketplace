@@ -708,6 +708,7 @@ fn add_collection(
     fungible_contract_address: Principal,
     fungible_token_type: FungibleTokenType,
 ) {
+    // TODO: related to the init_data, which seems we can remove?
     // assert_eq!(ic::caller(), init_data().owner);
 
     collections().collections.insert(
