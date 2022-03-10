@@ -175,8 +175,6 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
 
     // guarding against re-entrancy
     if buy_offer.status != BuyOfferStatus::Created {
-        ic_cdk::println!("[debug] accept_buy_offer -> bp {:?}", 21);
-
         return Err(MPApiError::InvalidBuyOfferStatus);
     }
 
