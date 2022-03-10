@@ -8,7 +8,7 @@
     "cap:reset": "cd ./cap && rm -rf .dfx",
     "dab:start": "cd ./dab && dfx deploy nft",
     "dab:reset": "cd ./dab && rm -rf .dfx",
-    "crowns:reset": "cd ./crowns && rm -rf .dfx && rm -rf target",
+    "crowns:reset": "cd ./crowns && rm -rf .dfx",
     "wicp:deploy": "./.scripts/wicp/deploy-wicp.sh",
     "wicp:balance-of": "./.scripts/wicp/balance-of.sh",
     "wicp:reset": "cd ./wicp && rm -rf .dfx",
