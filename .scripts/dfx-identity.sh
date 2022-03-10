@@ -1,38 +1,42 @@
 #!/bin/bash
 
-# ALICE_HOME=$(mktemp -d 2>/dev/null || mktemp -d -t alice-temp)
-# BOB_HOME=$(mktemp -d 2>/dev/null || mktemp -d -t bob-temp)
-ALICE_HOME=$(mkdir -p ./.dfx/identities/alice)
-BOB_HOME=$(mkdir -p ./.dfx/identities/bob)
-DEFAULT_HOME="$HOME"
+initialIdentity=$(dfx identity whoami)
+ALICE_IDENTITY_NAME="marketplace.alice"
+BOB_IDENTITY_NAME="marketplace.bob"
 
-ALICE_PRINCIPAL_ID=$(HOME=$ALICE_HOME dfx identity get-principal)
-BOB_PRINCIPAL_ID=$(HOME=$BOB_HOME dfx identity get-principal)
-DEFAULT_PRINCIPAL_ID=$(HOME=$HOME dfx identity get-principal)
+dfx identity new "$ALICE_IDENTITY_NAME"
+dfx identity use "$ALICE_IDENTITY_NAME" 
 
-# TODO: Investigate why the wallet addresses are the same?
-ALICE_WALLET=$(HOME=$ALICE_HOME dfx identity get-wallet)
-BOB_WALLET=$(HOME=$BOB_HOME dfx identity get-wallet)
+ALICE_PRINCIPAL_ID=$(dfx identity get-principal)
+ALICE_WALLET=$(dfx identity get-wallet)
 
-ALICE_PEM="$ALICE_HOME/.config/dfx/identity/default/identity.pem"
-BOB_PEM="$BOB_HOME/.config/dfx/identity/default/identity.pem"
-DEFAULT_PEM="$HOME/.config/dfx/identity/default/identity.pem"
+dfx identity new "$BOB_IDENTITY_NAME"
+dfx identity use "$BOB_IDENTITY_NAME" 
 
+BOB_PRINCIPAL_ID=$(dfx identity get-principal)
+BOB_WALLET=$(dfx identity get-wallet)
+
+dfx identity use "$initialIdentity" 
+
+DEFAULT_PRINCIPAL_ID=$(dfx identity get-principal)
 DEFAULT_USER_WALLET=$(dfx identity get-wallet)
+
+dfx identity use "$initialIdentity"
 
 printf "🙋‍♀️ Identities\n\n"
 
 printf "👩🏽‍🦰 ALICE_PRINCIPAL_ID (%s)\n" "$ALICE_PRINCIPAL_ID"
 printf "👩🏽‍🦰 ALICE_WALLET (%s)\n" "$ALICE_WALLET"
-printf "👩🏽‍🦰 ALICE_HOME (%s)\n" "$ALICE_HOME"
 
 printf "👨🏽‍🦰 BOB_PRINCIPAL_ID (%s)\n" "$BOB_PRINCIPAL_ID"
 printf "👨🏽‍🦰 BOB_WALLET (%s)\n" "$BOB_WALLET"
-printf "👨🏽‍🦰 BOB_HOME (%s)\n" "$BOB_HOME"
 
 printf "👨🏾‍💻 DEFAULT_PRINCIPAL_ID (%s)\n" "$DEFAULT_PRINCIPAL_ID"
-printf "👨🏾‍💻 DEFAULT_HOME (%s)\n" "$DEFAULT_HOME"
 
 printf "🐷 DEFAULT_USER_WALLET (%s)\n" "$DEFAULT_USER_WALLET"
 
 printf "\n\n"
+
+DEFAULT_HOME=$HOME
+ALICE_HOME=$HOME
+BOB_HOME=$HOME

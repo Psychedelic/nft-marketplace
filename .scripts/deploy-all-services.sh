@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 (cd "$(dirname $BASH_SOURCE)" && cd ..) || exit 1
 
 DEBUG=1
@@ -41,13 +43,44 @@ deployDip721() {
 
     # yarn dip721:deploy-nft "local" "$ownerPrincipalId" "$tokenSymbol" "$tokenName" "$IC_HISTORY_ROUTER"
 
+    # dfx canister --wallet "$DEFAULT_USER_WALLET" \
+    #   create crowns \
+    #   --controller "$ownerPrincipalId"
+
+    # nonFungibleContractAddress=$(dfx canister id crowns)
+
+    # printf "NFT Contract address -> %s\n" "$nonFungibleContractAddress"
+
+    # dfx canister --wallet "$DEFAULT_USER_WALLET" \
+    #   update-settings \
+    #     --controller "$ownerPrincipalId" \
+    #     --controller "$nonFungibleContractAddress" \
+    #   "$nonFungibleContractAddress"
+
+    # dfx deploy --wallet "$DEFAULT_USER_WALLET" \
+    #   crowns --argument "(
+    #     opt record {
+    #       name = opt \"$tokenName\";
+    #       logo = opt \"data:image/jpeg;base64,...\";
+    #       symbol = opt \"$tokenSymbol\";
+    #       owners = opt vec { principal \"$DEFAULT_USER_WALLET\" };
+    #     }
+    # )"
+
+    # printf "Should copy the parent crowns wasm to the crowns directory"
+
+    # cd .. || exit 1
+    # targetDir=./crowns/target/wasm32-unknown-unknown/release
+    # mkdir -p "$targetDir" || exit 1
+    # cp ./target/wasm32-unknown-unknown/release/crowns.wasm "$targetDir" || exit 1
+
     dfx canister --wallet "$DEFAULT_USER_WALLET" \
       create crowns \
       --controller "$ownerPrincipalId"
 
-    nonFungibleContractAddress=$(dfx canister id crowns)
+    dfx build crowns
 
-    printf "NFT Contract address -> %s\n" "$nonFungibleContractAddress"
+    nonFungibleContractAddress=$(dfx canister id crowns)
 
     dfx canister --wallet "$DEFAULT_USER_WALLET" \
       update-settings \
@@ -64,12 +97,6 @@ deployDip721() {
           owners = opt vec { principal \"$DEFAULT_USER_WALLET\" };
         }
     )"
-
-    printf "Should copy the parent crowns wasm to the crowns directory"
-
-    targetDir=./crowns/target/wasm32-unknown-unknown/release
-    mkdir -p "$targetDir"
-    cp ./target/wasm32-unknown-unknown/release/crowns.wasm "$targetDir"
   )
 }
 
