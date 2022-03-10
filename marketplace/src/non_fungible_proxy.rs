@@ -56,8 +56,6 @@ impl Dip721Proxy {
         token_id: &u64,
         contract: &Principal,
     ) -> U64Result {
-        ic_cdk::println!("[debug] non_fungible_proxy -> Dip721Proxy -> transfer_from -> from {:?}, to {:?}", &from.to_string(), &to.to_string());
-
         let call_res: Result<(Result<Nat, NftError>,), (RejectionCode, String)> = ic::call(
             *contract,
             "transferFrom",
@@ -65,26 +63,14 @@ impl Dip721Proxy {
         )
         .await;
 
-        let res = call_res
+        call_res
             .map_err(|_| MPApiError::Other)?
             .0
-            .map_err(|err| {
-                ic_cdk::println!("[debug] call_res -> err -> {:?}", err);
-
-                MPApiError::TransferFungibleError
-            })
-            .map(|res| convert_nat_to_u64(res).unwrap());
-
-        match &res {
-            Ok(data) => ic_cdk::println!("[debug] data -> {:?}", data),
-            Err(err) => ic_cdk::println!("[debug] err -> {:?}", err),
-        };
-
-        res
+            .map_err(|err| MPApiError::TransferFungibleError)
+            .map(|res| convert_nat_to_u64(res).unwrap())
     }
 
     pub async fn transfer(contract: &Principal, to: &Principal, token_id: &u64) -> Result<Nat, MPApiError> {
-        // Dip721Proxy::transfer_from(&ic::caller(), to, nft_id, contract).await
         let call_res: Result<(Result<Nat, NftError>,), (RejectionCode, String)> = ic::call(
             *contract,
             "transfer",
@@ -95,11 +81,7 @@ impl Dip721Proxy {
         let res = call_res
             .map_err(|_| MPApiError::Other)?
             .0
-            .map_err(|err| {
-                ic_cdk::println!("[debug] call_res -> err -> {:?}", err);
-
-                MPApiError::TransferFungibleError
-            })
+            .map_err(|err| MPApiError::TransferFungibleError)
             .map(|res| convert_nat_to_u64(res).unwrap());
 
         match &res {
