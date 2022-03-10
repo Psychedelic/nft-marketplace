@@ -306,7 +306,7 @@ approveTransferFromForAcceptBuyOffer() {
     call --update "$_wicpId" \
     approve "(
       principal \"$_marketplaceId\",
-      10_000_000:nat
+      5_000:nat
     )"
 }
 
@@ -354,13 +354,6 @@ run() {
     0
   [ "$DEBUG" == 1 ] && echo $?
 
-  # _callerHome=$1
-  # _identityName=$2
-  # _nonFungibleContractAddress=$2
-  # _marketplaceId=$3
-  # _token_id=$4
-  # _list_price=$5
-
   listForSale "$ALICE_HOME" \
     "$ALICE_IDENTITY_NAME" \
     "$nonFungibleContractAddress" \
@@ -393,6 +386,9 @@ run() {
 
 run
 
-# TODO: Clear temporary identities
+echo "🤖 Clear identities for Alice and Bob"
+
+dfx identity remove "$ALICE_IDENTITY_NAME"
+dfx identity remove "$BOB_IDENTITY_NAME"
 
 echo "👍 Healthcheck completed!"
