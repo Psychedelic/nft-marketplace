@@ -175,14 +175,10 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
     // let init_data = &init_data();
     let mut mp = marketplace();
 
-    ic_cdk::println!("[debug] accept_buy_offer -> init bp {:?}", 1);
-
     let buy_offer = mp
         .buy_offers
         .get_mut(buy_id as usize)
         .ok_or(MPApiError::InvalidBuyOffer)?;
-
-    ic_cdk::println!("[debug] accept_buy_offer -> bp {:?}", 2);
 
     // guarding against re-entrancy
     if buy_offer.status != BuyOfferStatus::Created {
@@ -190,8 +186,6 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
 
         return Err(MPApiError::InvalidBuyOfferStatus);
     }
-
-    ic_cdk::println!("[debug] accept_buy_offer -> bp {:?}", 3);
 
     let sale_offer = mp
         .sale_offers
@@ -201,21 +195,13 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
         ))
         .ok_or(MPApiError::InvalidSaleOffer)?;
 
-    ic_cdk::println!("[debug] accept_buy_offer -> bp {:?}", 4);
-
     // guarding against re-entrancy
     if sale_offer.status != SaleOfferStatus::Created {
-        ic_cdk::println!("[debug] accept_buy_offer -> bp {:?}", 5);
-
         return Err(MPApiError::InvalidSaleOfferStatus);
     }
 
-    ic_cdk::println!("[debug] accept_buy_offer -> bp {:?}", 6);
-
     // only the seller can accept the bid
     if (sale_offer.payment_address != caller) {
-        ic_cdk::println!("[debug] accept_buy_offer -> bp {:?}", 7);
-
         return Err(MPApiError::Unauthorized);
     }
 
@@ -223,8 +209,6 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
         .collections
         .get(&buy_offer.non_fungible_contract_address)
         .ok_or(MPApiError::NonExistentCollection)?;
-
-    ic_cdk::println!("[debug] accept_buy_offer -> bp {:?}", 8);
 
     // check if the NFT is still hold by the seller
     let token_owner = owner_of_non_fungible(
@@ -234,10 +218,6 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
     )
     .await?;
 
-    ic_cdk::println!("[debug] accept_buy_offer -> bp {:?}", 9);
-    ic_cdk::println!("[debug] accept_buy_offer -> sale_offer.payment_address {:?}", sale_offer.payment_address.to_string());
-    ic_cdk::println!("[debug] accept_buy_offer -> token_owner {:?}", token_owner.to_string());
-
     if (sale_offer.payment_address != token_owner) {
         mp.sale_offers.remove(&(
             buy_offer.non_fungible_contract_address,
@@ -246,13 +226,9 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
         return Err(MPApiError::InsufficientNonFungibleBalance);
     }
 
-    ic_cdk::println!("[debug] accept_buy_offer -> bp {:?}", 10);
-
     // guarding agains reentrancy
     buy_offer.status = BuyOfferStatus::Bought;
     sale_offer.status = SaleOfferStatus::Selling;
-
-    ic_cdk::println!("[debug] accept_buy_offer -> bp {:?}", 11);
 
     // transfer the money from the buyer to the MP contract
     if transfer_from_fungible(
@@ -270,8 +246,6 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
         return Err(MPApiError::TransferFungibleError);
     }
 
-    ic_cdk::println!("[debug] accept_buy_offer -> bp {:?}", 12);
-
     // transfer the nft from the seller to the buyer
     if transfer_from_non_fungible(
         &sale_offer.payment_address,
@@ -283,8 +257,6 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
     .await
     .is_err()
     {
-        ic_cdk::println!("[debug] accept_buy_offer -> ERROR -> bp {:?}", 121);
-
         // credit the bid price to the buyer, as he never received the NFT
         *(balances()
             .balances
@@ -307,8 +279,6 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
         sale_offer.status = SaleOfferStatus::Created;
         return Err(MPApiError::TransferNonFungibleError);
     }
-
-    ic_cdk::println!("[debug] accept_buy_offer -> bp {:?}", 13);
 
     let owner_fee: Nat = buy_offer.price.clone() * collection.owner_fee_percentage / 100;
     // credit the owner fee to the collection owner
@@ -350,8 +320,6 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
         return Err(MPApiError::TransferFungibleError);
     }
 
-    ic_cdk::println!("[debug] accept_buy_offer -> bp {:?}", 14);
-
     // remove the sale offer and the bid that triggered the sale
     // all other bids still should remain valid
     buy_offer.status = BuyOfferStatus::Bought;
@@ -389,8 +357,6 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
         )
         .await
         .map_err(|_| MPApiError::CAPInsertionError)?;
-
-    ic_cdk::println!("[debug] accept_buy_offer -> bp {:?}", 15);
 
     Ok(())
 }
