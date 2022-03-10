@@ -30,7 +30,6 @@ topupWICP() {
   printf "🤖 Will top-up (%s) account id (%s) by 
   transfer of amount (%s) \n" "$_name" "$_transferTo" "$_amount"
 
-  HOME=$_callerHome \
   dfx canister --wallet "$DEFAULT_USER_WALLET" \
     call --update "$_wicpId" \
     transfer "(
@@ -40,7 +39,13 @@ topupWICP() {
 
   printf "🤖 balance of (%s)\n" "$_name"
 
-  yarn wicp:balance-of "$_transferTo"
+  # yarn wicp:balance-of "$_transferTo"
+
+  dfx canister --wallet "$DEFAULT_USER_WALLET" \
+    call --query wicp \
+    balanceOf "(
+      principal \"$account\"
+    )"
 }
 
 allowancesForWICP() {
@@ -324,13 +329,13 @@ acceptBuyOffer() {
 }
 
 run() {
-  printf "🚑 Healthcheck runtime details"
+  printf "🚑 Healthcheck runtime details\n"
   printf "Owner address -> %s\n" "$ownerPrincipalId"
 
-  topupWICP "$DEFAULT_HOME" "$wicpId" "Bob" "$BOB_WALLET" "50_000_000"
+  topupWICP "$DEFAULT_HOME" "$wicpId" "Bob" "$BOB_WALLET" "100_000_000"
   [ "$DEBUG" == 1 ] && echo $?
   
-  allowancesForWICP "$BOB_HOME" "$wicpId" "$marketplaceId" "100_000_000"
+  allowancesForWICP "$BOB_HOME" "$wicpId" "$marketplaceId" "50_000_000"
   [ "$DEBUG" == 1 ] && echo $?
 
   mintDip721 "$DEFAULT_HOME" "Alice" "$ALICE_WALLET" "$nonFungibleContractAddress"

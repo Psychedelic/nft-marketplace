@@ -6,7 +6,7 @@ set -x
 
 DEBUG=1
 DEFAULT_PRINCIPAL_ID=$(dfx identity get-principal)
-IC_HISTORY_ROUTER=""
+IC_HISTORY_ROUTER=$(cd ./cap && dfx canister id ic-history-router)
 
 DEFAULT_USER_WALLET=$(dfx identity get-wallet)
 
@@ -79,13 +79,32 @@ deployMarketplace() {
 deployWICP() {
   printf "🤖 Deploy wICP Token Canister\n"
 
-  owner="$1"
+  _wallet="$1"
+  _ic_history_router="$2"
 
-  yarn wicp:deploy "$owner"
+  # TODO: refactor the wicp:deploy
+  # yarn wicp:deploy "$owner"
 
-  printf "🤖 Balance of name (%s)" "$owner"
+  (
+    cd ./wicp || exit 1
 
-  yarn wicp:balance-of "$owner"
+    dfx deploy \
+    wicp --argument="(
+            \"data:image/jpeg;base64,$(base64 ./WICP-logo.png)\",
+            \"wicp\",
+            \"WICP\",
+            8:nat8,
+            1_000_000_000_000:nat,
+            principal \"$_wallet\", 
+            0, 
+            principal \"$_wallet\", 
+            principal \"$_ic_history_router\"
+            )" 
+  )
+
+  printf "🤖 Balance of name (%s)" "$_wallet"
+
+  yarn wicp:balance-of "$_wallet"
 
   wicpId="$(cd ./wicp && dfx canister id wicp)"
 
@@ -105,7 +124,7 @@ deployDip721
 deployMarketplace "$IC_HISTORY_ROUTER" "$DEFAULT_USER_WALLET"
 [ "$DEBUG" == 1 ] && echo $?
 
-deployWICP "$DEFAULT_USER_WALLET"
+deployWICP "$DEFAULT_USER_WALLET" "$IC_HISTORY_ROUTER"
 [ "$DEBUG" == 1 ] && echo $?
 
 echo "👍 Deploy services completed!"
