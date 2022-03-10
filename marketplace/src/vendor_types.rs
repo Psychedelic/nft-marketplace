@@ -50,7 +50,7 @@ pub enum ApiError {
     Other,
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Debug)]
 pub enum NftError {
     Unauthorized,
     OwnerNotFound,

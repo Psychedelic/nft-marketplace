@@ -96,7 +96,7 @@ pub(crate) struct Marketplace {
     pub buy_offers: Vec<BuyOffer>,
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize, Debug)]
 pub enum MPApiError {
     TransferFungibleError,
     TransferNonFungibleError,
