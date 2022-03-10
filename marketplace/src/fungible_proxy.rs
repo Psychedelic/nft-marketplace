@@ -52,15 +52,8 @@ impl Dip20Proxy {
         amount: &Nat,
         contract: &Principal,
     ) -> U64Result {
-        ic_cdk::println!("[debug] Dip20Proxy -> transfer_from -> from {:?}, to {:?}", &from.to_string(), &to.to_string());
-
         let call_res: Result<(TxReceipt,), (RejectionCode, String)> =
             ic::call(*contract, "transferFrom", (*from, *to, amount.clone())).await;
-
-        match &call_res {
-            Ok(result) => ic_cdk::println!("[debug] Dip20Proxy -> transfer_from -> {:?}", result),
-            _ => ic_cdk::println!("[debug] Dip20Proxy -> transfer_from -> Failure!")
-        };
 
         call_res
             .map_err(|_| MPApiError::TransferFungibleError)?
