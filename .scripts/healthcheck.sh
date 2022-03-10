@@ -232,8 +232,8 @@ makeBuyOffer() {
   printf "🤖 The user (%s) will makeBuyOffer for token id (%s) 
   for the amount (%s)\n" "$_name" "$_token_id" "$_offer_price"
 
+  # TODO: re-enable the log for balance of
   # printf "🤖 balance of (%s) is equal to\n" "$_name"
-
   # yarn wicp:balance-of "$_transferTo"
 
   _result=$(
@@ -246,8 +246,6 @@ makeBuyOffer() {
         ($_offer_price:nat)
       )"
   )
-
-  echo "[debug] _result -> $_result" 
 
   _result_num=$(echo "$_result" | pcregrep -o1  'Ok = ([0-9]*)')
 
