@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+# set -x
 
 (cd "$(dirname $BASH_SOURCE)" && cd ..) || exit 1
 
@@ -90,8 +90,6 @@ mintDip721() {
         }
       )"
   )
-
-  # nft_token_id_for_alice=$(echo "$_result" | pcregrep -o1  '17_724 = ([0-9]*)')
 
   printf "🤖 Minted Dip721 for user %s, has token ID (%s)\n" "$_name" "$nft_token_id_for_alice"
 
@@ -291,15 +289,7 @@ approveTransferFromForAcceptBuyOffer() {
 
   printf "🤖 The user (%s) will approve transfer token id (%s) 
   for user (%s) \n" "$_name" "$_nft_token_id_for_alice" "$_approves_wallet"
-  printf "🤖 for nft contract id (%s)" "$_nonFungibleContractAddress"
-
-  dfx --identity "$_identityName" \
-    canister --wallet "$_wallet" \
-    call --update "$_nonFungibleContractAddress" \
-    approve "(
-      principal \"$_approves_wallet\",
-      $_nft_token_id_for_alice:nat
-    )"
+  printf "🤖 for nft contract id (%s)\n" "$_nonFungibleContractAddress"
 
   dfx --identity "$_identityName" \
     canister --wallet "$_wallet" \
@@ -309,6 +299,8 @@ approveTransferFromForAcceptBuyOffer() {
       $_nft_token_id_for_alice:nat
     )"
 
+  # Obs: The amount set here is a placeholder
+  # as the amount should be the sell value + fees
   dfx --identity "$BOB_IDENTITY_NAME" \
     canister --wallet "$BOB_WALLET" \
     call --update "$_wicpId" \
