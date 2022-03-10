@@ -3,5 +3,7 @@ members = [
     "marketplace",
 ]
 exclude = [
-    "crowns"
+    "cap",
+    "crowns",
+    "wicp",
 ]
