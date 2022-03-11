@@ -30,36 +30,36 @@ deployDip721() {
   (
     cd ./crowns || exit 1
 
-    ownerPrincipalId=$DEFAULT_USER_WALLET
-    tokenSymbol="FOO"
-    tokenName="Foobar"
+    _owner_wallet=$1
+    _tokenName=$2
+    _tokenSymbol=$3
 
     printf "🤖 Deploying NFT with owner id (%s), token (%s), token name (%s), cap (%s)\n" "$ownerPrincipalId" "$tokenSymbol" "$tokenName" "$IC_HISTORY_ROUTER"
 
     # TODO: Refactor the dip721:deploy-nft or remove it
     # yarn dip721:deploy-nft "local" "$ownerPrincipalId" "$tokenSymbol" "$tokenName" "$IC_HISTORY_ROUTER"
 
-    dfx canister --wallet "$DEFAULT_USER_WALLET" \
+    dfx canister --wallet "$_owner_wallet" \
       create crowns \
-      --controller "$ownerPrincipalId"
+      --controller "$_owner_wallet"
 
     dfx build crowns
 
     nonFungibleContractAddress=$(dfx canister id crowns)
 
-    dfx canister --wallet "$DEFAULT_USER_WALLET" \
+    dfx canister --wallet "$_owner_wallet" \
       update-settings \
-        --controller "$ownerPrincipalId" \
+        --controller "$_owner_wallet" \
         --controller "$nonFungibleContractAddress" \
       "$nonFungibleContractAddress"
 
-    dfx deploy --wallet "$DEFAULT_USER_WALLET" \
+    dfx deploy --wallet "$_owner_wallet" \
       crowns --argument "(
         opt record {
-          name = opt \"$tokenName\";
+          name = opt \"$_tokenName\";
           logo = opt \"data:image/jpeg;base64,...\";
-          symbol = opt \"$tokenSymbol\";
-          owners = opt vec { principal \"$DEFAULT_USER_WALLET\" };
+          symbol = opt \"$_tokenSymbol\";
+          owners = opt vec { principal \"$_owner_wallet\" };
         }
     )"
   )
@@ -116,7 +116,7 @@ deployCapRouter
 # deployDab
 # [ "$DEBUG" == 1 ] && echo $?
 
-deployDip721
+deployDip721 "$DEFAULT_USER_WALLET" "Crowns" "CRW"
 [ "$DEBUG" == 1 ] && echo $?
 
 deployMarketplace "$IC_HISTORY_ROUTER" "$DEFAULT_USER_WALLET"
