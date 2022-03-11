@@ -2,8 +2,9 @@
 
 (cd "$(dirname $BASH_SOURCE)" && cd ..) || exit 1
 
+[ "$DEBUG" == 1 ] && set -x
+
 DEBUG=1
-DEFAULT_PRINCIPAL_ID=$(dfx identity get-principal)
 IC_HISTORY_ROUTER=$(cd ./cap && dfx canister id ic-history-router)
 
 DEFAULT_USER_WALLET=$(dfx identity get-wallet)
@@ -48,6 +49,7 @@ deployWICP() {
 
   _wallet="$1"
   _ic_history_router="$2"
+  _amount="$3"
 
   # TODO: refactor the wicp:deploy
   # yarn wicp:deploy "$owner"
@@ -61,7 +63,7 @@ deployWICP() {
             \"wicp\",
             \"WICP\",
             8:nat8,
-            1_000_000_000_000:nat,
+            $_amount:nat,
             principal \"$_wallet\", 
             0, 
             principal \"$_wallet\", 
@@ -91,7 +93,7 @@ deployDip721 "$DEFAULT_USER_WALLET" "Crowns" "CRW"
 deployMarketplace "$DEFAULT_USER_WALLET" "$IC_HISTORY_ROUTER" 
 [ "$DEBUG" == 1 ] && echo $?
 
-deployWICP "$DEFAULT_USER_WALLET" "$IC_HISTORY_ROUTER"
+deployWICP "$DEFAULT_USER_WALLET" "$IC_HISTORY_ROUTER" 1_000_000_000_000""
 [ "$DEBUG" == 1 ] && echo $?
 
 echo "👍 Deploy services completed!"
