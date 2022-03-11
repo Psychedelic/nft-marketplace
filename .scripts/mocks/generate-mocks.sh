@@ -1,8 +1,11 @@
 #!/bin/bash
 
+set -x
+
 (cd "$(dirname $BASH_SOURCE)" && cd ../../) || exit 1
 
-. ".scripts/mocks/identity-mocks.sh"
+# . ".scripts/mocks/identity-mocks.sh"
+. ".scripts/dfx-identity.sh"
 
 # The NFT Canister id
 nftCanisterId=$1
@@ -11,14 +14,22 @@ nftCanisterId=$1
 totalNumberOfTokens=$2
 
 generateMock() {
-  mintForPrincipalId=$1
-  token_index=$2
+  _wallet=$1
+  _identityName=$2
+  _token_index=$3
+
+  echo "[debug] generateMock _wallet ($_wallet), _identityName ($_identityName), _token_index($_token_index)"
+
   crownsNftCanisterId="vlhm2-4iaaa-aaaam-qaatq-cai"
-  filename=$(printf "%04d.mp4" "$token_index")
-  assetUrl="https://$crownsNftCanisterId.raw.ic0.app/$filename"
+  filename=$(printf "%04d.mp4" "$_token_index")
+  crownsCertifiedAssetsA="vzb3d-qyaaa-aaaam-qaaqq-ca"
+  crownsCertifiedAssetsB="vqcq7-gqaaa-aaaam-qaara-cai"
+  assetUrl="https://$crownsCertifiedAssetsA.raw.ic0.app/$filename"
+
+  dfx canister --network ic call $crownsNftCanisterId getMetadataDip721 "($_token_index:nat64)"
 
   # Get some data from the mainnet canister
-  mainnetMetadataResult=($(dfx canister --network ic call $crownsNftCanisterId getMetadataDip721 "($token_index:nat64)" | pcregrep -o1  '3_643_416_556 = "([a-zA-Z]*)"'))
+  mainnetMetadataResult=($(dfx canister --network ic call $crownsNftCanisterId getMetadataDip721 "($_token_index:nat64)" | pcregrep -o1  '3_643_416_556 = "([a-zA-Z]*)"'))
 
   if [[ ! "$(declare -p mainnetMetadataResult)" =~ "declare -a" ]];
   then
@@ -28,56 +39,53 @@ generateMock() {
 
   # Mint a token for the user
   # returns MintReceiptPart  { token_id: nat64; id: nat }
-  printf "🤖 Mint NFT of id (%s) for user id (%s)\n\n" "$nftCanisterId" "$mintForPrincipalId"
+  printf "🤖 Mint NFT of id (%s) for user id (%s)\n\n" "$crownsNftCanisterId" "$_wallet"
 
-  mintResult=$(dfx canister --no-wallet \
-    --network local \
+  # mint : (principal, nat, vec record { text; GenericValue }) -> (Result);
+  mintResult=$(
+    dfx canister --network local \
+    --wallet "$DEFAULT_USER_WALLET" \
     call --update "$nftCanisterId" \
-    mintDip721 "(
-      principal \"$mintForPrincipalId\",
+    mint "(
+      principal \"$_wallet\",
+      $_token_index:nat,
       vec {
         record {
-          data = vec { (0:nat8) };
-          key_val_data = vec {
-            record {
-              key = \"smallgem\";
-              val = variant {
-                TextContent = \"${mainnetMetadataResult[0]}\"
-              };
-            };
-            record {
-              key = \"biggem\";
-              val = variant {
-                TextContent = \"${mainnetMetadataResult[1]}\"
-              };
-            };
-            record {
-              key = \"base\";
-              val = variant {
-                TextContent = \"${mainnetMetadataResult[2]}\"
-              };
-            };
-            record {
-              key = \"rim\";
-              val = variant {
-                TextContent = \"${mainnetMetadataResult[3]}\"
-              };
-            };
-            record {
-              key= \"location\";
-              val = variant {
-                TextContent = \"$assetUrl\"
-              }
-            }
-          };
-          purpose = variant {
-            Rendered
-          };
-        }
+          \"smallgem\";
+          variant {
+            \"TextContent\" = \"${mainnetMetadataResult[0]}\"
+          }
+        };
+        record {
+          \"biggem\";
+          variant {
+            \"TextContent\" = \"${mainnetMetadataResult[1]}\"
+          }
+        };
+        record {
+          \"base\";
+          variant {
+            \"TextContent\" = \"${mainnetMetadataResult[2]}\"
+          }
+        };
+        record {
+          \"rim\";
+          variant {
+            \"TextContent\" = \"${mainnetMetadataResult[3]}\"
+          }
+        };
+        record {
+          \"location\";
+          variant {
+            \"TextContent\" = \"$assetUrl\"
+          }
+        };
       }
     )")
 
-  mintTokenId=$(echo "$mintResult" | pcregrep -o1  '= ([0-9]*) : nat64')
+  echo "[debug] mintResult -> $mintResult"
+
+  mintTokenId=$(echo "$mintResult" | pcregrep -o1 '17_724 = ([0-9]*)')
 
   printf "🤖 The generated token id (%s)\n\n" "$mintTokenId"
 
@@ -94,11 +102,13 @@ generateMock() {
 }
 
 userIdentityWarning() {
+  _wallet=$1
+
   # The extra white space is intentional, used for alignment
   read -r -p "⚠️  Is your dfx identity Plug's (exported PEM) [Y/n]? " CONT
 
   if [ "$CONT" = "Y" ]; then
-    printf "🌈 The DFX Identity is set to (%s), make sure it matches Plug's!\n\n" "$dfxUserPrincipalId"
+    printf "🌈 The DFX Identity is set to (%s), make sure it matches Plug's!\n\n" "$_wallet"
   else
     printf "🚩 Make sure you configure DFX cli to use Plug's exported identity (PEM) \n\n"
 
@@ -107,12 +117,13 @@ userIdentityWarning() {
 }
 
 generatorHandler() {
-  principalId=$1
-  total=$2
+  _wallet=$1
+  _identityName=$2
+  _total=$3
 
   # Iterator exec the mock generation incrementally
-  for i in $(seq 1 "$total");
-    do generateMock "$principalId" "$i"
+  for i in $(seq 1 "$_total");
+    do generateMock "$_wallet" "$_identityName" "$i"
   done
 }
 
@@ -122,13 +133,20 @@ dividedTotal=$(echo "$dividedTotal" | awk '{print int($1+0.5)}')
 
 # Warn the user about identity requirement
 # as the end user will be interacting with the Marketplace via Plug's
-userIdentityWarning
+userIdentityWarning "$DEFAULT_USER_WALLET"
 
 # generates mock data for the dfx user principal
-generatorHandler "$dfxUserPrincipalId" "$dividedTotal"
+generatorHandler "$DEFAULT_USER_WALLET" "$INITIAL_IDENTITY" "$dividedTotal"
 
 # generates mock data for Alice
-generatorHandler "$alicePrincipalId" "$dividedTotal"
+generatorHandler "$ALICE_WALLET" "$ALICE_IDENTITY_NAME" "$dividedTotal"
 
 # generates mock data for Bob
-generatorHandler "$bobPrincipalId" "$dividedTotal"
+generatorHandler "$BOB_WALLET" "$BOB_IDENTITY_NAME" "$dividedTotal"
+
+printf "💡 Use the identities in DFX Cli by providing it via flag --identity\n"
+printf "this is useful because you can interact with the Marketplace with different identities\n"
+printf "to create the necessary use-case scenarios throughout development\n"
+printf "\n"
+printf "👩🏽‍🦰 Alice identity name (%s)\n" "$ALICE_IDENTITY_NAME"
+printf "👨🏽‍🦰 Bob identity name (%s)\n" "$BOB_IDENTITY_NAME"
