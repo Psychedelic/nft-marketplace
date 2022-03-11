@@ -303,7 +303,7 @@ approveTransferFromForWICPAcceptBuyOffer() {
   _marketplaceId=$4
   _amount=$5
 
-  printf "🤖 The user (%s) approves (%s) for the amount (%s) in fungible token (%s)" "$_identityName" "$_marketplaceId" "$_amount" "$_wicpId"
+  printf "🤖 The user (%s) approves (%s) for the amount (%s) in fungible token (%s)\n" "$_identityName" "$_marketplaceId" "$_amount" "$_wicpId"
 
   dfx --identity "$_identityName" \
     canister --wallet "$_wallet" \
