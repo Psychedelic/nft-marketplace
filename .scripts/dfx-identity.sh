@@ -1,6 +1,7 @@
 #!/bin/bash
 
-initialIdentity=$(dfx identity whoami)
+INITIAL_IDENTITY=$(dfx identity whoami)
+
 ALICE_IDENTITY_NAME="marketplace.alice"
 BOB_IDENTITY_NAME="marketplace.bob"
 
@@ -16,12 +17,12 @@ dfx identity use "$BOB_IDENTITY_NAME"
 BOB_PRINCIPAL_ID=$(dfx identity get-principal)
 BOB_WALLET=$(dfx identity get-wallet)
 
-dfx identity use "$initialIdentity" 
+dfx identity use "$INITIAL_IDENTITY" 
 
 DEFAULT_PRINCIPAL_ID=$(dfx identity get-principal)
 DEFAULT_USER_WALLET=$(dfx identity get-wallet)
 
-dfx identity use "$initialIdentity"
+dfx identity use "$INITIAL_IDENTITY"
 
 printf "🙋‍♀️ Identities\n\n"
 
@@ -36,7 +37,3 @@ printf "👨🏾‍💻 DEFAULT_PRINCIPAL_ID (%s)\n" "$DEFAULT_PRINCIPAL_ID"
 printf "🐷 DEFAULT_USER_WALLET (%s)\n" "$DEFAULT_USER_WALLET"
 
 printf "\n\n"
-
-DEFAULT_HOME=$HOME
-ALICE_HOME=$HOME
-BOB_HOME=$HOME
