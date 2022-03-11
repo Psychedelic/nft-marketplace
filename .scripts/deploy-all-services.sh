@@ -78,8 +78,8 @@ deployWICP() {
   printf "🤖 wICP Canister id is %s\n" "$wicpId"
 }
 
-# deployCapRouter
-# [ "$DEBUG" == 1 ] && echo $?
+deployCapRouter
+[ "$DEBUG" == 1 ] && echo $?
 
 # TODO: Check why it throws replica 404
 # deployDab
@@ -88,10 +88,10 @@ deployWICP() {
 deployDip721 "$DEFAULT_USER_WALLET" "Crowns" "CRW"
 [ "$DEBUG" == 1 ] && echo $?
 
-# deployMarketplace "$DEFAULT_USER_WALLET" "$IC_HISTORY_ROUTER" 
-# [ "$DEBUG" == 1 ] && echo $?
+deployMarketplace "$DEFAULT_USER_WALLET" "$IC_HISTORY_ROUTER" 
+[ "$DEBUG" == 1 ] && echo $?
 
-# deployWICP "$DEFAULT_USER_WALLET" "$IC_HISTORY_ROUTER"
-# [ "$DEBUG" == 1 ] && echo $?
+deployWICP "$DEFAULT_USER_WALLET" "$IC_HISTORY_ROUTER"
+[ "$DEBUG" == 1 ] && echo $?
 
 echo "👍 Deploy services completed!"
