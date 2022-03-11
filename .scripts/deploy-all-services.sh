@@ -2,18 +2,22 @@
 
 (cd "$(dirname $BASH_SOURCE)" && cd ..) || exit 1
 
-DEBUG=1
-DEFAULT_PRINCIPAL_ID=$(dfx identity get-principal)
-IC_HISTORY_ROUTER=""
+[ "$DEBUG" == 1 ] && set -x
+
+IC_HISTORY_ROUTER=$(cd ./cap && dfx canister id ic-history-router)
+
+DEFAULT_USER_WALLET=$(dfx identity get-wallet)
 
 deployCapRouter() {
   printf "🤖 Deploy Cap\n"
 
   yarn cap:start
 
-  IC_HISTORY_ROUTER=$(cd ./cap && dfx canister id ic-history-router)
+  _icHistoryRouter=$(cd ./cap && dfx canister id ic-history-router)
 
-  printf "CAP IC History router -> %s\n" "$IC_HISTORY_ROUTER"
+  printf "CAP IC History router -> %s\n" "$_icHistoryRouter"
+
+  IC_HISTORY_ROUTER=$_icHistoryRouter
 }
 
 deployDab() {
@@ -23,48 +27,40 @@ deployDab() {
 }
 
 deployDip721() {
-  printf "🤖 Deploy DIP721 NFT Canister\n"
+  printf "🤖 Deploy DIP721 Crowns NFT Canister\n"
 
-  (
-    cd ./DIP721 || exit 1
+  _owner_wallet=$1
+  _tokenName=$2
+  _tokenSymbol=$3
 
-    ownerPrincipalId=$DEFAULT_PRINCIPAL_ID
-    tokenSymbol="FOO"
-    tokenName="Foobar"
-
-    printf "🤖 Deploying NFT with owner id (%s), token (%s), token name (%s), cap (%s)\n" "$ownerPrincipalId" "$tokenSymbol" "$tokenName" "$IC_HISTORY_ROUTER"
-
-    yarn dip721:deploy-nft "local" "$ownerPrincipalId" "$tokenSymbol" "$tokenName" "$IC_HISTORY_ROUTER"
-
-    nonFungibleContractAddress=$(dfx canister id nft)
-
-    printf "NFT Contract address -> %s\n" "$nonFungibleContractAddress"
-  )
+  yarn crowns:deploy "$_owner_wallet" "$_tokenName" "$_tokenSymbol"
 }
 
 deployMarketplace() {
   printf "🤖 Call the deployMarketplace\n"
 
-  icHistoryRouter=$1
-  ownerPrincipalId=$2
+  _wallet=$1
+  _icHistoryRouter=$2
 
-  yes yes | yarn marketplace:deploy "$icHistoryRouter" "$ownerPrincipalId"
+  yes yes | yarn marketplace:deploy "$_wallet" "$_icHistoryRouter"
 }
 
 deployWICP() {
   printf "🤖 Deploy wICP Token Canister\n"
 
-  owner="$1"
+  _wallet="$1"
+  _ic_history_router="$2"
+  _amount="$3"
 
-  yarn wicp:deploy "$owner"
+  yarn wicp:deploy "$_wallet" "$_ic_history_router" "$_amount"
 
-  printf "🤖 Balance of name (%s)" "$owner"
+  printf "🤖 Balance of name (%s)" "$_wallet"
 
-  yarn wicp:balance-of "$owner"
+  yarn wicp:balance-of "$_wallet"
 
-  wicpId="$(cd ./wicp && dfx canister id wicp)"
+  _wicpId="$(cd ./wicp && dfx canister id wicp)"
 
-  printf "🤖 wICP Canister id is %s\n" "$wicpId"
+  printf "🤖 wICP Canister id is %s\n" "$_wicpId"
 }
 
 deployCapRouter
@@ -74,13 +70,13 @@ deployCapRouter
 # deployDab
 # [ "$DEBUG" == 1 ] && echo $?
 
-deployDip721
+deployDip721 "$DEFAULT_USER_WALLET" "Crowns" "CRW"
 [ "$DEBUG" == 1 ] && echo $?
 
-deployMarketplace "$IC_HISTORY_ROUTER" "$DEFAULT_PRINCIPAL_ID"
+deployMarketplace "$DEFAULT_USER_WALLET" "$IC_HISTORY_ROUTER" 
 [ "$DEBUG" == 1 ] && echo $?
 
-deployWICP "$DEFAULT_PRINCIPAL_ID"
+deployWICP "$DEFAULT_USER_WALLET" "$IC_HISTORY_ROUTER" 1_000_000_000_000""
 [ "$DEBUG" == 1 ] && echo $?
 
 echo "👍 Deploy services completed!"

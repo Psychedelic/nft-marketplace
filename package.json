@@ -8,7 +8,8 @@
     "cap:reset": "cd ./cap && rm -rf .dfx",
     "dab:start": "cd ./dab && dfx deploy nft",
     "dab:reset": "cd ./dab && rm -rf .dfx",
-    "dip721:reset": "cd ./DIP721 && rm -rf .dfx",
+    "crowns:deploy": "./.scripts/crowns/deploy-crowns.sh",
+    "crowns:reset": "cd ./crowns && rm -rf .dfx",
     "wicp:deploy": "./.scripts/wicp/deploy-wicp.sh",
     "wicp:balance-of": "./.scripts/wicp/balance-of.sh",
     "wicp:reset": "cd ./wicp && rm -rf .dfx",
@@ -17,7 +18,7 @@
     "marketplace:reset": "rm -rf .dfx",
     "services:init": "git submodule update --init --recursive",
     "services:start": "./.scripts/deploy-all-services.sh",
-    "reset": "dfx stop && rm -rf .dfx && yarn cap:reset && yarn dip721:reset && yarn wicp:reset",
+    "reset": "dfx stop && rm -rf .dfx && yarn cap:reset && yarn crowns:reset && yarn wicp:reset",
     "mock:generate-tokens": "./.scripts/mocks/generate-mocks.sh"
   },
   "repository": {

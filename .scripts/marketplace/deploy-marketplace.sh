@@ -5,22 +5,22 @@ cd $(dirname $BASH_SOURCE) || exit 1
 cd ../../ || exit 1
 
 # Args
-IC_HISTORY_ROUTER=$1
-OWNER_PRINCIPAL_ID=$2
+_wallet=$1
+_icHistoryRouter=$2
 
-dfx canister --no-wallet \
-  create marketplace --controller "$OWNER_PRINCIPAL_ID"
+dfx canister --wallet "$_wallet" \
+  create marketplace --controller "$_wallet"
 
-CREATED_MARKETPLACE_CANISTER_ID=$(dfx canister id marketplace)
+_createdMarketCanisterId=$(dfx canister id marketplace)
 
-dfx canister --no-wallet \
+dfx canister --wallet "$_wallet" \
   update-settings \
-    --controller "$OWNER_PRINCIPAL_ID" \
-    --controller "$CREATED_MARKETPLACE_CANISTER_ID" \
-  "$CREATED_MARKETPLACE_CANISTER_ID"
+    --controller "$_wallet" \
+    --controller "$_createdMarketCanisterId" \
+  "$_createdMarketCanisterId"
 
-dfx deploy --no-wallet \
+dfx deploy --wallet "$_wallet" \
   marketplace --argument "(
-    principal \"$IC_HISTORY_ROUTER\",
-    principal \"$OWNER_PRINCIPAL_ID\"
+    principal \"$_icHistoryRouter\",
+    principal \"$_wallet\"
   )"

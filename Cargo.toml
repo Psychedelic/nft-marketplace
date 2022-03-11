@@ -2,3 +2,8 @@
 members = [
     "marketplace",
 ]
+exclude = [
+    "cap",
+    "crowns",
+    "wicp",
+]

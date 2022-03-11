@@ -54,6 +54,7 @@ impl Dip20Proxy {
     ) -> U64Result {
         let call_res: Result<(TxReceipt,), (RejectionCode, String)> =
             ic::call(*contract, "transferFrom", (*from, *to, amount.clone())).await;
+
         call_res
             .map_err(|_| MPApiError::TransferFungibleError)?
             .0

@@ -43,7 +43,6 @@ pub async fn list_for_sale(
 ) -> MPApiResult {
     let caller = ic::caller();
     let self_id = ic::id();
-    let init_data = &init_data();
     let collection = collections()
         .collections
         .get(&non_fungible_contract_address)
@@ -55,7 +54,7 @@ pub async fn list_for_sale(
         collection.non_fungible_token_type.clone(),
     )
     .await?;
-
+    
     if (caller != token_owner) {
         return Err(MPApiError::Unauthorized);
     }
@@ -100,6 +99,7 @@ pub async fn list_for_sale(
 }
 
 #[update(name = "makeBuyOffer")]
+#[candid_method(update, rename = "makeBuyOffer")]
 pub async fn make_buy_offer(
     non_fungible_contract_address: Principal,
     token_id: u64,
@@ -107,7 +107,6 @@ pub async fn make_buy_offer(
 ) -> U64Result {
     let caller = ic::caller();
     let self_id = ic::id();
-    let init_data = &init_data();
     let mut mp = marketplace();
 
     let collection = collections()
@@ -122,6 +121,7 @@ pub async fn make_buy_offer(
         collection.fungible_token_type.clone(),
     )
     .await?;
+
     if (fungible_balance < price) {
         return Err(MPApiError::InsufficientFungibleBalance);
     }
@@ -162,10 +162,10 @@ pub async fn make_buy_offer(
 }
 
 #[update(name = "acceptBuyOffer")]
+#[candid_method(update, rename = "acceptBuyOffer")]
 pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
     let caller = ic::caller();
     let self_id = ic::id();
-    let init_data = &init_data();
     let mut mp = marketplace();
 
     let buy_offer = mp
@@ -208,6 +208,7 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
         collection.non_fungible_token_type.clone(),
     )
     .await?;
+
     if (sale_offer.payment_address != token_owner) {
         mp.sale_offers.remove(&(
             buy_offer.non_fungible_contract_address,
@@ -356,7 +357,6 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
 pub async fn direct_buy(non_fungible_contract_address: Principal, token_id: u64) -> MPApiResult {
     let caller = ic::caller();
     let self_id = ic::id();
-    let init_data = &init_data();
     let mut mp = marketplace();
 
     let sale_offer = mp
@@ -708,7 +708,8 @@ fn add_collection(
     fungible_contract_address: Principal,
     fungible_token_type: FungibleTokenType,
 ) {
-    assert_eq!(ic::caller(), init_data().owner);
+    // TODO: related to the init_data, which seems we can remove?
+    // assert_eq!(ic::caller(), init_data().owner);
 
     collections().collections.insert(
         non_fungible_contract_address,

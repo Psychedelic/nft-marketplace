@@ -4,9 +4,9 @@
 [submodule "dab"]
 	path = dab
 	url = git@github.com:Psychedelic/dab
-[submodule "DIP721"]
-	path = DIP721
-	url = git@github.com:Psychedelic/DIP721
 [submodule "wicp"]
 	path = wicp
 	url = git@github.com:Psychedelic/wicp
+[submodule "crowns"]
+	path = crowns
+	url = git@github.com:Psychedelic/crowns.git

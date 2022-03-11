@@ -13,11 +13,18 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      CI: 1
+      DEBUG: 0
+      DFX_VERSION: 0.9.2
+      DFX_WARNING: -version_check
+      NODE_ENV: ci
 
     steps:
       - uses: actions/checkout@v2
         with:
           submodules: 'recursive'
+          token: ${{ secrets.PAT }}
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -49,8 +56,6 @@ jobs:
 
       - name: Install DFX
         if: steps.cache-dfx.outputs.cache-hit != 'true'
-        env:
-          DFX_VERSION: 0.8.4
         run: |
           yes Y | DFX_VERSION="$DFX_VERSION" sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)"
 
@@ -77,15 +82,12 @@ jobs:
 
       - name: Services
         run: |
+          npm install -g json
+          cd ./cap
+          json -I -f dfx.json -e "this.dfx=\"$DFX_VERSION\""
+          cd ..
           npm run services:start
-        env:
-          DFX_WARNING: -version_check 
-          DEBUG: 0
           
       - name: Healthcheck
         run: |
           npm run marketplace:healthcheck
-        env:
-          NODE_ENV: ci
-          DFX_WARNING: -version_check 
-          DEBUG: 0

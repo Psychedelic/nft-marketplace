@@ -50,8 +50,22 @@ pub enum ApiError {
     Other,
 }
 
+#[derive(CandidType, Deserialize, Debug)]
+pub enum NftError {
+    Unauthorized,
+    OwnerNotFound,
+    OperatorNotFound,
+    TokenNotFound,
+    ExistedNFT,
+    SelfApprove,
+    SelfTransfer,
+    TxNotFound,
+    Other(String),
+}
+
+
 pub type TxReceiptDIP721 = Result<Nat, ApiError>;
-pub type OwnerResult = Result<Principal, ApiError>;
+pub type OwnerResult = Result<Principal, NftError>;
 
 // END DIP-721 //
 
