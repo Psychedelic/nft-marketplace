@@ -88,7 +88,7 @@ deployWICP() {
 
     dfx deploy \
     wicp --argument="(
-            \"data:image/jpeg;base64,$(base64 ./WICP-logo.png)\",
+            \"data:image/jpeg;base64,$(base64 ../.repo/images/logo-of-wicp.png)\",
             \"wicp\",
             \"WICP\",
             8:nat8,
