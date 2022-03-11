@@ -13,9 +13,11 @@ deployCapRouter() {
 
   yarn cap:start
 
-  IC_HISTORY_ROUTER=$(cd ./cap && dfx canister id ic-history-router)
+  _icHistoryRouter=$(cd ./cap && dfx canister id ic-history-router)
 
-  printf "CAP IC History router -> %s\n" "$IC_HISTORY_ROUTER"
+  printf "CAP IC History router -> %s\n" "$_icHistoryRouter"
+
+  IC_HISTORY_ROUTER=$_icHistoryRouter
 }
 
 deployDab() {
@@ -37,10 +39,10 @@ deployDip721() {
 deployMarketplace() {
   printf "🤖 Call the deployMarketplace\n"
 
-  ownerPrincipalId=$1
-  icHistoryRouter=$2
+  _ownerPrincipalId=$1
+  _icHistoryRouter=$2
 
-  yes yes | yarn marketplace:deploy "$icHistoryRouter" "$ownerPrincipalId"
+  yes yes | yarn marketplace:deploy "$_icHistoryRouter" "$_ownerPrincipalId"
 }
 
 deployWICP() {
@@ -56,9 +58,9 @@ deployWICP() {
 
   yarn wicp:balance-of "$_wallet"
 
-  wicpId="$(cd ./wicp && dfx canister id wicp)"
+  _wicpId="$(cd ./wicp && dfx canister id wicp)"
 
-  printf "🤖 wICP Canister id is %s\n" "$wicpId"
+  printf "🤖 wICP Canister id is %s\n" "$_wicpId"
 }
 
 deployCapRouter
