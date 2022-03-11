@@ -14,13 +14,13 @@ dfx canister --wallet "$_owner_wallet" \
 
 dfx build crowns
 
-nonFungibleContractAddress=$(dfx canister id crowns)
+_nonFungibleContractAddress=$(dfx canister id crowns)
 
 dfx canister --wallet "$_owner_wallet" \
   update-settings \
     --controller "$_owner_wallet" \
-    --controller "$nonFungibleContractAddress" \
-  "$nonFungibleContractAddress"
+    --controller "$_nonFungibleContractAddress" \
+  "$_nonFungibleContractAddress"
 
 dfx deploy --wallet "$_owner_wallet" \
   crowns --argument "(
