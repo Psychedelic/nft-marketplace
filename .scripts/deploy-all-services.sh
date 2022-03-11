@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x
-
 (cd "$(dirname $BASH_SOURCE)" && cd ..) || exit 1
 
 DEBUG=1
