@@ -68,8 +68,8 @@ deployDip721() {
 deployMarketplace() {
   printf "🤖 Call the deployMarketplace\n"
 
-  icHistoryRouter=$1
-  ownerPrincipalId=$2
+  ownerPrincipalId=$1
+  icHistoryRouter=$2
 
   yes yes | yarn marketplace:deploy "$icHistoryRouter" "$ownerPrincipalId"
 }
@@ -119,7 +119,7 @@ deployCapRouter
 deployDip721 "$DEFAULT_USER_WALLET" "Crowns" "CRW"
 [ "$DEBUG" == 1 ] && echo $?
 
-deployMarketplace "$IC_HISTORY_ROUTER" "$DEFAULT_USER_WALLET"
+deployMarketplace "$DEFAULT_USER_WALLET" "$IC_HISTORY_ROUTER" 
 [ "$DEBUG" == 1 ] && echo $?
 
 deployWICP "$DEFAULT_USER_WALLET" "$IC_HISTORY_ROUTER"
