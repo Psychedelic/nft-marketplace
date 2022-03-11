@@ -39,10 +39,10 @@ deployDip721() {
 deployMarketplace() {
   printf "🤖 Call the deployMarketplace\n"
 
-  _ownerPrincipalId=$1
+  _wallet=$1
   _icHistoryRouter=$2
 
-  yes yes | yarn marketplace:deploy "$_icHistoryRouter" "$_ownerPrincipalId"
+  yes yes | yarn marketplace:deploy "$_wallet" "$_icHistoryRouter"
 }
 
 deployWICP() {
