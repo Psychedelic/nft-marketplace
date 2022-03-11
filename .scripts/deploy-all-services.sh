@@ -4,7 +4,6 @@
 
 [ "$DEBUG" == 1 ] && set -x
 
-DEBUG=1
 IC_HISTORY_ROUTER=$(cd ./cap && dfx canister id ic-history-router)
 
 DEFAULT_USER_WALLET=$(dfx identity get-wallet)
