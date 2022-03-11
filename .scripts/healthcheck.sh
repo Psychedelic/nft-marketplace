@@ -273,15 +273,14 @@ approveTransferFromForNFTAcceptBuyOffer() {
 
   _wallet=$1
   _identityName=$2
-  _name=$3
-  _approves_wallet=$4
-  _nonFungibleContractAddress=$5
-  _marketplaceId=$6
-  _nft_token_id_for_alice=$7
-  _wicpId=$8
+  _approves_wallet=$3
+  _nonFungibleContractAddress=$4
+  _marketplaceId=$5
+  _nft_token_id_for_alice=$6
+  _wicpId=$7
 
   printf "🤖 The user (%s) will approve transfer token id (%s) 
-  for user (%s) \n" "$_name" "$_nft_token_id_for_alice" "$_approves_wallet"
+  for user (%s) \n" "$_identityName" "$_nft_token_id_for_alice" "$_approves_wallet"
   printf "🤖 for nft contract id (%s)\n" "$_nonFungibleContractAddress"
 
   dfx --identity "$_identityName" \
@@ -379,7 +378,7 @@ run() {
   getBuyOffers "$DEFAULT_USER_WALLET" "$marketplaceId" 0 10
   [ "$DEBUG" == 1 ] && echo $?
 
-  approveTransferFromForNFTAcceptBuyOffer "$ALICE_WALLET" "$ALICE_IDENTITY_NAME" "Alice" "$BOB_WALLET" "$nonFungibleContractAddress" "$marketplaceId" "$nft_token_id_for_alice" "$wicpId"
+  approveTransferFromForNFTAcceptBuyOffer "$ALICE_WALLET" "$ALICE_IDENTITY_NAME" "$BOB_WALLET" "$nonFungibleContractAddress" "$marketplaceId" "$nft_token_id_for_alice" "$wicpId"
   [ "$DEBUG" == 1 ] && echo $?
 
   approveTransferFromForWICPAcceptBuyOffer "$BOB_WALLET" "$BOB_IDENTITY_NAME" "$wicpId" "$marketplaceId" "5_000"
