@@ -27,42 +27,11 @@ deployDab() {
 deployDip721() {
   printf "🤖 Deploy DIP721 Crowns NFT Canister\n"
 
-  (
-    cd ./crowns || exit 1
+  _owner_wallet=$1
+  _tokenName=$2
+  _tokenSymbol=$3
 
-    _owner_wallet=$1
-    _tokenName=$2
-    _tokenSymbol=$3
-
-    printf "🤖 Deploying NFT with owner id (%s), token (%s), token name (%s), cap (%s)\n" "$ownerPrincipalId" "$tokenSymbol" "$tokenName" "$IC_HISTORY_ROUTER"
-
-    # TODO: Refactor the dip721:deploy-nft or remove it
-    # yarn dip721:deploy-nft "local" "$ownerPrincipalId" "$tokenSymbol" "$tokenName" "$IC_HISTORY_ROUTER"
-
-    dfx canister --wallet "$_owner_wallet" \
-      create crowns \
-      --controller "$_owner_wallet"
-
-    dfx build crowns
-
-    nonFungibleContractAddress=$(dfx canister id crowns)
-
-    dfx canister --wallet "$_owner_wallet" \
-      update-settings \
-        --controller "$_owner_wallet" \
-        --controller "$nonFungibleContractAddress" \
-      "$nonFungibleContractAddress"
-
-    dfx deploy --wallet "$_owner_wallet" \
-      crowns --argument "(
-        opt record {
-          name = opt \"$_tokenName\";
-          logo = opt \"data:image/jpeg;base64,...\";
-          symbol = opt \"$_tokenSymbol\";
-          owners = opt vec { principal \"$_owner_wallet\" };
-        }
-    )"
-  )
+  yarn crowns:deploy "$_owner_wallet" "$_tokenName" "$_tokenSymbol"
 }
 
 deployMarketplace() {
@@ -109,8 +78,8 @@ deployWICP() {
   printf "🤖 wICP Canister id is %s\n" "$wicpId"
 }
 
-deployCapRouter
-[ "$DEBUG" == 1 ] && echo $?
+# deployCapRouter
+# [ "$DEBUG" == 1 ] && echo $?
 
 # TODO: Check why it throws replica 404
 # deployDab
@@ -119,10 +88,10 @@ deployCapRouter
 deployDip721 "$DEFAULT_USER_WALLET" "Crowns" "CRW"
 [ "$DEBUG" == 1 ] && echo $?
 
-deployMarketplace "$DEFAULT_USER_WALLET" "$IC_HISTORY_ROUTER" 
-[ "$DEBUG" == 1 ] && echo $?
+# deployMarketplace "$DEFAULT_USER_WALLET" "$IC_HISTORY_ROUTER" 
+# [ "$DEBUG" == 1 ] && echo $?
 
-deployWICP "$DEFAULT_USER_WALLET" "$IC_HISTORY_ROUTER"
-[ "$DEBUG" == 1 ] && echo $?
+# deployWICP "$DEFAULT_USER_WALLET" "$IC_HISTORY_ROUTER"
+# [ "$DEBUG" == 1 ] && echo $?
 
 echo "👍 Deploy services completed!"
