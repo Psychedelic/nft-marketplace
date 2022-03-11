@@ -51,25 +51,7 @@ deployWICP() {
   _ic_history_router="$2"
   _amount="$3"
 
-  # TODO: refactor the wicp:deploy
-  # yarn wicp:deploy "$owner"
-
-  (
-    cd ./wicp || exit 1
-
-    dfx deploy \
-    wicp --argument="(
-            \"data:image/jpeg;base64,$(base64 ../.repo/images/logo-of-wicp.png)\",
-            \"wicp\",
-            \"WICP\",
-            8:nat8,
-            $_amount:nat,
-            principal \"$_wallet\", 
-            0, 
-            principal \"$_wallet\", 
-            principal \"$_ic_history_router\"
-            )" 
-  )
+  yarn wicp:deploy "$_wallet" "$_ic_history_router" "$_amount"
 
   printf "🤖 Balance of name (%s)" "$_wallet"
 

@@ -2,24 +2,21 @@
 
 cd $(dirname $BASH_SOURCE) || exit 1
 
-IC_HISTORY_ROUTER=$(cd ../../cap && dfx canister id ic-history-router)
-
 cd ../../wicp || exit 1
 
-dfx canister create wicp
+_wallet="$1"
+_ic_history_router="$2"
+_amount="$3"
 
-OWNER=$1
-FEES_TO=$1
-
-yes yes | dfx canister install wicp \
-	--argument="(
-		\"data:image/jpeg;base64,$(base64 ./WICP-logo.png)\",
-		\"wicp\",
-		\"WICP\",
-		8:nat8,
-	  1000000000000:nat,
-		principal \"$OWNER\",
-		0,
-		principal \"$FEES_TO\",
-		principal \"$IC_HISTORY_ROUTER\"
-	)"
+dfx deploy \
+wicp --argument="(
+				\"data:image/jpeg;base64,$(base64 ../.repo/images/logo-of-wicp.png)\",
+				\"wicp\",
+				\"WICP\",
+				8:nat8,
+				$_amount:nat,
+				principal \"$_wallet\", 
+				0, 
+				principal \"$_wallet\", 
+				principal \"$_ic_history_router\"
+				)" 
