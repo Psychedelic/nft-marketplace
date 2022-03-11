@@ -13,7 +13,6 @@ marketplaceId=$(dfx canister id marketplace)
 ownerPrincipalId=$DEFAULT_PRINCIPAL_ID
 nonFungibleContractAddress=$(cd ./crowns && dfx canister id crowns)
 fungibleContractAddress=$(cd ./wicp && dfx canister id wicp)
-icHistoryRouter=$(cd ./cap && dfx canister id ic-history-router)
 wicpId="$(cd ./wicp && dfx canister id wicp)"
 nft_token_id_for_alice=""
 buy_offer_id=""
@@ -377,10 +376,20 @@ run() {
   getBuyOffers "$DEFAULT_USER_WALLET" "$marketplaceId" 0 10
   [ "$DEBUG" == 1 ] && echo $?
 
-  approveTransferFromForNFTAcceptBuyOffer "$ALICE_WALLET" "$ALICE_IDENTITY_NAME" "$BOB_WALLET" "$nonFungibleContractAddress" "$marketplaceId" "$nft_token_id_for_alice" "$wicpId"
+  approveTransferFromForNFTAcceptBuyOffer "$ALICE_WALLET" \
+    "$ALICE_IDENTITY_NAME" \
+    "$BOB_WALLET" \
+    "$nonFungibleContractAddress" \
+    "$marketplaceId" \
+    "$nft_token_id_for_alice" \
+    "$wicpId"
   [ "$DEBUG" == 1 ] && echo $?
 
-  approveTransferFromForWICPAcceptBuyOffer "$BOB_WALLET" "$BOB_IDENTITY_NAME" "$wicpId" "$marketplaceId" "5_000"
+  approveTransferFromForWICPAcceptBuyOffer "$BOB_WALLET" \
+    "$BOB_IDENTITY_NAME" \
+    "$wicpId" \
+    "$marketplaceId" \
+    "5_000"
   [ "$DEBUG" == 1 ] && echo $?
 
   acceptBuyOffer "$ALICE_WALLET" "$ALICE_IDENTITY_NAME" "$marketplaceId" "$buy_offer_id"
