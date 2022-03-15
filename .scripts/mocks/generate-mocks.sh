@@ -13,12 +13,17 @@ nftCanisterId=$1
 # The total tokens to generate
 totalNumberOfTokens=$2
 
-token_index=0
+token_index=$3
+
+if [[ -z $3 ]];
+then
+  printf "🤖 The token index start from not provided (default is 1)\n"
+  token_index=0
+fi
 
 generateMock() {
   _wallet=$1
   _identityName=$2
-  token_index=$((token_index+1));
 
   printf "🤖 Call GenerateMock where wallet (%s), identityName (%s), token_index (%s)" "$_wallet" "$_identityName" "$token_index"
 
@@ -85,22 +90,24 @@ generateMock() {
       }
     )")
 
-  echo "[debug] mintResult -> $mintResult"
+  printf "🤖 The mintResult is (%s)\n\n" "$mintResult"
 
-  mintTokenId=$(echo "$mintResult" | pcregrep -o1 '17_724 = ([0-9]*)')
+  transactionId=$(echo "$mintResult" | pcregrep -o1 '17_724 = ([0-9]*)')
 
-  printf "🤖 The generated token id (%s)\n\n" "$mintTokenId"
+  printf "🤖 The generated transactionId is (%s)\n\n" "$transactionId"
 
   # # Show the metadata for the token
-  printf "🤖 Call tokenMetadata for token id (%s)\n\n" "$mintTokenId"
+  printf "🤖 Call tokenMetadata for token id (%s)\n\n" "$token_index"
   dfx canister --network local \
-    call "$nftCanisterId" tokenMetadata "($mintTokenId:nat)"
+    call "$nftCanisterId" tokenMetadata "($token_index:nat)"
 
   # # Show the owner of the token
-  printf "🤖 Call tokenMetadata for token id (%s)\n\n" "$mintTokenId"
+  printf "🤖 Call tokenMetadata for token id (%s)\n\n" "$token_index"
   dfx canister --network local \
-    call "$nftCanisterId" tokenMetadata "($mintTokenId:nat)"
+    call "$nftCanisterId" tokenMetadata "($token_index:nat)"
 
+  # Increment token index
+  token_index=$((token_index+1));
 }
 
 userIdentityWarning() {
@@ -127,7 +134,7 @@ generatorHandler() {
   for _ in $(seq 1 "$_total");
     do 
       printf "🤖 Will generate token mock for wallet (%s), identity (%s), total (%s)\n\n" "$_wallet" "$_identityName" "$_total"
-      generateMock "$_wallet" "$_identityName" "$token_index"
+      generateMock "$_wallet" "$_identityName"
   done
 }
 
