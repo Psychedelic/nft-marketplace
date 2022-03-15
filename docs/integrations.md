@@ -50,10 +50,17 @@ The NFT Canister Id can be found in the logs of the `services:start` command you
 Here's an example of getting the NFT Canister Id dynamically when generating 9 tokens.
 
 ```sh
-yarn mock:generate-tokens $(cd ./nft-marketplace/DIP721 && dfx canister id nft) 9
+yarn mock:generate-tokens $(cd ./crowns && dfx canister id crowns) 9
 ```
 
 💡 Evently distributed means that if you pass a number of tokens that equals 9, we'd have 3 tokens assigned to you, 3 tokens to Alice and 3 tokens to Bob, because these are distributed failry among the users in the system. This is done so that you have data to reason about, you can of course change this to whatever your needs are.
+
+Optionally, a start from token index can be passed. Here's an example where the token index will start from 50
+
+```sh
+yarn mock:generate-tokens $(cd ./crowns && dfx canister id crowns) 9 50
+```
+
 
 ## 🃏 Calling marketplace endpoints
 
