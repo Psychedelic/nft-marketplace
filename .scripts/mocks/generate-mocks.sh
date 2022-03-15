@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+# set -x
 
 (cd "$(dirname $BASH_SOURCE)" && cd ../../) || exit 1
 
@@ -13,23 +13,25 @@ nftCanisterId=$1
 # The total tokens to generate
 totalNumberOfTokens=$2
 
+token_index=0
+
 generateMock() {
   _wallet=$1
   _identityName=$2
-  _token_index=$3
+  token_index=$((token_index+1));
 
-  echo "[debug] generateMock _wallet ($_wallet), _identityName ($_identityName), _token_index($_token_index)"
+  printf "🤖 Call GenerateMock where wallet (%s), identityName (%s), token_index (%s)" "$_wallet" "$_identityName" "$token_index"
 
   crownsNftCanisterId="vlhm2-4iaaa-aaaam-qaatq-cai"
-  filename=$(printf "%04d.mp4" "$_token_index")
+  filename=$(printf "%04d.mp4" "$token_index")
   crownsCertifiedAssetsA="vzb3d-qyaaa-aaaam-qaaqq-ca"
   crownsCertifiedAssetsB="vqcq7-gqaaa-aaaam-qaara-cai"
   assetUrl="https://$crownsCertifiedAssetsA.raw.ic0.app/$filename"
 
-  dfx canister --network ic call $crownsNftCanisterId getMetadataDip721 "($_token_index:nat64)"
+  dfx canister --network ic call $crownsNftCanisterId getMetadataDip721 "($token_index:nat64)"
 
   # Get some data from the mainnet canister
-  mainnetMetadataResult=($(dfx canister --network ic call $crownsNftCanisterId getMetadataDip721 "($_token_index:nat64)" | pcregrep -o1  '3_643_416_556 = "([a-zA-Z]*)"'))
+  mainnetMetadataResult=($(dfx canister --network ic call $crownsNftCanisterId getMetadataDip721 "($token_index:nat64)" | pcregrep -o1  '3_643_416_556 = "([a-zA-Z]*)"'))
 
   if [[ ! "$(declare -p mainnetMetadataResult)" =~ "declare -a" ]];
   then
@@ -48,7 +50,7 @@ generateMock() {
     call --update "$nftCanisterId" \
     mint "(
       principal \"$_wallet\",
-      $_token_index:nat,
+      $token_index:nat,
       vec {
         record {
           \"smallgem\";
@@ -90,14 +92,14 @@ generateMock() {
   printf "🤖 The generated token id (%s)\n\n" "$mintTokenId"
 
   # # Show the metadata for the token
-  printf "🤖 Call getMetadataDip721 for token id (%s)\n\n" "$mintTokenId"
+  printf "🤖 Call tokenMetadata for token id (%s)\n\n" "$mintTokenId"
   dfx canister --network local \
-    call "$nftCanisterId" getMetadataDip721 "($mintTokenId:nat64)"
+    call "$nftCanisterId" tokenMetadata "($mintTokenId:nat)"
 
   # # Show the owner of the token
-  printf "🤖 Call ownerOfDip721 for token id (%s)\n\n" "$mintTokenId"
+  printf "🤖 Call tokenMetadata for token id (%s)\n\n" "$mintTokenId"
   dfx canister --network local \
-    call "$nftCanisterId" ownerOfDip721 "($mintTokenId:nat64)"
+    call "$nftCanisterId" tokenMetadata "($mintTokenId:nat)"
 
 }
 
@@ -122,8 +124,10 @@ generatorHandler() {
   _total=$3
 
   # Iterator exec the mock generation incrementally
-  for i in $(seq 1 "$_total");
-    do generateMock "$_wallet" "$_identityName" "$i"
+  for _ in $(seq 1 "$_total");
+    do 
+      printf "🤖 Will generate token mock for wallet (%s), identity (%s), total (%s)\n\n" "$_wallet" "$_identityName" "$_total"
+      generateMock "$_wallet" "$_identityName" "$token_index"
   done
 }
 
