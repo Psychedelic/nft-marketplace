@@ -338,21 +338,21 @@ run() {
   mintDip721 "$DEFAULT_USER_WALLET" "Alice" "$ALICE_PRINCIPAL_ID" "$nonFungibleContractAddress"
   [ "$DEBUG" == 1 ] && echo $?
 
-  # allowancesForDIP721 "$DEFAULT_USER_WALLET" \
-  #   "$nonFungibleContractAddress" \
-  #   "$marketplaceId" \
-  #   "$nft_token_id_for_alice"
-  # [ "$DEBUG" == 1 ] && echo $?
+  allowancesForDIP721 "$DEFAULT_USER_WALLET" \
+    "$nonFungibleContractAddress" \
+    "$marketplaceId" \
+    "$nft_token_id_for_alice"
+  [ "$DEBUG" == 1 ] && echo $?
 
-  # addCrownCollection "$DEFAULT_USER_WALLET" \
-  #   "$DEFAULT_PRINCIPAL_ID" \
-  #   "$marketplaceId" \
-  #   "$nonFungibleContractAddress" \
-  #   "$fungibleContractAddress" \
-  #   "Crowns Collection" \
-  #   10 \
-  #   0
-  # [ "$DEBUG" == 1 ] && echo $?
+  addCrownCollection "$DEFAULT_USER_WALLET" \
+    "$DEFAULT_PRINCIPAL_ID" \
+    "$marketplaceId" \
+    "$nonFungibleContractAddress" \
+    "$fungibleContractAddress" \
+    "Crowns Collection" \
+    10 \
+    0
+  [ "$DEBUG" == 1 ] && echo $?
 
   # listForSale "$ALICE_WALLET" \
   #   "$ALICE_IDENTITY_NAME" \
