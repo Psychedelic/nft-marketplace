@@ -354,13 +354,13 @@ run() {
     0
   [ "$DEBUG" == 1 ] && echo $?
 
-  # listForSale "$ALICE_WALLET" \
-  #   "$ALICE_IDENTITY_NAME" \
-  #   "$nonFungibleContractAddress" \
-  #   "$marketplaceId" \
-  #   "$nft_token_id_for_alice" \
-  #   "1_250"
-  # [ "$DEBUG" == 1 ] && echo $?
+  listForSale "$ALICE_WALLET" \
+    "$ALICE_IDENTITY_NAME" \
+    "$nonFungibleContractAddress" \
+    "$marketplaceId" \
+    "$nft_token_id_for_alice" \
+    "1_250"
+  [ "$DEBUG" == 1 ] && echo $?
 
   # getSaleOffers "$DEFAULT_USER_WALLET" "$marketplaceId"
   # [ "$DEBUG" == 1 ] && echo $?
