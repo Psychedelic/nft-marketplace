@@ -4,30 +4,30 @@ cd $(dirname $BASH_SOURCE) || exit 1
 
 cd ../../crowns || exit 1
 
-_owner_wallet=$1
+_owner=$1
 _tokenName=$2
 _tokenSymbol=$3
 
-dfx canister --wallet "$_owner_wallet" \
+dfx canister \
   create crowns \
-  --controller "$_owner_wallet"
+  --controller "$_owner"
 
 dfx build crowns
 
 _nonFungibleContractAddress=$(dfx canister id crowns)
 
-dfx canister --wallet "$_owner_wallet" \
+dfx canister \
   update-settings \
-    --controller "$_owner_wallet" \
+    --controller "$_owner" \
     --controller "$_nonFungibleContractAddress" \
   "$_nonFungibleContractAddress"
 
-dfx deploy --wallet "$_owner_wallet" \
+dfx deploy \
   crowns --argument "(
     opt record {
       name = opt \"$_tokenName\";
       logo = opt \"data:image/jpeg;base64,...\";
       symbol = opt \"$_tokenSymbol\";
-      owners = opt vec { principal \"$_owner_wallet\" };
+      owners = opt vec { principal \"$_owner\" };
     }
 )"

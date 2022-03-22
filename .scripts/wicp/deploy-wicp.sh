@@ -4,7 +4,7 @@ cd $(dirname $BASH_SOURCE) || exit 1
 
 cd ../../wicp || exit 1
 
-_wallet="$1"
+_owner="$1"
 _ic_history_router="$2"
 _amount="$3"
 
@@ -15,8 +15,8 @@ wicp --argument="(
 				\"WICP\",
 				8:nat8,
 				$_amount:nat,
-				principal \"$_wallet\", 
+				principal \"$_owner\", 
 				0, 
-				principal \"$_wallet\", 
+				principal \"$_owner\", 
 				principal \"$_ic_history_router\"
 				)" 
