@@ -329,71 +329,71 @@ run() {
   printf "🚑 Healthcheck runtime details\n"
   printf "Owner address -> %s\n" "$ownerPrincipalId"
 
-  topupWICP "$DEFAULT_USER_WALLET" "$wicpId" "Bob" "$BOB_WALLET" "100_000_000"
+  topupWICP "$DEFAULT_USER_WALLET" "$wicpId" "Bob" "$BOB_PRINCIPAL_ID" "100_000_000"
   [ "$DEBUG" == 1 ] && echo $?
   
   allowancesForWICP "$DEFAULT_USER_WALLET" "$wicpId" "$marketplaceId" "50_000_000"
   [ "$DEBUG" == 1 ] && echo $?
 
-  mintDip721 "$DEFAULT_USER_WALLET" "Alice" "$ALICE_WALLET" "$nonFungibleContractAddress"
+  mintDip721 "$DEFAULT_USER_WALLET" "Alice" "$ALICE_PRINCIPAL_ID" "$nonFungibleContractAddress"
   [ "$DEBUG" == 1 ] && echo $?
 
-  allowancesForDIP721 "$DEFAULT_USER_WALLET" \
-    "$nonFungibleContractAddress" \
-    "$marketplaceId" \
-    "$nft_token_id_for_alice"
-  [ "$DEBUG" == 1 ] && echo $?
+  # allowancesForDIP721 "$DEFAULT_USER_WALLET" \
+  #   "$nonFungibleContractAddress" \
+  #   "$marketplaceId" \
+  #   "$nft_token_id_for_alice"
+  # [ "$DEBUG" == 1 ] && echo $?
 
-  addCrownCollection "$DEFAULT_USER_WALLET" \
-    "$DEFAULT_PRINCIPAL_ID" \
-    "$marketplaceId" \
-    "$nonFungibleContractAddress" \
-    "$fungibleContractAddress" \
-    "Crowns Collection" \
-    10 \
-    0
-  [ "$DEBUG" == 1 ] && echo $?
+  # addCrownCollection "$DEFAULT_USER_WALLET" \
+  #   "$DEFAULT_PRINCIPAL_ID" \
+  #   "$marketplaceId" \
+  #   "$nonFungibleContractAddress" \
+  #   "$fungibleContractAddress" \
+  #   "Crowns Collection" \
+  #   10 \
+  #   0
+  # [ "$DEBUG" == 1 ] && echo $?
 
-  listForSale "$ALICE_WALLET" \
-    "$ALICE_IDENTITY_NAME" \
-    "$nonFungibleContractAddress" \
-    "$marketplaceId" \
-    "$nft_token_id_for_alice" \
-    "1_250"
-  [ "$DEBUG" == 1 ] && echo $?
+  # listForSale "$ALICE_WALLET" \
+  #   "$ALICE_IDENTITY_NAME" \
+  #   "$nonFungibleContractAddress" \
+  #   "$marketplaceId" \
+  #   "$nft_token_id_for_alice" \
+  #   "1_250"
+  # [ "$DEBUG" == 1 ] && echo $?
 
-  getSaleOffers "$DEFAULT_USER_WALLET" "$marketplaceId"
-  [ "$DEBUG" == 1 ] && echo $?
+  # getSaleOffers "$DEFAULT_USER_WALLET" "$marketplaceId"
+  # [ "$DEBUG" == 1 ] && echo $?
 
-  makeBuyOffer "$BOB_WALLET" \
-    "$BOB_IDENTITY_NAME" \
-    "Bob" \
-    "$nonFungibleContractAddress" \
-    "$nft_token_id_for_alice" \
-    "1_300"
-  [ "$DEBUG" == 1 ] && echo $?
+  # makeBuyOffer "$BOB_WALLET" \
+  #   "$BOB_IDENTITY_NAME" \
+  #   "Bob" \
+  #   "$nonFungibleContractAddress" \
+  #   "$nft_token_id_for_alice" \
+  #   "1_300"
+  # [ "$DEBUG" == 1 ] && echo $?
 
-  getBuyOffers "$DEFAULT_USER_WALLET" "$marketplaceId" 0 10
-  [ "$DEBUG" == 1 ] && echo $?
+  # getBuyOffers "$DEFAULT_USER_WALLET" "$marketplaceId" 0 10
+  # [ "$DEBUG" == 1 ] && echo $?
 
-  approveTransferFromForNFTAcceptBuyOffer "$ALICE_WALLET" \
-    "$ALICE_IDENTITY_NAME" \
-    "$BOB_WALLET" \
-    "$nonFungibleContractAddress" \
-    "$marketplaceId" \
-    "$nft_token_id_for_alice" \
-    "$wicpId"
-  [ "$DEBUG" == 1 ] && echo $?
+  # approveTransferFromForNFTAcceptBuyOffer "$ALICE_WALLET" \
+  #   "$ALICE_IDENTITY_NAME" \
+  #   "$BOB_WALLET" \
+  #   "$nonFungibleContractAddress" \
+  #   "$marketplaceId" \
+  #   "$nft_token_id_for_alice" \
+  #   "$wicpId"
+  # [ "$DEBUG" == 1 ] && echo $?
 
-  approveTransferFromForWICPAcceptBuyOffer "$BOB_WALLET" \
-    "$BOB_IDENTITY_NAME" \
-    "$wicpId" \
-    "$marketplaceId" \
-    "5_000"
-  [ "$DEBUG" == 1 ] && echo $?
+  # approveTransferFromForWICPAcceptBuyOffer "$BOB_WALLET" \
+  #   "$BOB_IDENTITY_NAME" \
+  #   "$wicpId" \
+  #   "$marketplaceId" \
+  #   "5_000"
+  # [ "$DEBUG" == 1 ] && echo $?
 
-  acceptBuyOffer "$ALICE_WALLET" "$ALICE_IDENTITY_NAME" "$marketplaceId" "$buy_offer_id"
-  [ "$DEBUG" == 1 ] &&  echo $?
+  # acceptBuyOffer "$ALICE_WALLET" "$ALICE_IDENTITY_NAME" "$marketplaceId" "$buy_offer_id"
+  # [ "$DEBUG" == 1 ] &&  echo $?
 }
 
 run
