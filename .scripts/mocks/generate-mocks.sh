@@ -24,6 +24,7 @@ fi
 generateMock() {
   _wallet=$1
   _identityName=$2
+  _userPrincipal=$3
 
   printf "🤖 Call GenerateMock where wallet (%s), identityName (%s), token_index (%s)" "$_wallet" "$_identityName" "$token_index"
 
@@ -54,7 +55,7 @@ generateMock() {
     --wallet "$DEFAULT_USER_WALLET" \
     call --update "$nftCanisterId" \
     mint "(
-      principal \"$_wallet\",
+      principal \"$_userPrincipal\",
       $token_index:nat,
       vec {
         record {
@@ -128,13 +129,14 @@ userIdentityWarning() {
 generatorHandler() {
   _wallet=$1
   _identityName=$2
-  _total=$3
+  _userPrincipal=$3
+  _total=$4
 
   # Iterator exec the mock generation incrementally
   for _ in $(seq 1 "$_total");
     do 
-      printf "🤖 Will generate token mock for wallet (%s), identity (%s), total (%s)\n\n" "$_wallet" "$_identityName" "$_total"
-      generateMock "$_wallet" "$_identityName"
+      printf "🤖 Will generate token mock for wallet (%s), identity (%s), userPrincipal (%s), total (%s)\n\n" "$_wallet" "$_identityName" "$_userPrincipal" "$_total"
+      generateMock "$_wallet" "$_identityName" "$_userPrincipal"
   done
 }
 
@@ -147,13 +149,13 @@ dividedTotal=$(echo "$dividedTotal" | awk '{print int($1+0.5)}')
 userIdentityWarning "$DEFAULT_USER_WALLET"
 
 # generates mock data for the dfx user principal
-generatorHandler "$DEFAULT_USER_WALLET" "$INITIAL_IDENTITY" "$dividedTotal"
+generatorHandler "$DEFAULT_USER_WALLET" "$INITIAL_IDENTITY" "$DEFAULT_PRINCIPAL_ID" "$dividedTotal"
 
 # generates mock data for Alice
-generatorHandler "$ALICE_WALLET" "$ALICE_IDENTITY_NAME" "$dividedTotal"
+generatorHandler "$ALICE_WALLET" "$ALICE_IDENTITY_NAME" "$ALICE_PRINCIPAL_ID" "$dividedTotal"
 
 # generates mock data for Bob
-generatorHandler "$BOB_WALLET" "$BOB_IDENTITY_NAME" "$dividedTotal"
+generatorHandler "$BOB_WALLET" "$BOB_IDENTITY_NAME" "$BOB_PRINCIPAL_ID" "$dividedTotal"
 
 printf "💡 Use the identities in DFX Cli by providing it via flag --identity\n"
 printf "this is useful because you can interact with the Marketplace with different identities\n"
