@@ -22,10 +22,10 @@ then
 fi
 
 generateMock() {
-  _wallet=$1
-  _identityName=$2
+  _identityName=$1
+  _userPrincipal=$2
 
-  printf "🤖 Call GenerateMock where wallet (%s), identityName (%s), token_index (%s)" "$_wallet" "$_identityName" "$token_index"
+  printf "🤖 Call GenerateMock for identityName (%s), token_index (%s)" "$_identityName" "$token_index"
 
   crownsNftCanisterId="vlhm2-4iaaa-aaaam-qaatq-cai"
   filename=$(printf "%04d.mp4" "$token_index")
@@ -46,15 +46,14 @@ generateMock() {
 
   # Mint a token for the user
   # returns MintReceiptPart  { token_id: nat64; id: nat }
-  printf "🤖 Mint NFT of id (%s) for user id (%s)\n\n" "$crownsNftCanisterId" "$_wallet"
+  printf "🤖 Mint NFT of id (%s) for user id (%s)\n\n" "$crownsNftCanisterId" "$_userPrincipal"
 
   # mint : (principal, nat, vec record { text; GenericValue }) -> (Result);
   mintResult=$(
     dfx canister --network local \
-    --wallet "$DEFAULT_USER_WALLET" \
     call --update "$nftCanisterId" \
     mint "(
-      principal \"$_wallet\",
+      principal \"$_userPrincipal\",
       $token_index:nat,
       vec {
         record {
@@ -111,13 +110,13 @@ generateMock() {
 }
 
 userIdentityWarning() {
-  _wallet=$1
+  _identity=$1
 
   # The extra white space is intentional, used for alignment
   read -r -p "⚠️  Is your dfx identity Plug's (exported PEM) [Y/n]? " CONT
 
   if [ "$CONT" = "Y" ]; then
-    printf "🌈 The DFX Identity is set to (%s), make sure it matches Plug's!\n\n" "$_wallet"
+    printf "🌈 The DFX Identity is set to (%s), make sure it matches Plug's!\n\n" "$_identity"
   else
     printf "🚩 Make sure you configure DFX cli to use Plug's exported identity (PEM) \n\n"
 
@@ -126,15 +125,15 @@ userIdentityWarning() {
 }
 
 generatorHandler() {
-  _wallet=$1
-  _identityName=$2
+  _identityName=$1
+  _userPrincipal=$2
   _total=$3
 
   # Iterator exec the mock generation incrementally
   for _ in $(seq 1 "$_total");
     do 
-      printf "🤖 Will generate token mock for wallet (%s), identity (%s), total (%s)\n\n" "$_wallet" "$_identityName" "$_total"
-      generateMock "$_wallet" "$_identityName"
+      printf "🤖 Will generate token mock for identity (%s), userPrincipal (%s), total (%s)\n\n" "$_identityName" "$_userPrincipal" "$_total"
+      generateMock "$_identityName" "$_userPrincipal"
   done
 }
 
@@ -144,16 +143,16 @@ dividedTotal=$(echo "$dividedTotal" | awk '{print int($1+0.5)}')
 
 # Warn the user about identity requirement
 # as the end user will be interacting with the Marketplace via Plug's
-userIdentityWarning "$DEFAULT_USER_WALLET"
+userIdentityWarning "$DEFAULT_PRINCIPAL_ID"
 
 # generates mock data for the dfx user principal
-generatorHandler "$DEFAULT_USER_WALLET" "$INITIAL_IDENTITY" "$dividedTotal"
+generatorHandler "$INITIAL_IDENTITY" "$DEFAULT_PRINCIPAL_ID" "$dividedTotal"
 
 # generates mock data for Alice
-generatorHandler "$ALICE_WALLET" "$ALICE_IDENTITY_NAME" "$dividedTotal"
+generatorHandler "$ALICE_IDENTITY_NAME" "$ALICE_PRINCIPAL_ID" "$dividedTotal"
 
 # generates mock data for Bob
-generatorHandler "$BOB_WALLET" "$BOB_IDENTITY_NAME" "$dividedTotal"
+generatorHandler "$BOB_IDENTITY_NAME" "$BOB_PRINCIPAL_ID" "$dividedTotal"
 
 printf "💡 Use the identities in DFX Cli by providing it via flag --identity\n"
 printf "this is useful because you can interact with the Marketplace with different identities\n"
