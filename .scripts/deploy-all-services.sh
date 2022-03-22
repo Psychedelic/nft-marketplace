@@ -6,7 +6,7 @@
 
 IC_HISTORY_ROUTER=$(cd ./cap && dfx canister id ic-history-router)
 
-DEFAULT_USER_WALLET=$(dfx identity get-wallet)
+DEFAULT_PRINCIPAL_ID=$(dfx identity get-principal)
 
 deployCapRouter() {
   printf "🤖 Deploy Cap\n"
@@ -29,20 +29,20 @@ deployDab() {
 deployDip721() {
   printf "🤖 Deploy DIP721 Crowns NFT Canister\n"
 
-  _owner_wallet=$1
+  _owner=$1
   _tokenName=$2
   _tokenSymbol=$3
 
-  yarn crowns:deploy "$_owner_wallet" "$_tokenName" "$_tokenSymbol"
+  yarn crowns:deploy "$_owner" "$_tokenName" "$_tokenSymbol"
 }
 
 deployMarketplace() {
   printf "🤖 Call the deployMarketplace\n"
 
-  _wallet=$1
+  _owner=$1
   _icHistoryRouter=$2
 
-  yes yes | yarn marketplace:deploy "$_wallet" "$_icHistoryRouter"
+  yes yes | yarn marketplace:deploy "$_owner" "$_icHistoryRouter"
 }
 
 deployWICP() {
@@ -70,13 +70,13 @@ deployCapRouter
 # deployDab
 # [ "$DEBUG" == 1 ] && echo $?
 
-deployDip721 "$DEFAULT_USER_WALLET" "Crowns" "CRW"
+deployDip721 "$DEFAULT_PRINCIPAL_ID" "Crowns" "CRW"
 [ "$DEBUG" == 1 ] && echo $?
 
-deployMarketplace "$DEFAULT_USER_WALLET" "$IC_HISTORY_ROUTER" 
+deployMarketplace "$DEFAULT_PRINCIPAL_ID" "$IC_HISTORY_ROUTER" 
 [ "$DEBUG" == 1 ] && echo $?
 
-deployWICP "$DEFAULT_USER_WALLET" "$IC_HISTORY_ROUTER" 1_000_000_000_000""
+deployWICP "$DEFAULT_PRINCIPAL_ID" "$IC_HISTORY_ROUTER" 1_000_000_000_000""
 [ "$DEBUG" == 1 ] && echo $?
 
 echo "👍 Deploy services completed!"

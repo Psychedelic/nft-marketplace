@@ -20,16 +20,15 @@ buy_offer_id=""
 topupWICP() {
   printf "🤖 Call topupWICP\n"
 
-  _wallet=$1
-  _wicpId=$2
-  _name=$3
-  _transferTo=$4
-  _amount=$5
+  _wicpId=$1
+  _name=$2
+  _transferTo=$3
+  _amount=$4
 
   printf "🤖 Will top-up (%s) account id (%s) by 
   transfer of amount (%s) \n" "$_name" "$_transferTo" "$_amount"
 
-  dfx canister --wallet "$_wallet" \
+  dfx canister \
     call --update "$_wicpId" \
     transfer "(
       principal \"$_transferTo\",
@@ -41,7 +40,7 @@ topupWICP() {
   # TODO: wicp:balance-of refactor or remove
   # yarn wicp:balance-of "$_transferTo"
 
-  dfx canister --wallet "$_wallet" \
+  dfx canister \
     call --query "$_wicpId" \
     balanceOf "(
       principal \"$_transferTo\"
@@ -53,12 +52,11 @@ allowancesForWICP() {
 
   printf "🤖 Bob approves Marketplace (%s)\n" "$marketplaceId"
 
-  _wallet=$1
-  _wicpId=$2
-  _marketplaceId=$3
-  _amount=$4
+  _wicpId=$1
+  _marketplaceId=$2
+  _amount=$3
 
-  dfx canister --wallet "$_wallet" \
+  dfx canister \
     call --update "$_wicpId" \
     approve "(
       principal \"$_marketplaceId\",
@@ -69,10 +67,9 @@ allowancesForWICP() {
 mintDip721() {
   printf "🤖 Call the mintDip721\n"
 
-  _wallet=$1
-  _name=$2
-  _mint_for=$3
-  _nonFungibleContractAddress=$4
+  _name=$1
+  _mint_for=$2
+  _nonFungibleContractAddress=$3
 
   printf "🤖 The mintDip721 has nonFungibleContractAddress (%s), 
   mint_for user (%s) of id (%s)\n" "$_nonFungibleContractAddress" "$_name" "$_mint_for"
@@ -80,7 +77,7 @@ mintDip721() {
   nft_token_id_for_alice=$RANDOM
 
   _result=$(
-    dfx canister --wallet "$_wallet" \
+    dfx canister \
       call --update "$_nonFungibleContractAddress" \
       mint "(
         principal \"$_mint_for\",
@@ -100,7 +97,7 @@ mintDip721() {
 
   printf "🤖 The Balance for user %s of id (%s)\n" "$_name" "$_mint_for"
 
-  dfx canister --wallet "$_wallet" \
+  dfx canister \
     call "$_nonFungibleContractAddress" \
     balanceOf "(
       principal \"$_mint_for\",
@@ -108,7 +105,7 @@ mintDip721() {
 
   printf "🤖 User %s ownerTokenMetadata is\n" "$_name"
 
-  dfx canister --wallet "$_wallet" \
+  dfx canister \
     call "$_nonFungibleContractAddress" \
     ownerTokenMetadata "(
       principal \"$_mint_for\",
@@ -120,16 +117,15 @@ mintDip721() {
 allowancesForDIP721() {
   printf "🤖 Call the allowancesForDIP721\n"
 
-  _wallet=$1
-  _nonFungibleContractAddress=$2
-  _marketplaceId=$3
-  _nft_token_id_for_alice=$4
+  _nonFungibleContractAddress=$1
+  _marketplaceId=$2
+  _nft_token_id_for_alice=$3
 
   printf "🤖 Default approves Marketplace id (%s)\n 
   for non-fungible contract address (%s) 
   the token id (%s)" "$_marketplaceId"  "$_nonFungibleContractAddress" "$_nft_token_id_for_alice"
 
-  dfx canister --wallet "$_wallet" \
+  dfx canister \
     call "$_nonFungibleContractAddress" \
     approve "(
       principal \"$_marketplaceId\",
@@ -140,14 +136,13 @@ allowancesForDIP721() {
 addCrownCollection() {
   echo "🤖 Add Crown Collection"
 
-  _wallet=$1
-  _ownerPrincipalId=$2
-  _marketplaceId=$3
-  _nonFungibleContractAddress=$4
-  _fungibleContractAddress=$5
-  _collectionName=$6
-  _fee=$7
-  _creationTime=$8
+  _ownerPrincipalId=$1
+  _marketplaceId=$2
+  _nonFungibleContractAddress=$3
+  _fungibleContractAddress=$4
+  _collectionName=$5
+  _fee=$6
+  _creationTime=$7
 
   printf "🤖 The addCrownCollection has owner id (%s) marketplaceId (%s), 
   nonFungibleContractAddress (%s), 
@@ -165,7 +160,7 @@ addCrownCollection() {
   # fungible_contract_address: Principal,
   # fungible_token_type: FungibleTokenType,
 
-  dfx canister --wallet "$_wallet" \
+  dfx canister \
     call --update "$_marketplaceId" \
     addCollection "(
         principal \"$_ownerPrincipalId\",
@@ -182,20 +177,18 @@ addCrownCollection() {
 listForSale() {
   printf "🤖 List for sale\n"
 
-  _wallet=$1
-  _identityName=$2
-  _nonFungibleContractAddress=$3
-  _marketplaceId=$4
-  _token_id=$5
-  _list_price=$6
+  _identityName=$1
+  _nonFungibleContractAddress=$2
+  _marketplaceId=$3
+  _token_id=$4
+  _list_price=$5
 
   printf "🤖 has market id (%s)\n" "$_marketplaceId"
   printf "🤖 the token id is %s, price %s\n" "$_token_id" "$_list_price"
   printf "🤖 will use identity %s\n" "$_identityName"
 
   dfx --identity "$_identityName" \
-    canister --wallet "$_wallet" \
-    call --update "$_marketplaceId" \
+    canister call --update "$_marketplaceId" \
     listForSale "(
         principal \"$_nonFungibleContractAddress\",
         $_token_id,
@@ -206,10 +199,9 @@ listForSale() {
 getSaleOffers() {
     printf "🤖 Call getSaleOffers\n"
 
-  _wallet=$1
-  _marketplaceId=$2
+  _marketplaceId=$1
 
-  dfx canister --wallet "$_wallet" \
+  dfx canister \
     call --query "$_marketplaceId" \
     getSaleOffers "()"
 }
@@ -217,12 +209,11 @@ getSaleOffers() {
 makeBuyOffer() {
   printf "🤖 Call makeBuyOffer\n"
 
-  _wallet=$1
-  _identityName=$2
-  _name=$3
-  _nonFungibleContractAddress=$4
-  _token_id=$5
-  _offer_price=$6
+  _identityName=$1
+  _name=$2
+  _nonFungibleContractAddress=$3
+  _token_id=$4
+  _offer_price=$5
 
   printf "🤖 The user (%s) will makeBuyOffer for token id (%s) 
   for the amount (%s)\n" "$_name" "$_token_id" "$_offer_price"
@@ -232,8 +223,7 @@ makeBuyOffer() {
 
   _result=$(
     dfx --identity "$_identityName" \
-      canister --wallet "$_wallet" \
-      call --update "$_marketplaceId" \
+      canister call --update "$_marketplaceId" \
       makeBuyOffer "(
         principal \"$_nonFungibleContractAddress\",
         ($_token_id:nat64),
@@ -253,15 +243,14 @@ makeBuyOffer() {
 getBuyOffers() {
   printf "🤖 Call getBuyOffers\n"
 
-  _wallet=$1
-  _marketplaceId=$2
-  _begin=$3
-  _limit=$4
+  _marketplaceId=$1
+  _begin=$2
+  _limit=$3
 
   printf "🤖 The getBuyOffers from marketplace id (%s) 
   was called with being (%s) and limit (%s)\n" "$_marketplaceId" "$_begin" "$_limit"
 
-  dfx canister --wallet "$_wallet" \
+  dfx canister \
     call --query "$_marketplaceId" \
     getBuyOffers "($_begin, $_limit)"
 }
@@ -269,20 +258,18 @@ getBuyOffers() {
 approveTransferFromForNFTAcceptBuyOffer() {
   printf "🤖 Call approveTransferFromForNFTAcceptBuyOffer\n"  
 
-  _wallet=$1
-  _identityName=$2
-  _approves_wallet=$3
-  _nonFungibleContractAddress=$4
-  _marketplaceId=$5
-  _nft_token_id_for_alice=$6
-  _wicpId=$7
+  _identityName=$1
+  _nonFungibleContractAddress=$2
+  _marketplaceId=$3
+  _nft_token_id_for_alice=$4
+  _wicpId=$5
 
   printf "🤖 The user (%s) will approve transfer token id (%s) 
-  for user (%s) \n" "$_identityName" "$_nft_token_id_for_alice" "$_approves_wallet"
+  for marketplace (%s) \n" "$_identityName" "$_nft_token_id_for_alice" "$_marketplaceId"
   printf "🤖 for nft contract id (%s)\n" "$_nonFungibleContractAddress"
 
   dfx --identity "$_identityName" \
-    canister --wallet "$_wallet" \
+    canister \
     call --update "$_nonFungibleContractAddress" \
     approve "(
       principal \"$_marketplaceId\",
@@ -294,16 +281,15 @@ approveTransferFromForNFTAcceptBuyOffer() {
 approveTransferFromForWICPAcceptBuyOffer() {
   printf "🤖 Call approveTransferFromForWICPAcceptBuyOffer\n"
 
-  _wallet=$1
-  _identityName=$2
-  _wicpId=$3
-  _marketplaceId=$4
-  _amount=$5
+  _identityName=$1
+  _wicpId=$2
+  _marketplaceId=$3
+  _amount=$4
 
   printf "🤖 The user (%s) approves (%s) for the amount (%s) in fungible token (%s)\n" "$_identityName" "$_marketplaceId" "$_amount" "$_wicpId"
 
   dfx --identity "$_identityName" \
-    canister --wallet "$_wallet" \
+    canister \
     call --update "$_wicpId" \
     approve "(
       principal \"$_marketplaceId\",
@@ -314,13 +300,12 @@ approveTransferFromForWICPAcceptBuyOffer() {
 acceptBuyOffer() {
   printf "🤖 Call acceptBuyOffer\n"
 
-  _wallet=$1
-  _identityName=$2
-  _marketplaceId=$3
-  _buy_offer_id=$4
+  _identityName=$1
+  _marketplaceId=$2
+  _buy_offer_id=$3
 
   dfx --identity "$_identityName" \
-    canister --wallet "$_wallet" \
+    canister \
     call --update "$_marketplaceId" \
     acceptBuyOffer "($_buy_offer_id:nat64)"
 }
@@ -329,22 +314,32 @@ run() {
   printf "🚑 Healthcheck runtime details\n"
   printf "Owner address -> %s\n" "$ownerPrincipalId"
 
-  topupWICP "$DEFAULT_USER_WALLET" "$wicpId" "Bob" "$BOB_WALLET" "100_000_000"
+  topupWICP \
+    "$wicpId" \
+    "Bob" \
+    "$BOB_PRINCIPAL_ID" \
+    "100_000_000"
   [ "$DEBUG" == 1 ] && echo $?
   
-  allowancesForWICP "$DEFAULT_USER_WALLET" "$wicpId" "$marketplaceId" "50_000_000"
+  allowancesForWICP \
+    "$wicpId" \
+    "$marketplaceId" \
+    "50_000_000"
   [ "$DEBUG" == 1 ] && echo $?
 
-  mintDip721 "$DEFAULT_USER_WALLET" "Alice" "$ALICE_WALLET" "$nonFungibleContractAddress"
+  mintDip721 \
+    "Alice" \
+    "$ALICE_PRINCIPAL_ID" \
+    "$nonFungibleContractAddress"
   [ "$DEBUG" == 1 ] && echo $?
 
-  allowancesForDIP721 "$DEFAULT_USER_WALLET" \
+  allowancesForDIP721 \
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
     "$nft_token_id_for_alice"
   [ "$DEBUG" == 1 ] && echo $?
 
-  addCrownCollection "$DEFAULT_USER_WALLET" \
+  addCrownCollection \
     "$DEFAULT_PRINCIPAL_ID" \
     "$marketplaceId" \
     "$nonFungibleContractAddress" \
@@ -354,7 +349,7 @@ run() {
     0
   [ "$DEBUG" == 1 ] && echo $?
 
-  listForSale "$ALICE_WALLET" \
+  listForSale \
     "$ALICE_IDENTITY_NAME" \
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
@@ -362,10 +357,10 @@ run() {
     "1_250"
   [ "$DEBUG" == 1 ] && echo $?
 
-  getSaleOffers "$DEFAULT_USER_WALLET" "$marketplaceId"
+  getSaleOffers "$marketplaceId"
   [ "$DEBUG" == 1 ] && echo $?
 
-  makeBuyOffer "$BOB_WALLET" \
+  makeBuyOffer \
     "$BOB_IDENTITY_NAME" \
     "Bob" \
     "$nonFungibleContractAddress" \
@@ -373,26 +368,28 @@ run() {
     "1_300"
   [ "$DEBUG" == 1 ] && echo $?
 
-  getBuyOffers "$DEFAULT_USER_WALLET" "$marketplaceId" 0 10
+  getBuyOffers "$marketplaceId" 0 10
   [ "$DEBUG" == 1 ] && echo $?
 
-  approveTransferFromForNFTAcceptBuyOffer "$ALICE_WALLET" \
+  approveTransferFromForNFTAcceptBuyOffer \
     "$ALICE_IDENTITY_NAME" \
-    "$BOB_WALLET" \
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
     "$nft_token_id_for_alice" \
     "$wicpId"
   [ "$DEBUG" == 1 ] && echo $?
 
-  approveTransferFromForWICPAcceptBuyOffer "$BOB_WALLET" \
+  approveTransferFromForWICPAcceptBuyOffer \
     "$BOB_IDENTITY_NAME" \
     "$wicpId" \
     "$marketplaceId" \
     "5_000"
   [ "$DEBUG" == 1 ] && echo $?
 
-  acceptBuyOffer "$ALICE_WALLET" "$ALICE_IDENTITY_NAME" "$marketplaceId" "$buy_offer_id"
+  acceptBuyOffer \
+    "$ALICE_IDENTITY_NAME" \
+    "$marketplaceId" \
+    "$buy_offer_id"
   [ "$DEBUG" == 1 ] &&  echo $?
 }
 
