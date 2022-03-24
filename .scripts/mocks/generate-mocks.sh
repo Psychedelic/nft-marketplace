@@ -139,7 +139,6 @@ generatorHandler() {
 
 # Distribute the total number of tokens
 dividedTotal=$((totalNumberOfTokens / 3))
-printf "$dividedTotal"
 dividedTotal=$(echo "$dividedTotal" | awk '{print int($1+0.5)}')
 
 userTotal=$((dividedTotal + (totalNumberOfTokens - ($dividedTotal*3))))
