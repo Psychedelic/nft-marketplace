@@ -8,12 +8,12 @@
 . ".scripts/dfx-identity.sh"
 
 # The NFT Canister id
-nftCanisterId=$1
+nftCanisterId=$(cd crowns && dfx canister id crowns)
 
 # The total tokens to generate
-totalNumberOfTokens=$2
+totalNumberOfTokens=$1
 
-token_index=$3
+token_index=$2
 
 if [[ -z $3 ]];
 then
