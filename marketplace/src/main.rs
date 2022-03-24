@@ -66,8 +66,6 @@ pub async fn list_for_sale(
         .entry((non_fungible_contract_address, token_id.clone()))
         .or_default();
 
-    print!("{:?} {}", sale_offer, token_owner.unwrap());
-
     if (sale_offer.status == SaleOfferStatus::Selling) {
         return Err(MPApiError::InvalidSaleOfferStatus);
     }
