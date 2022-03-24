@@ -15,7 +15,7 @@ totalNumberOfTokens=$1
 
 token_index=$2
 
-if [[ -z $3 ]];
+if [[ -z $token_index ]];
 then
   printf "🤖 The token index start from not provided (default is 0)\n"
   token_index=0
