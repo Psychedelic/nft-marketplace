@@ -395,9 +395,4 @@ run() {
 
 run
 
-echo "🤖 Clear identities for Alice and Bob"
-
-dfx identity remove "$ALICE_IDENTITY_NAME"
-dfx identity remove "$BOB_IDENTITY_NAME"
-
 echo "👍 Healthcheck completed!"
