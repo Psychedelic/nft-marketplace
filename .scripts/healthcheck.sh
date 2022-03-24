@@ -192,7 +192,7 @@ listForSale() {
     listForSale "(
         principal \"$_nonFungibleContractAddress\",
         $_token_id,
-        ($_list_price:nat)
+        $_list_price:nat
       )"
 }
 
@@ -394,10 +394,5 @@ run() {
 }
 
 run
-
-echo "🤖 Clear identities for Alice and Bob"
-
-dfx identity remove "$ALICE_IDENTITY_NAME"
-dfx identity remove "$BOB_IDENTITY_NAME"
 
 echo "👍 Healthcheck completed!"
