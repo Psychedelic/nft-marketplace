@@ -17,7 +17,7 @@ token_index=$3
 
 if [[ -z $3 ]];
 then
-  printf "🤖 The token index start from not provided (default is 1)\n"
+  printf "🤖 The token index start from not provided (default is 0)\n"
   token_index=0
 fi
 
@@ -139,14 +139,17 @@ generatorHandler() {
 
 # Distribute the total number of tokens
 dividedTotal=$((totalNumberOfTokens / 3))
+printf "$dividedTotal"
 dividedTotal=$(echo "$dividedTotal" | awk '{print int($1+0.5)}')
+
+userTotal=$((dividedTotal + (totalNumberOfTokens - ($dividedTotal*3))))
 
 # Warn the user about identity requirement
 # as the end user will be interacting with the Marketplace via Plug's
 userIdentityWarning "$DEFAULT_PRINCIPAL_ID"
 
 # generates mock data for the dfx user principal
-generatorHandler "$INITIAL_IDENTITY" "$DEFAULT_PRINCIPAL_ID" "$dividedTotal"
+generatorHandler "$INITIAL_IDENTITY" "$DEFAULT_PRINCIPAL_ID" "$userTotal"
 
 # generates mock data for Alice
 generatorHandler "$ALICE_IDENTITY_NAME" "$ALICE_PRINCIPAL_ID" "$dividedTotal"
