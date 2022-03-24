@@ -20,7 +20,7 @@ pub enum BuyOfferStatus {
     Bought,
 }
 
-#[derive(Clone, CandidType, Deserialize, Eq, PartialEq)]
+#[derive(Clone, CandidType, Deserialize, Debug, Eq, PartialEq)]
 pub enum SaleOfferStatus {
     Uninitialized,
     Created,
@@ -32,7 +32,7 @@ pub struct InitData {
     pub owner: Principal,
 }
 
-#[derive(Clone, CandidType, Deserialize, new)]
+#[derive(Clone, CandidType, Deserialize, Debug, new)]
 pub struct SaleOffer {
     pub is_direct_buyable: bool,
     pub list_price: Nat,
@@ -113,7 +113,7 @@ pub enum MPApiError {
 }
 
 pub type MPApiResult = Result<(), MPApiError>;
-pub type PrincipalResult = Result<Principal, MPApiError>;
+pub type PrincipalResult = Result<Option<Principal>, MPApiError>;
 pub type U64Result = Result<u64, MPApiError>;
 pub type NatResult = Result<Nat, MPApiError>;
 

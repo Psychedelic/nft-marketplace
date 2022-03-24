@@ -192,7 +192,7 @@ listForSale() {
     listForSale "(
         principal \"$_nonFungibleContractAddress\",
         $_token_id,
-        ($_list_price:nat)
+        $_list_price:nat
       )"
 }
 

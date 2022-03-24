@@ -55,7 +55,7 @@ pub async fn list_for_sale(
     )
     .await?;
     
-    if (caller != token_owner) {
+    if (caller != token_owner.unwrap()) {
         return Err(MPApiError::Unauthorized);
     }
 
@@ -65,6 +65,8 @@ pub async fn list_for_sale(
         .sale_offers
         .entry((non_fungible_contract_address, token_id.clone()))
         .or_default();
+
+    print!("{:?} {}", sale_offer, token_owner.unwrap());
 
     if (sale_offer.status == SaleOfferStatus::Selling) {
         return Err(MPApiError::InvalidSaleOfferStatus);
@@ -78,7 +80,7 @@ pub async fn list_for_sale(
                 .caller(caller)
                 .operation("makeSaleOffer")
                 .details(vec![
-                    ("token_id".into(), DetailValue::Text(token_id.to_string())),
+                    ("token_id".into(), DetailValue::U64(token_id)),
                     (
                         "non_fungible_contract_address".into(),
                         DetailValue::Principal(collection.non_fungible_contract_address),
@@ -209,7 +211,7 @@ pub async fn accept_buy_offer(buy_id: u64) -> MPApiResult {
     )
     .await?;
 
-    if (sale_offer.payment_address != token_owner) {
+    if (sale_offer.payment_address != token_owner.unwrap()) {
         mp.sale_offers.remove(&(
             buy_offer.non_fungible_contract_address,
             buy_offer.token_id.clone(),
@@ -381,7 +383,7 @@ pub async fn direct_buy(non_fungible_contract_address: Principal, token_id: u64)
         collection.non_fungible_token_type.clone(),
     )
     .await?;
-    if (sale_offer.payment_address != token_owner) {
+    if (sale_offer.payment_address != token_owner.unwrap()) {
         mp.sale_offers
             .remove(&(non_fungible_contract_address, token_id.clone()));
         return Err(MPApiError::InsufficientNonFungibleBalance);

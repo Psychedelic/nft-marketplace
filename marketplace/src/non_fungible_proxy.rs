@@ -90,8 +90,8 @@ impl Dip721Proxy {
         }
     }
 
-    pub async fn owner_of(contract: &Principal, token_id: &u64) -> Result<Principal, MPApiError> {
-        let call_res: Result<(Result<Principal, NftError>,), (RejectionCode, String)> = ic::call(
+    pub async fn owner_of(contract: &Principal, token_id: &u64) -> Result<Option<Principal>, MPApiError> {
+        let call_res: Result<(Result<Option<Principal>, NftError>,), (RejectionCode, String)> = ic::call(
             *contract,
             "ownerOf",
             (Nat::from(token_id.clone()),),
