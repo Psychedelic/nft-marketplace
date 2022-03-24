@@ -29,7 +29,7 @@ generateMock() {
 
   crownsNftCanisterId="vlhm2-4iaaa-aaaam-qaatq-cai"
   filename=$(printf "%04d.mp4" "$token_index")
-  crownsCertifiedAssetsA="vzb3d-qyaaa-aaaam-qaaqq-ca"
+  crownsCertifiedAssetsA="vzb3d-qyaaa-aaaam-qaaqq-cai"
   crownsCertifiedAssetsB="vqcq7-gqaaa-aaaam-qaara-cai"
   assetUrl="https://$crownsCertifiedAssetsA.raw.ic0.app/$filename"
 
