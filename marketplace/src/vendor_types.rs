@@ -63,7 +63,6 @@ pub enum NftError {
     Other(String),
 }
 
-
 pub type TxReceiptDIP721 = Result<Nat, ApiError>;
 pub type OwnerResult = Result<Principal, NftError>;
 
