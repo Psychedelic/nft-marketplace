@@ -1,41 +1,41 @@
 {
   "canisters": {
-     "capmp": {
-        "build": "echo",
-        "candid": "deploy/capmp.did",
-        "wasm": "deploy/capmp.wasm",
-        "type": "custom"
-     },
-     "dip20mp": {
-        "build": "echo",
-        "candid": "deploy/dip20mp.did",
-        "wasm": "deploy/dip20mp.wasm",
-        "type": "custom"
-     },
-     "dip721mp": {
-        "build": "echo",
-        "candid": "deploy/dip721mp.did",
-        "wasm": "deploy/dip721mp.wasm",
-        "type": "custom"
-     },
-     "dabnftmp": {
-        "build": "echo",
-        "candid": "deploy/dabnftmp.did",
-        "wasm": "deploy/dabnftmp.wasm",
-        "type": "custom"
-     },
-     "ext721mp": {
-        "build": "echo",
-        "candid": "deploy/ext721mp.did",
-        "wasm": "deploy/ext721mp.wasm",
-        "type": "custom"
-     },
-     "marketplace": {
-         "build": "cargo build --target wasm32-unknown-unknown --release --package marketplace",
-         "candid": "marketplace/marketplace.did",
-         "wasm": "target/wasm32-unknown-unknown/release/marketplace.wasm",
-         "type": "custom"
-     }
+    "capmp": {
+      "build": "echo",
+      "candid": "deploy/capmp.did",
+      "wasm": "deploy/capmp.wasm",
+      "type": "custom"
+    },
+    "dip20mp": {
+      "build": "echo",
+      "candid": "deploy/dip20mp.did",
+      "wasm": "deploy/dip20mp.wasm",
+      "type": "custom"
+    },
+    "dip721mp": {
+      "build": "echo",
+      "candid": "deploy/dip721mp.did",
+      "wasm": "deploy/dip721mp.wasm",
+      "type": "custom"
+    },
+    "dabnftmp": {
+      "build": "echo",
+      "candid": "deploy/dabnftmp.did",
+      "wasm": "deploy/dabnftmp.wasm",
+      "type": "custom"
+    },
+    "ext721mp": {
+      "build": "echo",
+      "candid": "deploy/ext721mp.did",
+      "wasm": "deploy/ext721mp.wasm",
+      "type": "custom"
+    },
+    "marketplace": {
+      "build": "cargo build --target wasm32-unknown-unknown --release --package marketplace",
+      "candid": "marketplace/marketplace.did",
+      "wasm": "target/wasm32-unknown-unknown/release/marketplace.wasm",
+      "type": "custom"
+    }
   },
   "defaults": {
     "build": {
