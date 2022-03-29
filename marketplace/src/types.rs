@@ -67,9 +67,9 @@ pub struct Collection {
     pub creation_time: u64,
     pub collection_name: String,
     pub nft_canister_id: Principal,
-    pub nft_canister_type: NonFungibleTokenType,
+    pub nft_canister_type: NFTStandard,
     pub fungible_canister_id: Principal,
-    pub fungible_canister_type: FungibleTokenType,
+    pub fungible_canister_type: FungibleStandard,
 }
 
 #[derive(Clone, CandidType, Default, Deserialize, new)]
@@ -118,12 +118,12 @@ pub type U64Result = Result<u64, MPApiError>;
 pub type NatResult = Result<Nat, MPApiError>;
 
 #[derive(Clone, CandidType, Deserialize)]
-pub enum FungibleTokenType {
+pub enum FungibleStandard {
     DIP20,
 }
 
 #[derive(Clone, CandidType, Deserialize)]
-pub enum NonFungibleTokenType {
+pub enum NFTStandard {
     DIP721,
     EXT,
 }

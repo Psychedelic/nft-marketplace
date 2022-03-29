@@ -14,13 +14,11 @@ pub async fn transfer_from_non_fungible(
     to: &Principal,
     nft_id: &u64,
     contract: &Principal,
-    nft_type: NonFungibleTokenType,
+    nft_type: NFTStandard,
 ) -> U64Result {
     match nft_type {
-        NonFungibleTokenType::DIP721 => {
-            Dip721Proxy::transfer_from(from, to, nft_id, contract).await
-        }
-        NonFungibleTokenType::EXT => EXTProxy::transfer_from(from, to, nft_id, contract).await,
+        NFTStandard::DIP721 => Dip721Proxy::transfer_from(from, to, nft_id, contract).await,
+        NFTStandard::EXT => EXTProxy::transfer_from(from, to, nft_id, contract).await,
     }
 }
 
@@ -28,22 +26,22 @@ pub async fn transfer_non_fungible(
     to: &Principal,
     token_id: &u64,
     contract: &Principal,
-    nft_type: NonFungibleTokenType,
+    nft_type: NFTStandard,
 ) -> Result<Nat, MPApiError> {
     match nft_type {
-        NonFungibleTokenType::DIP721 => Dip721Proxy::transfer(contract, to, token_id).await,
-        NonFungibleTokenType::EXT => EXTProxy::transfer(to, token_id, contract).await,
+        NFTStandard::DIP721 => Dip721Proxy::transfer(contract, to, token_id).await,
+        NFTStandard::EXT => EXTProxy::transfer(to, token_id, contract).await,
     }
 }
 
 pub async fn owner_of_non_fungible(
     contract: &Principal,
     token_id: &u64,
-    nft_type: NonFungibleTokenType,
+    nft_type: NFTStandard,
 ) -> PrincipalResult {
     match nft_type {
-        NonFungibleTokenType::DIP721 => Dip721Proxy::owner_of(contract, token_id).await,
-        NonFungibleTokenType::EXT => unimplemented!(),
+        NFTStandard::DIP721 => Dip721Proxy::owner_of(contract, token_id).await,
+        NFTStandard::EXT => unimplemented!(),
     }
 }
 

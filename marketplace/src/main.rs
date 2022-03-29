@@ -523,7 +523,7 @@ pub async fn get_all_offers(begin: u64, limit: u64) -> Vec<Offer> {
 #[candid_method(update, rename = "withdrawFungible")]
 pub async fn withdraw_fungible(
     fungible_canister_id: Principal,
-    fungible_canister_type: FungibleTokenType,
+    fungible_canister_type: FungibleStandard,
 ) -> MPApiResult {
     let caller = ic::caller();
     let self_id = ic::id();
@@ -680,9 +680,9 @@ fn add_collection(
     creation_time: u64,
     collection_name: String,
     nft_canister_id: Principal,
-    nft_canister_type: NonFungibleTokenType,
+    nft_canister_type: NFTStandard,
     fungible_canister_id: Principal,
-    fungible_canister_type: FungibleTokenType,
+    fungible_canister_type: FungibleStandard,
 ) {
     // TODO: related to the init_data, which seems we can remove?
     // assert_eq!(ic::caller(), init_data().owner);
