@@ -48,9 +48,9 @@ pub fn init(cap: Principal, owner: Principal) {
 //    nft collection id
 //    price
 //    listing uuid
-#[update(name = "listForSale")]
-#[candid_method(update, rename = "listForSale")]
-pub async fn list_for_sale(nft_canister_id: Principal, token_id: u64, price: Nat) -> MPApiResult {
+#[update(name = "makeListing")]
+#[candid_method(update, rename = "makeListing")]
+pub async fn make_listing(nft_canister_id: Principal, token_id: u64, price: Nat) -> MPApiResult {
     let caller = ic::caller();
     let self_id = ic::id();
     let collection = collections()
@@ -71,22 +71,22 @@ pub async fn list_for_sale(nft_canister_id: Principal, token_id: u64, price: Nat
 
     let mut mp = marketplace();
 
-    let mut sale_offer = mp
-        .sale_offers
+    let mut listing = mp
+        .listings
         .entry((nft_canister_id, token_id.clone()))
         .or_default();
 
-    if (sale_offer.status == SaleOfferStatus::Selling) {
-        return Err(MPApiError::InvalidSaleOfferStatus);
+    if (listing.status == ListingStatus::Selling) {
+        return Err(MPApiError::InvalidListingStatus);
     }
 
-    *sale_offer = SaleOffer::new(true, price.clone(), caller, SaleOfferStatus::Created);
+    *listing = Listing::new(true, price.clone(), caller, ListingStatus::Created);
 
     capq()
         .insert_into_cap(
             IndefiniteEventBuilder::new()
                 .caller(caller)
-                .operation("makeSaleOffer")
+                .operation("makeListing")
                 .details(vec![
                     ("token_id".into(), DetailValue::U64(token_id)),
                     (
@@ -108,9 +108,9 @@ pub async fn list_for_sale(nft_canister_id: Principal, token_id: u64, price: Nat
     Ok(())
 }
 
-#[update(name = "makeBuyOffer")]
-#[candid_method(update, rename = "makeBuyOffer")]
-pub async fn make_buy_offer(nft_canister_id: Principal, token_id: u64, price: Nat) -> U64Result {
+#[update(name = "makeOffer")]
+#[candid_method(update, rename = "makeOffer")]
+pub async fn make_offer(nft_canister_id: Principal, token_id: u64, price: Nat) -> U64Result {
     let caller = ic::caller();
     let self_id = ic::id();
     let mut mp = marketplace();
@@ -132,12 +132,12 @@ pub async fn make_buy_offer(nft_canister_id: Principal, token_id: u64, price: Na
         return Err(MPApiError::InsufficientFungibleBalance);
     }
 
-    mp.buy_offers.push(BuyOffer::new(
+    mp.buy_offers.push(Offer::new(
         nft_canister_id,
         token_id.clone(),
         price.clone(),
         caller,
-        BuyOfferStatus::Created,
+        OfferStatus::Created,
     ));
     let buy_id = mp.buy_offers.len() as u64;
 
@@ -145,7 +145,7 @@ pub async fn make_buy_offer(nft_canister_id: Principal, token_id: u64, price: Na
         .insert_into_cap(
             IndefiniteEventBuilder::new()
                 .caller(caller)
-                .operation("makeBuyOffer")
+                .operation("makeOffer")
                 .details(vec![
                     ("token_id".into(), DetailValue::U64(token_id.clone())),
                     (
@@ -177,25 +177,25 @@ pub async fn accept_offer(buy_id: u64) -> MPApiResult {
     let buy_offer = mp
         .buy_offers
         .get_mut(buy_id as usize)
-        .ok_or(MPApiError::InvalidBuyOffer)?;
+        .ok_or(MPApiError::InvalidOffer)?;
 
     // guarding against re-entrancy
-    if buy_offer.status != BuyOfferStatus::Created {
-        return Err(MPApiError::InvalidBuyOfferStatus);
+    if buy_offer.status != OfferStatus::Created {
+        return Err(MPApiError::InvalidOfferStatus);
     }
 
-    let sale_offer = mp
-        .sale_offers
+    let listing = mp
+        .listings
         .get_mut(&(buy_offer.nft_canister_id, buy_offer.token_id.clone()))
-        .ok_or(MPApiError::InvalidSaleOffer)?;
+        .ok_or(MPApiError::InvalidListing)?;
 
     // guarding against re-entrancy
-    if sale_offer.status != SaleOfferStatus::Created {
-        return Err(MPApiError::InvalidSaleOfferStatus);
+    if listing.status != ListingStatus::Created {
+        return Err(MPApiError::InvalidListingStatus);
     }
 
     // only the seller can accept the bid
-    if (sale_offer.payment_address != caller) {
+    if (listing.payment_address != caller) {
         return Err(MPApiError::Unauthorized);
     }
 
@@ -212,15 +212,15 @@ pub async fn accept_offer(buy_id: u64) -> MPApiResult {
     )
     .await?;
 
-    if (sale_offer.payment_address != token_owner.unwrap()) {
-        mp.sale_offers
+    if (listing.payment_address != token_owner.unwrap()) {
+        mp.listings
             .remove(&(buy_offer.nft_canister_id, buy_offer.token_id.clone()));
         return Err(MPApiError::InsufficientNonFungibleBalance);
     }
 
     // guarding agains reentrancy
-    buy_offer.status = BuyOfferStatus::Bought;
-    sale_offer.status = SaleOfferStatus::Selling;
+    buy_offer.status = OfferStatus::Bought;
+    listing.status = ListingStatus::Selling;
 
     // transfer the money from the buyer to the MP contract
     if transfer_from_fungible(
@@ -233,14 +233,14 @@ pub async fn accept_offer(buy_id: u64) -> MPApiResult {
     .await
     .is_err()
     {
-        buy_offer.status = BuyOfferStatus::Created;
-        sale_offer.status = SaleOfferStatus::Created;
+        buy_offer.status = OfferStatus::Created;
+        listing.status = ListingStatus::Created;
         return Err(MPApiError::TransferFungibleError);
     }
 
     // transfer the nft from the seller to the buyer
     if transfer_from_non_fungible(
-        &sale_offer.payment_address,
+        &listing.payment_address,
         &buy_offer.payment_address,
         &buy_offer.token_id,
         &buy_offer.nft_canister_id,
@@ -264,8 +264,8 @@ pub async fn accept_offer(buy_id: u64) -> MPApiResult {
             ),
         ));
 
-        buy_offer.status = BuyOfferStatus::Created;
-        sale_offer.status = SaleOfferStatus::Created;
+        buy_offer.status = OfferStatus::Created;
+        listing.status = ListingStatus::Created;
         return Err(MPApiError::TransferNonFungibleError);
     }
 
@@ -278,7 +278,7 @@ pub async fn accept_offer(buy_id: u64) -> MPApiResult {
 
     // transfer the money from the MP to the seller
     if transfer_fungible(
-        &sale_offer.payment_address,
+        &listing.payment_address,
         &(buy_offer.price.clone() - owner_fee.clone()),
         &collection.fungible_canister_id,
         collection.fungible_canister_type.clone(),
@@ -289,7 +289,7 @@ pub async fn accept_offer(buy_id: u64) -> MPApiResult {
         // credit the bid price to the seller
         *(balances()
             .balances
-            .entry((collection.fungible_canister_id, sale_offer.payment_address))
+            .entry((collection.fungible_canister_id, listing.payment_address))
             .or_default()) += buy_offer.price.clone() - owner_fee.clone();
 
         balances().failed_tx_log_entries.push(TxLogEntry::new(
@@ -297,26 +297,26 @@ pub async fn accept_offer(buy_id: u64) -> MPApiResult {
             buy_offer.payment_address.clone(),
             format!(
                 "accept_buy_offer fungible failed for user {} for buy id {}; transfer 2",
-                sale_offer.payment_address, buy_id
+                listing.payment_address, buy_id
             ),
         ));
 
-        buy_offer.status = BuyOfferStatus::Created;
-        sale_offer.status = SaleOfferStatus::Created;
+        buy_offer.status = OfferStatus::Created;
+        listing.status = ListingStatus::Created;
         return Err(MPApiError::TransferFungibleError);
     }
 
     // remove the sale offer and the bid that triggered the sale
     // all other bids still should remain valid
-    buy_offer.status = BuyOfferStatus::Bought;
-    mp.sale_offers
+    buy_offer.status = OfferStatus::Bought;
+    mp.listings
         .remove(&(buy_offer.nft_canister_id, buy_offer.token_id.clone()));
 
     capq()
         .insert_into_cap(
             IndefiniteEventBuilder::new()
                 .caller(caller)
-                .operation("acceptBuyOffer")
+                .operation("acceptOffer")
                 .details(vec![
                     (
                         "token_id".into(),
@@ -352,14 +352,14 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
     let self_id = ic::id();
     let mut mp = marketplace();
 
-    let sale_offer = mp
-        .sale_offers
+    let listing = mp
+        .listings
         .get_mut(&(nft_canister_id, token_id.clone()))
-        .ok_or(MPApiError::InvalidSaleOffer)?;
+        .ok_or(MPApiError::InvalidListing)?;
 
     // guarding against re-entrancy
-    if sale_offer.status != SaleOfferStatus::Created {
-        return Err(MPApiError::InvalidSaleOfferStatus);
+    if listing.status != ListingStatus::Created {
+        return Err(MPApiError::InvalidListingStatus);
     }
 
     let collection = collections()
@@ -374,32 +374,32 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
         collection.nft_canister_type.clone(),
     )
     .await?;
-    if (sale_offer.payment_address != token_owner.unwrap()) {
-        mp.sale_offers.remove(&(nft_canister_id, token_id.clone()));
+    if (listing.payment_address != token_owner.unwrap()) {
+        mp.listings.remove(&(nft_canister_id, token_id.clone()));
         return Err(MPApiError::InsufficientNonFungibleBalance);
     }
 
     // guarding agains reentrancy
-    sale_offer.status = SaleOfferStatus::Selling;
+    listing.status = ListingStatus::Selling;
 
     // transfer the money from the buyer to the MP contract
     if transfer_from_fungible(
         &caller,
         &self_id,
-        &sale_offer.price.clone(),
+        &listing.price.clone(),
         &collection.fungible_canister_id,
         collection.fungible_canister_type.clone(),
     )
     .await
     .is_err()
     {
-        sale_offer.status = SaleOfferStatus::Created;
+        listing.status = ListingStatus::Created;
         return Err(MPApiError::TransferFungibleError);
     }
 
     // transfer the nft from the seller to the buyer
     if transfer_from_non_fungible(
-        &sale_offer.payment_address,          // from
+        &listing.payment_address,             // from
         &caller,                              // to
         &token_id,                            // nft id
         &nft_canister_id,                     // contract
@@ -412,7 +412,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
         *(balances()
             .balances
             .entry((collection.fungible_canister_id, caller))
-            .or_default()) += sale_offer.price.clone();
+            .or_default()) += listing.price.clone();
 
         balances().failed_tx_log_entries.push(TxLogEntry::new(
             self_id.clone(),
@@ -423,11 +423,11 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
       ),
         ));
 
-        sale_offer.status = SaleOfferStatus::Created;
+        listing.status = ListingStatus::Created;
         return Err(MPApiError::TransferNonFungibleError);
     }
 
-    let owner_fee: Nat = sale_offer.price.clone() * collection.owner_fee_percentage / 100;
+    let owner_fee: Nat = listing.price.clone() * collection.owner_fee_percentage / 100;
     // credit the owner fee to the collection owner
     *(balances()
         .balances
@@ -436,8 +436,8 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
 
     // transfer the money from the MP to the seller
     if transfer_fungible(
-        &sale_offer.payment_address,
-        &(sale_offer.price.clone() - owner_fee.clone()),
+        &listing.payment_address,
+        &(listing.price.clone() - owner_fee.clone()),
         &collection.fungible_canister_id,
         collection.fungible_canister_type.clone(),
     )
@@ -447,8 +447,8 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
         // credit the bid price to the seller
         *(balances()
             .balances
-            .entry((collection.fungible_canister_id, sale_offer.payment_address))
-            .or_default()) += sale_offer.price.clone() - owner_fee.clone();
+            .entry((collection.fungible_canister_id, listing.payment_address))
+            .or_default()) += listing.price.clone() - owner_fee.clone();
 
         balances().failed_tx_log_entries.push(TxLogEntry::new(
             self_id.clone(),
@@ -459,15 +459,15 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
       ),
         ));
 
-        sale_offer.status = SaleOfferStatus::Created;
+        listing.status = ListingStatus::Created;
         return Err(MPApiError::TransferFungibleError);
     }
 
-    let price = sale_offer.price.clone();
+    let price = listing.price.clone();
 
     // remove the sale offer and the bid that triggered the sale
     // all other bids still should remain valid
-    mp.sale_offers.remove(&(nft_canister_id, token_id.clone()));
+    mp.listings.remove(&(nft_canister_id, token_id.clone()));
 
     capq()
         .insert_into_cap(
@@ -500,18 +500,18 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
 
 #[query(name = "getAllListings")]
 #[candid_method(query, rename = "getAllListings")]
-pub async fn get_all_listings() -> Vec<((Principal, u64), SaleOffer)> {
+pub async fn get_all_listings() -> Vec<((Principal, u64), Listing)> {
     marketplace()
-        .sale_offers
+        .listings
         .clone()
         .into_iter()
         .map(|offer| offer)
         .collect()
 }
 
-#[query(name = "getAllBuyOffers")]
-#[candid_method(query, rename = "getAllBuyOffers")]
-pub async fn get_all_buy_offers(begin: u64, limit: u64) -> Vec<BuyOffer> {
+#[query(name = "getAllOffers")]
+#[candid_method(query, rename = "getAllOffers")]
+pub async fn get_all_offers(begin: u64, limit: u64) -> Vec<Offer> {
     let buy_offers = &marketplace().buy_offers;
     let result =
         buy_offers[begin as usize..min((begin + limit) as usize, buy_offers.len())].to_vec();
@@ -555,29 +555,29 @@ pub async fn withdraw_fungible(
     Ok(())
 }
 
-#[update(name = "cancelListingBySeller")]
-#[candid_method(update, rename = "cancelListingBySeller")]
-pub async fn cancel_listing_by_seller(nft_canister_id: Principal, token_id: u64) -> MPApiResult {
+#[update(name = "cancelListing")]
+#[candid_method(update, rename = "cancelListing")]
+pub async fn cancel_listing(nft_canister_id: Principal, token_id: u64) -> MPApiResult {
     let caller = ic::caller();
     let mut mp = marketplace();
-    let sale_offer = mp
-        .sale_offers
+    let listing = mp
+        .listings
         .get_mut(&(nft_canister_id, token_id.clone()))
-        .ok_or(MPApiError::InvalidSaleOffer)?;
-    if (caller != sale_offer.payment_address) {
+        .ok_or(MPApiError::InvalidListing)?;
+    if (caller != listing.payment_address) {
         return Err(MPApiError::Unauthorized);
     }
-    if sale_offer.status != SaleOfferStatus::Created {
-        return Err(MPApiError::InvalidSaleOfferStatus);
+    if listing.status != ListingStatus::Created {
+        return Err(MPApiError::InvalidListingStatus);
     }
 
-    mp.sale_offers.remove(&(nft_canister_id, token_id.clone()));
+    mp.listings.remove(&(nft_canister_id, token_id.clone()));
 
     capq()
         .insert_into_cap(
             IndefiniteEventBuilder::new()
                 .caller(caller)
-                .operation("cancelListingBySeller")
+                .operation("cancelListing")
                 .details(vec![
                     ("token_id".into(), DetailValue::U64(token_id)),
                     (
@@ -603,17 +603,17 @@ pub async fn cancel_offer_by_buyer(buy_id: u64) -> MPApiResult {
     let buy_offer = mp
         .buy_offers
         .get_mut(buy_id as usize)
-        .ok_or(MPApiError::InvalidBuyOffer)?;
+        .ok_or(MPApiError::InvalidOffer)?;
 
     if (caller != buy_offer.payment_address) {
         return Err(MPApiError::Unauthorized);
     }
 
-    if buy_offer.status != BuyOfferStatus::Created {
-        return Err(MPApiError::InvalidBuyOfferStatus);
+    if buy_offer.status != OfferStatus::Created {
+        return Err(MPApiError::InvalidOfferStatus);
     }
 
-    buy_offer.status = BuyOfferStatus::CancelledByBuyer;
+    buy_offer.status = OfferStatus::Cancelled;
 
     capq()
         .insert_into_cap(
@@ -630,36 +630,38 @@ pub async fn cancel_offer_by_buyer(buy_id: u64) -> MPApiResult {
     Ok(())
 }
 
-#[update(name = "cancelOfferBySeller")]
-#[candid_method(update, rename = "cancelOfferBySeller")]
-pub async fn cancel_offer_by_seller(buy_id: u64) -> MPApiResult {
+#[update(name = "denyOffer")]
+#[candid_method(update, rename = "denyOffer")]
+pub async fn deny_offer(buy_id: u64) -> MPApiResult {
     let caller = ic::caller();
     let mut mp = marketplace();
 
     let buy_offer = mp
         .buy_offers
         .get_mut(buy_id as usize)
-        .ok_or(MPApiError::InvalidBuyOffer)?;
-    if buy_offer.status != BuyOfferStatus::Created {
-        return Err(MPApiError::InvalidBuyOfferStatus);
+        .ok_or(MPApiError::InvalidOffer)?;
+    if buy_offer.status != OfferStatus::Created {
+        return Err(MPApiError::InvalidOfferStatus);
     }
 
-    let sale_offer = mp
-        .sale_offers
+    let listing = mp
+        .listings
         .get_mut(&(buy_offer.nft_canister_id, buy_offer.token_id.clone()))
-        .ok_or(MPApiError::InvalidSaleOffer)?;
+        .ok_or(MPApiError::InvalidListing)?;
 
-    if (caller != sale_offer.payment_address) {
+    if (caller != listing.payment_address) {
         return Err(MPApiError::Unauthorized);
     }
 
-    buy_offer.status = BuyOfferStatus::CancelledBySeller;
+    buy_offer.status = OfferStatus::Denied;
+
+    // todo refund deposit logic
 
     capq()
         .insert_into_cap(
             IndefiniteEventBuilder::new()
                 .caller(caller)
-                .operation("cancelOfferBySeller")
+                .operation("denyOffer")
                 .details(vec![("buy_id".into(), DetailValue::U64(buy_id))])
                 .build()
                 .unwrap(),
