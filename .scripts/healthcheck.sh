@@ -392,7 +392,9 @@ run() {
     "$ALICE_IDENTITY_NAME" \
     "$marketplaceId" \
     "$buy_offer_id"
-  [ "$DEBUG" == 1 ] &&  echo $?
+  [ "$DEBUG" == 1 ] && echo $?
+
+  exit 0
 }
 
 run
