@@ -1,63 +1,63 @@
-type BuyOffer = record {
-  status : BuyOfferStatus;
-  non_fungible_contract_address : principal;
-  token_id : nat64;
+type FungibleStandard = variant { DIP20 };
+type Listing = record {
+  status : ListingStatus;
+  is_direct_buyable : bool;
   price : nat;
   payment_address : principal;
 };
-type BuyOfferStatus = variant {
-  Bought;
-  CancelledByBuyer;
-  Uninitialized;
-  Created;
-  CancelledBySeller;
-};
-type FungibleTokenType = variant { DIP20 };
+type ListingStatus = variant { Selling; Uninitialized; Created };
 type MPApiError = variant {
   NonExistentCollection;
-  InvalidSaleOfferStatus;
+  InvalidListingStatus;
   InsufficientFungibleBalance;
-  InvalidSaleOffer;
-  InvalidBuyOfferStatus;
+  InvalidListing;
   TransferNonFungibleError;
   Unauthorized;
   TransferFungibleError;
-  InvalidBuyOffer;
+  InvalidOffer;
   Other;
   InsufficientNonFungibleBalance;
+  InvalidOfferStatus;
   CAPInsertionError;
 };
-type NonFungibleTokenType = variant { EXT; DIP721 };
+type NFTStandard = variant { EXT; DIP721 };
+type Offer = record {
+  status : OfferStatus;
+  token_id : nat64;
+  price : nat;
+  payment_address : principal;
+  nft_canister_id : principal;
+};
+type OfferStatus = variant {
+  Bought;
+  Uninitialized;
+  Denied;
+  Cancelled;
+  Created;
+};
 type Result = variant { Ok; Err : MPApiError };
 type Result_1 = variant { Ok : nat64; Err : MPApiError };
-type SaleOffer = record {
-  status : SaleOfferStatus;
-  is_direct_buyable : bool;
-  payment_address : principal;
-  list_price : nat;
-};
-type SaleOfferStatus = variant { Selling; Uninitialized; Created };
 service : (principal, principal) -> {
-  acceptBuyOffer : (nat64) -> (Result);
+  acceptOffer : (nat64) -> (Result);
   addCollection : (
       principal,
       nat16,
       nat64,
       text,
       principal,
-      NonFungibleTokenType,
+      NFTStandard,
       principal,
-      FungibleTokenType,
+      FungibleStandard,
     ) -> ();
-  cancelListingBySeller : (principal, nat64) -> (Result);
+  cancelListing : (principal, nat64) -> (Result);
   cancelOfferByBuyer : (nat64) -> (Result);
-  cancelOfferBySeller : (nat64) -> (Result);
+  denyOffer : (nat64) -> (Result);
   directBuy : (principal, nat64) -> (Result);
-  getBuyOffers : (nat64, nat64) -> (vec BuyOffer) query;
-  getSaleOffers : () -> (
-      vec record { record { principal; nat64 }; SaleOffer },
+  getAllListings : () -> (
+      vec record { record { principal; nat64 }; Listing },
     ) query;
-  listForSale : (principal, nat64, nat) -> (Result);
-  makeBuyOffer : (principal, nat64, nat) -> (Result_1);
-  withdrawFungible : (principal, FungibleTokenType) -> (Result);
+  getAllOffers : (nat64, nat64) -> (vec Offer) query;
+  makeListing : (principal, nat64, nat) -> (Result);
+  makeOffer : (principal, nat64, nat) -> (Result_1);
+  withdrawFungible : (principal, FungibleStandard) -> (Result);
 }
