@@ -58,8 +58,12 @@ pub async fn list_for_sale(nft_canister_id: Principal, token_id: u64, price: Nat
         .get(&nft_canister_id)
         .ok_or(MPApiError::NonExistentCollection)?;
 
-    let token_owner =
-        owner_of_non_fungible(&nft_canister_id, &token_id, collection.nft_type.clone()).await?;
+    let token_owner = owner_of_non_fungible(
+        &nft_canister_id,
+        &token_id,
+        collection.nft_canister_type.clone(),
+    )
+    .await?;
 
     if (caller != token_owner.unwrap()) {
         return Err(MPApiError::Unauthorized);
@@ -204,7 +208,7 @@ pub async fn accept_offer(buy_id: u64) -> MPApiResult {
     let token_owner = owner_of_non_fungible(
         &buy_offer.nft_canister_id,
         &buy_offer.token_id,
-        collection.nft_type.clone(),
+        collection.nft_canister_type.clone(),
     )
     .await?;
 
@@ -240,7 +244,7 @@ pub async fn accept_offer(buy_id: u64) -> MPApiResult {
         &buy_offer.payment_address,
         &buy_offer.token_id,
         &buy_offer.nft_canister_id,
-        collection.nft_type.clone(),
+        collection.nft_canister_type.clone(),
     )
     .await
     .is_err()
@@ -364,8 +368,12 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
         .ok_or(MPApiError::NonExistentCollection)?;
 
     // check if the NFT is still hold by the seller
-    let token_owner =
-        owner_of_non_fungible(&nft_canister_id, &token_id, collection.nft_type.clone()).await?;
+    let token_owner = owner_of_non_fungible(
+        &nft_canister_id,
+        &token_id,
+        collection.nft_canister_type.clone(),
+    )
+    .await?;
     if (sale_offer.payment_address != token_owner.unwrap()) {
         mp.sale_offers.remove(&(nft_canister_id, token_id.clone()));
         return Err(MPApiError::InsufficientNonFungibleBalance);
@@ -391,11 +399,11 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
 
     // transfer the nft from the seller to the buyer
     if transfer_from_non_fungible(
-        &sale_offer.payment_address, // from
-        &caller,                     // to
-        &token_id,                   // nft id
-        &nft_canister_id,            // contract
-        collection.nft_type.clone(), // nft type
+        &sale_offer.payment_address,          // from
+        &caller,                              // to
+        &token_id,                            // nft id
+        &nft_canister_id,                     // contract
+        collection.nft_canister_type.clone(), // nft type
     )
     .await
     .is_err()
@@ -670,7 +678,7 @@ fn add_collection(
     creation_time: u64,
     collection_name: String,
     nft_canister_id: Principal,
-    nft_type: NonFungibleTokenType,
+    nft_canister_type: NonFungibleTokenType,
     fungible_canister_id: Principal,
     fungible_canister_type: FungibleTokenType,
 ) {
@@ -685,7 +693,7 @@ fn add_collection(
             creation_time,
             collection_name,
             nft_canister_id,
-            nft_type,
+            nft_canister_type,
             fungible_canister_id,
             fungible_canister_type,
         ),
