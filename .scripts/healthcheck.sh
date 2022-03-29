@@ -193,6 +193,7 @@ makeListing() {
   dfx --identity "$_identityName" \
     canister call --update "$_marketplaceId" \
     makeListing "(
+        false:bool,
         principal \"$_nonFungibleContractAddress\",
         $_token_id,
         $_list_price:nat

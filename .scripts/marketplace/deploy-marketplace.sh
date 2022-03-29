@@ -15,12 +15,13 @@ _createdMarketCanisterId=$(dfx canister id marketplace)
 
 dfx canister \
   update-settings \
-    --controller "$_owner" \
-    --controller "$_createdMarketCanisterId" \
-  "$_createdMarketCanisterId"
+  "$_createdMarketCanisterId" \
+  --add-controller "$_createdMarketCanisterId" 
+
 
 dfx deploy \
   marketplace --argument "(
     principal \"$_icHistoryRouter\",
     principal \"$_owner\"
-  )"
+  )" \
+  $3
