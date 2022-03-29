@@ -398,3 +398,5 @@ run() {
 run
 
 echo "👍 Healthcheck completed!"
+
+exit 0
