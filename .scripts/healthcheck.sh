@@ -6,10 +6,11 @@
 
 [ "$DEBUG" == 1 ] && set -x
 
-set -e
 
 . ".scripts/required/cap.sh"
 . ".scripts/dfx-identity.sh"
+
+set -e
 
 marketplaceId=$(dfx canister id marketplace)
 ownerPrincipalId=$DEFAULT_PRINCIPAL_ID
@@ -394,7 +395,7 @@ run() {
     "$buy_offer_id"
   [ "$DEBUG" == 1 ] && echo $?
 
-  exit 0
+  return 0
 }
 
 run
