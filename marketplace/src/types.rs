@@ -109,7 +109,7 @@ pub enum MPApiError {
     Unauthorized,
     CAPInsertionError,
     NonExistentCollection,
-    Other,
+    Other(String),
 }
 
 pub type MPApiResult = Result<(), MPApiError>;

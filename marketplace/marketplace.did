@@ -15,7 +15,7 @@ type MPApiError = variant {
   Unauthorized;
   TransferFungibleError;
   InvalidOffer;
-  Other;
+  Other : text;
   InsufficientNonFungibleBalance;
   InvalidOfferStatus;
   CAPInsertionError;
@@ -57,7 +57,7 @@ service : (principal, principal) -> {
       vec record { record { principal; nat64 }; Listing },
     ) query;
   getAllOffers : (nat64, nat64) -> (vec Offer) query;
-  makeListing : (principal, nat64, nat) -> (Result);
+  makeListing : (bool, principal, nat64, nat) -> (Result);
   makeOffer : (principal, nat64, nat) -> (Result_1);
   withdrawFungible : (principal, FungibleStandard) -> (Result);
 }

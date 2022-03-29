@@ -50,7 +50,13 @@ pub fn init(cap: Principal, owner: Principal) {
 //    listing uuid
 #[update(name = "makeListing")]
 #[candid_method(update, rename = "makeListing")]
-pub async fn make_listing(nft_canister_id: Principal, token_id: u64, price: Nat) -> MPApiResult {
+pub async fn make_listing(
+    direct_buy: bool,
+    nft_canister_id: Principal,
+    token_id: u64,
+    price: Nat,
+) -> MPApiResult {
+    // Todo: if caller is a curator pid, handle fees
     let caller = ic::caller();
     let self_id = ic::id();
     let collection = collections()
@@ -65,8 +71,18 @@ pub async fn make_listing(nft_canister_id: Principal, token_id: u64, price: Nat)
     )
     .await?;
 
-    if (caller != token_owner.unwrap()) {
-        return Err(MPApiError::Unauthorized);
+    // todo direct buy support
+    if (direct_buy) {
+        return Err(MPApiError::Other(
+            "Listing for direct buy to be supported".to_string(),
+        ));
+        if (token_owner.unwrap() != self_id) {
+            return Err(MPApiError::Unauthorized);
+        }
+    } else {
+        if (token_owner.unwrap() != caller) {
+            return Err(MPApiError::Unauthorized);
+        }
     }
 
     let mut mp = marketplace();
@@ -80,7 +96,12 @@ pub async fn make_listing(nft_canister_id: Principal, token_id: u64, price: Nat)
         return Err(MPApiError::InvalidListingStatus);
     }
 
-    *listing = Listing::new(true, price.clone(), caller, ListingStatus::Created);
+    *listing = Listing::new(
+        direct_buy.clone(),
+        price.clone(),
+        caller,
+        ListingStatus::Created,
+    );
 
     capq()
         .insert_into_cap(
@@ -97,7 +118,15 @@ pub async fn make_listing(nft_canister_id: Principal, token_id: u64, price: Nat)
                         "price".into(),
                         DetailValue::U64(convert_nat_to_u64(price.clone()).unwrap()),
                     ),
-                    ("payment_address".into(), DetailValue::Principal(caller)),
+                    ("seller".into(), DetailValue::Principal(caller)),
+                    (
+                        "direct_buy".into(),
+                        if (direct_buy) {
+                            DetailValue::True
+                        } else {
+                            DetailValue::False
+                        },
+                    ),
                 ])
                 .build()
                 .unwrap(),

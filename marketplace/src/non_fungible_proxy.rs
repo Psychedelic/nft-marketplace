@@ -62,7 +62,7 @@ impl Dip721Proxy {
         .await;
 
         call_res
-            .map_err(|_| MPApiError::Other)?
+            .map_err(|_| MPApiError::Other("".to_string()))?
             .0
             .map_err(|_| MPApiError::TransferFungibleError)
             .map(|res| convert_nat_to_u64(res).unwrap())
@@ -77,7 +77,7 @@ impl Dip721Proxy {
             ic::call(*contract, "transfer", (*to, Nat::from(token_id.clone()))).await;
 
         let res = call_res
-            .map_err(|_| MPApiError::Other)?
+            .map_err(|_| MPApiError::Other("".to_string()))?
             .0
             .map_err(|_| MPApiError::TransferFungibleError)
             .map(|res| convert_nat_to_u64(res).unwrap());
@@ -96,7 +96,7 @@ impl Dip721Proxy {
             ic::call(*contract, "ownerOf", (Nat::from(token_id.clone()),)).await;
 
         call_res
-            .map_err(|_| MPApiError::Other)?
+            .map_err(|_| MPApiError::Other("".to_string()))?
             .0
             .map_err(|_| MPApiError::TransferFungibleError)
     }

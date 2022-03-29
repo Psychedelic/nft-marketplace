@@ -19,7 +19,8 @@
     "services:init": "git submodule update --init --recursive",
     "services:start": "./.scripts/deploy-all-services.sh",
     "reset": "dfx stop && rm -rf .dfx && yarn cap:reset && yarn crowns:reset && yarn wicp:reset",
-    "mock:generate-tokens": "./.scripts/mocks/generate-mocks.sh"
+    "mock:generate-tokens": "./.scripts/mocks/generate-mocks.sh",
+    "devcheck": "./.scripts/devcheck.sh"
   },
   "repository": {
     "type": "git",
