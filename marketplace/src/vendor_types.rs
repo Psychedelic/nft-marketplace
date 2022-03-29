@@ -40,7 +40,7 @@ pub type TransferResponse = Result<Balance, TransferResponseErrors>;
 
 // END EXT //
 
-// BEGIN DIP-721 //
+// BEGIN DIP-721v2 //
 
 #[derive(CandidType, Debug, Deserialize)]
 pub enum ApiError {
@@ -52,7 +52,8 @@ pub enum ApiError {
 
 #[derive(CandidType, Deserialize, Debug)]
 pub enum NftError {
-    Unauthorized,
+    UnauthorizedOwner,
+    UnauthorizedOperator,
     OwnerNotFound,
     OperatorNotFound,
     TokenNotFound,
