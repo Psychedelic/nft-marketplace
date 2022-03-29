@@ -35,7 +35,7 @@ pub struct InitData {
 #[derive(Clone, CandidType, Deserialize, Debug, new)]
 pub struct SaleOffer {
     pub is_direct_buyable: bool,
-    pub list_price: Nat,
+    pub price: Nat,
     pub payment_address: Principal,
     pub status: SaleOfferStatus,
 }
@@ -53,7 +53,7 @@ impl Default for SaleOffer {
 
 #[derive(Clone, CandidType, Debug, Deserialize, new)]
 pub struct BuyOffer {
-    pub non_fungible_contract_address: Principal,
+    pub nft_canister_id: Principal,
     pub token_id: u64,
     pub price: Nat,
     pub payment_address: Principal,
@@ -66,10 +66,10 @@ pub struct Collection {
     pub owner_fee_percentage: u16,
     pub creation_time: u64,
     pub collection_name: String,
-    pub non_fungible_contract_address: Principal,
-    pub non_fungible_token_type: NonFungibleTokenType,
-    pub fungible_contract_address: Principal,
-    pub fungible_token_type: FungibleTokenType,
+    pub nft_canister_id: Principal,
+    pub nft_canister_type: NonFungibleTokenType,
+    pub fungible_canister_id: Principal,
+    pub fungible_canister_type: FungibleTokenType,
 }
 
 #[derive(Clone, CandidType, Default, Deserialize, new)]

@@ -14,9 +14,9 @@ pub async fn transfer_from_non_fungible(
     to: &Principal,
     nft_id: &u64,
     contract: &Principal,
-    non_fungible_token_type: NonFungibleTokenType,
+    nft_type: NonFungibleTokenType,
 ) -> U64Result {
-    match non_fungible_token_type {
+    match nft_type {
         NonFungibleTokenType::DIP721 => {
             Dip721Proxy::transfer_from(from, to, nft_id, contract).await
         }
@@ -28,9 +28,9 @@ pub async fn transfer_non_fungible(
     to: &Principal,
     token_id: &u64,
     contract: &Principal,
-    non_fungible_token_type: NonFungibleTokenType,
+    nft_type: NonFungibleTokenType,
 ) -> Result<Nat, MPApiError> {
-    match non_fungible_token_type {
+    match nft_type {
         NonFungibleTokenType::DIP721 => Dip721Proxy::transfer(contract, to, token_id).await,
         NonFungibleTokenType::EXT => EXTProxy::transfer(to, token_id, contract).await,
     }
@@ -39,9 +39,9 @@ pub async fn transfer_non_fungible(
 pub async fn owner_of_non_fungible(
     contract: &Principal,
     token_id: &u64,
-    non_fungible_token_type: NonFungibleTokenType,
+    nft_type: NonFungibleTokenType,
 ) -> PrincipalResult {
-    match non_fungible_token_type {
+    match nft_type {
         NonFungibleTokenType::DIP721 => Dip721Proxy::owner_of(contract, token_id).await,
         NonFungibleTokenType::EXT => unimplemented!(),
     }
