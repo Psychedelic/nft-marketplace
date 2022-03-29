@@ -16,9 +16,9 @@ pub async fn transfer_from_fungible(
     to: &Principal,
     amount: &Nat,
     contract: &Principal,
-    fungible_canister_type: FungibleStandard,
+    fungible_canister_standard: FungibleStandard,
 ) -> U64Result {
-    match fungible_canister_type {
+    match fungible_canister_standard {
         FungibleStandard::DIP20 => Dip20Proxy::transfer_from(from, to, amount, contract).await,
     }
 }
@@ -26,9 +26,9 @@ pub async fn transfer_fungible(
     to: &Principal,
     amount: &Nat,
     contract: &Principal,
-    fungible_canister_type: FungibleStandard,
+    fungible_canister_standard: FungibleStandard,
 ) -> U64Result {
-    match fungible_canister_type {
+    match fungible_canister_standard {
         FungibleStandard::DIP20 => Dip20Proxy::transfer(to, amount, contract).await,
     }
 }
@@ -36,9 +36,9 @@ pub async fn transfer_fungible(
 pub async fn balance_of_fungible(
     contract: &Principal,
     principal: &Principal,
-    fungible_canister_type: FungibleStandard,
+    fungible_canister_standard: FungibleStandard,
 ) -> NatResult {
-    match fungible_canister_type {
+    match fungible_canister_standard {
         FungibleStandard::DIP20 => Dip20Proxy::balance_of(contract, principal).await,
     }
 }
