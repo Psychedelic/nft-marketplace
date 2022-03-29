@@ -67,9 +67,9 @@ pub struct Collection {
     pub creation_time: u64,
     pub collection_name: String,
     pub nft_canister_id: Principal,
-    pub nft_canister_type: NFTStandard,
+    pub nft_canister_standard: NFTStandard,
     pub fungible_canister_id: Principal,
-    pub fungible_canister_type: FungibleStandard,
+    pub fungible_canister_standard: FungibleStandard,
 }
 
 #[derive(Clone, CandidType, Default, Deserialize, new)]

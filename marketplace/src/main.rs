@@ -61,7 +61,7 @@ pub async fn make_listing(nft_canister_id: Principal, token_id: u64, price: Nat)
     let token_owner = owner_of_non_fungible(
         &nft_canister_id,
         &token_id,
-        collection.nft_canister_type.clone(),
+        collection.nft_canister_standard.clone(),
     )
     .await?;
 
@@ -124,7 +124,7 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: u64, price: Nat) -
     let fungible_balance = balance_of_fungible(
         &collection.fungible_canister_id,
         &caller,
-        collection.fungible_canister_type.clone(),
+        collection.fungible_canister_standard.clone(),
     )
     .await?;
 
@@ -208,7 +208,7 @@ pub async fn accept_offer(buy_id: u64) -> MPApiResult {
     let token_owner = owner_of_non_fungible(
         &buy_offer.nft_canister_id,
         &buy_offer.token_id,
-        collection.nft_canister_type.clone(),
+        collection.nft_canister_standard.clone(),
     )
     .await?;
 
@@ -228,7 +228,7 @@ pub async fn accept_offer(buy_id: u64) -> MPApiResult {
         &self_id,
         &buy_offer.price.clone(),
         &collection.fungible_canister_id,
-        collection.fungible_canister_type.clone(),
+        collection.fungible_canister_standard.clone(),
     )
     .await
     .is_err()
@@ -244,7 +244,7 @@ pub async fn accept_offer(buy_id: u64) -> MPApiResult {
         &buy_offer.payment_address,
         &buy_offer.token_id,
         &buy_offer.nft_canister_id,
-        collection.nft_canister_type.clone(),
+        collection.nft_canister_standard.clone(),
     )
     .await
     .is_err()
@@ -281,7 +281,7 @@ pub async fn accept_offer(buy_id: u64) -> MPApiResult {
         &listing.payment_address,
         &(buy_offer.price.clone() - owner_fee.clone()),
         &collection.fungible_canister_id,
-        collection.fungible_canister_type.clone(),
+        collection.fungible_canister_standard.clone(),
     )
     .await
     .is_err()
@@ -371,7 +371,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
     let token_owner = owner_of_non_fungible(
         &nft_canister_id,
         &token_id,
-        collection.nft_canister_type.clone(),
+        collection.nft_canister_standard.clone(),
     )
     .await?;
     if (listing.payment_address != token_owner.unwrap()) {
@@ -388,7 +388,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
         &self_id,
         &listing.price.clone(),
         &collection.fungible_canister_id,
-        collection.fungible_canister_type.clone(),
+        collection.fungible_canister_standard.clone(),
     )
     .await
     .is_err()
@@ -399,11 +399,11 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
 
     // transfer the nft from the seller to the buyer
     if transfer_from_non_fungible(
-        &listing.payment_address,             // from
-        &caller,                              // to
-        &token_id,                            // nft id
-        &nft_canister_id,                     // contract
-        collection.nft_canister_type.clone(), // nft type
+        &listing.payment_address,                 // from
+        &caller,                                  // to
+        &token_id,                                // nft id
+        &nft_canister_id,                         // contract
+        collection.nft_canister_standard.clone(), // nft type
     )
     .await
     .is_err()
@@ -439,7 +439,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
         &listing.payment_address,
         &(listing.price.clone() - owner_fee.clone()),
         &collection.fungible_canister_id,
-        collection.fungible_canister_type.clone(),
+        collection.fungible_canister_standard.clone(),
     )
     .await
     .is_err()
@@ -523,7 +523,7 @@ pub async fn get_all_offers(begin: u64, limit: u64) -> Vec<Offer> {
 #[candid_method(update, rename = "withdrawFungible")]
 pub async fn withdraw_fungible(
     fungible_canister_id: Principal,
-    fungible_canister_type: FungibleStandard,
+    fungible_canister_standard: FungibleStandard,
 ) -> MPApiResult {
     let caller = ic::caller();
     let self_id = ic::id();
@@ -535,7 +535,7 @@ pub async fn withdraw_fungible(
             &caller,
             &balance_to_send,
             &fungible_canister_id,
-            fungible_canister_type.clone(),
+            fungible_canister_standard.clone(),
         )
         .await
         .is_err()
@@ -680,9 +680,9 @@ fn add_collection(
     creation_time: u64,
     collection_name: String,
     nft_canister_id: Principal,
-    nft_canister_type: NFTStandard,
+    nft_canister_standard: NFTStandard,
     fungible_canister_id: Principal,
-    fungible_canister_type: FungibleStandard,
+    fungible_canister_standard: FungibleStandard,
 ) {
     // TODO: related to the init_data, which seems we can remove?
     // assert_eq!(ic::caller(), init_data().owner);
@@ -695,9 +695,9 @@ fn add_collection(
             creation_time,
             collection_name,
             nft_canister_id,
-            nft_canister_type,
+            nft_canister_standard,
             fungible_canister_id,
-            fungible_canister_type,
+            fungible_canister_standard,
         ),
     );
 }
