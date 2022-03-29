@@ -6,6 +6,8 @@
 
 [ "$DEBUG" == 1 ] && set -x
 
+set -e
+
 . ".scripts/required/cap.sh"
 . ".scripts/dfx-identity.sh"
 
