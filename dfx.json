@@ -46,6 +46,10 @@
     "local": {
       "bind": "127.0.0.1:8000",
       "type": "ephemeral"
+    },
+    "fleek-testnet": {
+      "bind": "34.216.56.80:8080",
+      "type": "ephemeral"
     }
   },
   "dfx": "0.9.2",
