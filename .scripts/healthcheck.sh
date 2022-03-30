@@ -177,6 +177,47 @@ addCrownCollection() {
       )"
 }
 
+deposit_withdrawNFT() {
+  echo "🤖 Deposit/Withdraw NFT"
+
+  _identityName=$1
+  _nonFungibleContractAddress=$2
+  _marketplaceId=$3
+  _token_id=$4
+
+  echo "approve token for marketplace"
+  dfx --identity "$_identityName" \
+    canister call \
+    --update $nonFungibleContractAddress approve \
+    "(
+      principal \"$_marketplaceId\",
+      $_token_id:nat
+    )"
+
+  echo "deposit token"
+  dfx --identity "$_identityName" \
+    canister call \
+    --update $_marketplaceId withdrawNFT \
+    "(
+      principal \"$nonFungibleContractAddress\",
+      $_token_id:nat
+    )"
+
+  echo "withdraw token"
+  dfx --identity "$_identityName" \
+    canister call \
+    --update $_marketplaceId withdrawNFT \
+    "(
+      principal \"$nonFungibleContractAddress\",
+      $_token_id:nat
+    )"
+}
+
+withdrawNFT() {
+  echo "🤖 Withdraw NFT"
+  
+}
+
 makeListing() {
   printf "🤖 Call makeListing\n"
 
@@ -351,6 +392,13 @@ run() {
     "Crowns Collection" \
     10 \
     0
+  [ "$DEBUG" == 1 ] && echo $?
+
+  deposit_withdrawNFT \
+    "$ALICE_IDENTITY_NAME" \
+    "$nonFungibleContractAddress" \
+    "$marketplaceId" \
+    "$nft_token_id_for_alice" 
   [ "$DEBUG" == 1 ] && echo $?
 
   makeListing \
