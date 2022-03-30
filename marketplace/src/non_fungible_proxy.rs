@@ -14,13 +14,11 @@ pub async fn transfer_from_non_fungible(
     to: &Principal,
     nft_id: &u64,
     contract: &Principal,
-    non_fungible_token_type: NonFungibleTokenType,
+    nft_type: NFTStandard,
 ) -> U64Result {
-    match non_fungible_token_type {
-        NonFungibleTokenType::DIP721 => {
-            Dip721Proxy::transfer_from(from, to, nft_id, contract).await
-        }
-        NonFungibleTokenType::EXT => EXTProxy::transfer_from(from, to, nft_id, contract).await,
+    match nft_type {
+        NFTStandard::DIP721 => Dip721Proxy::transfer_from(from, to, nft_id, contract).await,
+        NFTStandard::EXT => EXTProxy::transfer_from(from, to, nft_id, contract).await,
     }
 }
 
@@ -28,22 +26,22 @@ pub async fn transfer_non_fungible(
     to: &Principal,
     token_id: &u64,
     contract: &Principal,
-    non_fungible_token_type: NonFungibleTokenType,
+    nft_type: NFTStandard,
 ) -> Result<Nat, MPApiError> {
-    match non_fungible_token_type {
-        NonFungibleTokenType::DIP721 => Dip721Proxy::transfer(contract, to, token_id).await,
-        NonFungibleTokenType::EXT => EXTProxy::transfer(to, token_id, contract).await,
+    match nft_type {
+        NFTStandard::DIP721 => Dip721Proxy::transfer(contract, to, token_id).await,
+        NFTStandard::EXT => EXTProxy::transfer(to, token_id, contract).await,
     }
 }
 
 pub async fn owner_of_non_fungible(
     contract: &Principal,
     token_id: &u64,
-    non_fungible_token_type: NonFungibleTokenType,
+    nft_type: NFTStandard,
 ) -> PrincipalResult {
-    match non_fungible_token_type {
-        NonFungibleTokenType::DIP721 => Dip721Proxy::owner_of(contract, token_id).await,
-        NonFungibleTokenType::EXT => unimplemented!(),
+    match nft_type {
+        NFTStandard::DIP721 => Dip721Proxy::owner_of(contract, token_id).await,
+        NFTStandard::EXT => unimplemented!(),
     }
 }
 
@@ -64,7 +62,7 @@ impl Dip721Proxy {
         .await;
 
         call_res
-            .map_err(|_| MPApiError::Other)?
+            .map_err(|_| MPApiError::Other("".to_string()))?
             .0
             .map_err(|_| MPApiError::TransferFungibleError)
             .map(|res| convert_nat_to_u64(res).unwrap())
@@ -79,7 +77,7 @@ impl Dip721Proxy {
             ic::call(*contract, "transfer", (*to, Nat::from(token_id.clone()))).await;
 
         let res = call_res
-            .map_err(|_| MPApiError::Other)?
+            .map_err(|_| MPApiError::Other("".to_string()))?
             .0
             .map_err(|_| MPApiError::TransferFungibleError)
             .map(|res| convert_nat_to_u64(res).unwrap());
@@ -98,7 +96,7 @@ impl Dip721Proxy {
             ic::call(*contract, "ownerOf", (Nat::from(token_id.clone()),)).await;
 
         call_res
-            .map_err(|_| MPApiError::Other)?
+            .map_err(|_| MPApiError::Other("".to_string()))?
             .0
             .map_err(|_| MPApiError::TransferFungibleError)
     }

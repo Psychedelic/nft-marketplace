@@ -12,16 +12,16 @@ use std::collections::{HashMap, VecDeque};
 use derive_new::*;
 
 #[derive(Clone, CandidType, Debug, Deserialize, Eq, PartialEq)]
-pub enum BuyOfferStatus {
+pub enum OfferStatus {
     Uninitialized,
     Created,
-    CancelledByBuyer,
-    CancelledBySeller,
+    Cancelled,
+    Denied,
     Bought,
 }
 
 #[derive(Clone, CandidType, Deserialize, Debug, Eq, PartialEq)]
-pub enum SaleOfferStatus {
+pub enum ListingStatus {
     Uninitialized,
     Created,
     Selling,
@@ -33,31 +33,31 @@ pub struct InitData {
 }
 
 #[derive(Clone, CandidType, Deserialize, Debug, new)]
-pub struct SaleOffer {
+pub struct Listing {
     pub is_direct_buyable: bool,
-    pub list_price: Nat,
+    pub price: Nat,
     pub payment_address: Principal,
-    pub status: SaleOfferStatus,
+    pub status: ListingStatus,
 }
 
-impl Default for SaleOffer {
+impl Default for Listing {
     fn default() -> Self {
-        SaleOffer::new(
+        Listing::new(
             false,
             Nat::from(0),
             Principal::anonymous(),
-            SaleOfferStatus::Uninitialized,
+            ListingStatus::Uninitialized,
         )
     }
 }
 
 #[derive(Clone, CandidType, Debug, Deserialize, new)]
-pub struct BuyOffer {
-    pub non_fungible_contract_address: Principal,
+pub struct Offer {
+    pub nft_canister_id: Principal,
     pub token_id: u64,
     pub price: Nat,
     pub payment_address: Principal,
-    pub status: BuyOfferStatus,
+    pub status: OfferStatus,
 }
 
 #[derive(Clone, CandidType, Deserialize, new)]
@@ -66,10 +66,10 @@ pub struct Collection {
     pub owner_fee_percentage: u16,
     pub creation_time: u64,
     pub collection_name: String,
-    pub non_fungible_contract_address: Principal,
-    pub non_fungible_token_type: NonFungibleTokenType,
-    pub fungible_contract_address: Principal,
-    pub fungible_token_type: FungibleTokenType,
+    pub nft_canister_id: Principal,
+    pub nft_canister_standard: NFTStandard,
+    pub fungible_canister_id: Principal,
+    pub fungible_canister_standard: FungibleStandard,
 }
 
 #[derive(Clone, CandidType, Default, Deserialize, new)]
@@ -92,24 +92,24 @@ pub struct TxLogEntry {
 
 #[derive(Default)]
 pub(crate) struct Marketplace {
-    pub sale_offers: HashMap<(Principal, u64), SaleOffer>,
-    pub buy_offers: Vec<BuyOffer>,
+    pub listings: HashMap<(Principal, u64), Listing>,
+    pub buy_offers: Vec<Offer>,
 }
 
 #[derive(CandidType, Deserialize, Debug)]
 pub enum MPApiError {
     TransferFungibleError,
     TransferNonFungibleError,
-    InvalidSaleOfferStatus,
-    InvalidBuyOfferStatus,
-    InvalidSaleOffer,
-    InvalidBuyOffer,
+    InvalidListingStatus,
+    InvalidOfferStatus,
+    InvalidListing,
+    InvalidOffer,
     InsufficientFungibleBalance,
     InsufficientNonFungibleBalance,
     Unauthorized,
     CAPInsertionError,
     NonExistentCollection,
-    Other,
+    Other(String),
 }
 
 pub type MPApiResult = Result<(), MPApiError>;
@@ -118,12 +118,12 @@ pub type U64Result = Result<u64, MPApiError>;
 pub type NatResult = Result<Nat, MPApiError>;
 
 #[derive(Clone, CandidType, Deserialize)]
-pub enum FungibleTokenType {
+pub enum FungibleStandard {
     DIP20,
 }
 
 #[derive(Clone, CandidType, Deserialize)]
-pub enum NonFungibleTokenType {
+pub enum NFTStandard {
     DIP721,
     EXT,
 }

@@ -6,8 +6,11 @@
 
 [ "$DEBUG" == 1 ] && set -x
 
+
 . ".scripts/required/cap.sh"
 . ".scripts/dfx-identity.sh"
+
+set -e
 
 marketplaceId=$(dfx canister id marketplace)
 ownerPrincipalId=$DEFAULT_PRINCIPAL_ID
@@ -174,8 +177,8 @@ addCrownCollection() {
       )"
 }
 
-listForSale() {
-  printf "🤖 List for sale\n"
+makeListing() {
+  printf "🤖 Call makeListing\n"
 
   _identityName=$1
   _nonFungibleContractAddress=$2
@@ -189,25 +192,26 @@ listForSale() {
 
   dfx --identity "$_identityName" \
     canister call --update "$_marketplaceId" \
-    listForSale "(
+    makeListing "(
+        false:bool,
         principal \"$_nonFungibleContractAddress\",
         $_token_id,
         $_list_price:nat
       )"
 }
 
-getSaleOffers() {
-    printf "🤖 Call getSaleOffers\n"
+getAllListings() {
+    printf "🤖 Call getAllListings\n"
 
   _marketplaceId=$1
 
   dfx canister \
     call --query "$_marketplaceId" \
-    getSaleOffers "()"
+    getAllListings "()"
 }
 
-makeBuyOffer() {
-  printf "🤖 Call makeBuyOffer\n"
+makeOffer() {
+  printf "🤖 Call makeOffer\n"
 
   _identityName=$1
   _name=$2
@@ -215,7 +219,7 @@ makeBuyOffer() {
   _token_id=$4
   _offer_price=$5
 
-  printf "🤖 The user (%s) will makeBuyOffer for token id (%s) 
+  printf "🤖 The user (%s) will makeOffer for token id (%s) 
   for the amount (%s)\n" "$_name" "$_token_id" "$_offer_price"
 
   printf "🤖 balance of (%s) is equal to\n" "$_name"
@@ -224,7 +228,7 @@ makeBuyOffer() {
   _result=$(
     dfx --identity "$_identityName" \
       canister call --update "$_marketplaceId" \
-      makeBuyOffer "(
+      makeOffer "(
         principal \"$_nonFungibleContractAddress\",
         ($_token_id:nat64),
         ($_offer_price:nat)
@@ -240,23 +244,23 @@ makeBuyOffer() {
   printf "🤖 (%s) offer id is (%s)\n" "$_name" "$buy_offer_id"
 }
 
-getBuyOffers() {
-  printf "🤖 Call getBuyOffers\n"
+getAllOffers() {
+  printf "🤖 Call getAllOffers\n"
 
   _marketplaceId=$1
   _begin=$2
   _limit=$3
 
-  printf "🤖 The getBuyOffers from marketplace id (%s) 
+  printf "🤖 The getAllOffers from marketplace id (%s) 
   was called with being (%s) and limit (%s)\n" "$_marketplaceId" "$_begin" "$_limit"
 
   dfx canister \
     call --query "$_marketplaceId" \
-    getBuyOffers "($_begin, $_limit)"
+    getAllOffers "($_begin, $_limit)"
 }
 
-approveTransferFromForNFTAcceptBuyOffer() {
-  printf "🤖 Call approveTransferFromForNFTAcceptBuyOffer\n"  
+approveTransferFromForNFTAcceptOffer() {
+  printf "🤖 Call approveTransferFromForNFTAcceptOffer\n"  
 
   _identityName=$1
   _nonFungibleContractAddress=$2
@@ -278,8 +282,8 @@ approveTransferFromForNFTAcceptBuyOffer() {
 }
 
 
-approveTransferFromForWICPAcceptBuyOffer() {
-  printf "🤖 Call approveTransferFromForWICPAcceptBuyOffer\n"
+approveTransferFromForWICPAcceptOffer() {
+  printf "🤖 Call approveTransferFromForWICPAcceptOffer\n"
 
   _identityName=$1
   _wicpId=$2
@@ -297,8 +301,8 @@ approveTransferFromForWICPAcceptBuyOffer() {
     )"
 }
 
-acceptBuyOffer() {
-  printf "🤖 Call acceptBuyOffer\n"
+acceptOffer() {
+  printf "🤖 Call acceptOffer\n"
 
   _identityName=$1
   _marketplaceId=$2
@@ -307,7 +311,7 @@ acceptBuyOffer() {
   dfx --identity "$_identityName" \
     canister \
     call --update "$_marketplaceId" \
-    acceptBuyOffer "($_buy_offer_id:nat64)"
+    acceptOffer "($_buy_offer_id:nat64)"
 }
 
 run() {
@@ -349,7 +353,7 @@ run() {
     0
   [ "$DEBUG" == 1 ] && echo $?
 
-  listForSale \
+  makeListing \
     "$ALICE_IDENTITY_NAME" \
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
@@ -357,10 +361,10 @@ run() {
     "1_250"
   [ "$DEBUG" == 1 ] && echo $?
 
-  getSaleOffers "$marketplaceId"
+  getAllListings "$marketplaceId"
   [ "$DEBUG" == 1 ] && echo $?
 
-  makeBuyOffer \
+  makeOffer \
     "$BOB_IDENTITY_NAME" \
     "Bob" \
     "$nonFungibleContractAddress" \
@@ -368,10 +372,10 @@ run() {
     "1_300"
   [ "$DEBUG" == 1 ] && echo $?
 
-  getBuyOffers "$marketplaceId" 0 10
+  getAllOffers "$marketplaceId" 0 10
   [ "$DEBUG" == 1 ] && echo $?
 
-  approveTransferFromForNFTAcceptBuyOffer \
+  approveTransferFromForNFTAcceptOffer \
     "$ALICE_IDENTITY_NAME" \
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
@@ -379,20 +383,24 @@ run() {
     "$wicpId"
   [ "$DEBUG" == 1 ] && echo $?
 
-  approveTransferFromForWICPAcceptBuyOffer \
+  approveTransferFromForWICPAcceptOffer \
     "$BOB_IDENTITY_NAME" \
     "$wicpId" \
     "$marketplaceId" \
     "5_000"
   [ "$DEBUG" == 1 ] && echo $?
 
-  acceptBuyOffer \
+  acceptOffer \
     "$ALICE_IDENTITY_NAME" \
     "$marketplaceId" \
     "$buy_offer_id"
-  [ "$DEBUG" == 1 ] &&  echo $?
+  [ "$DEBUG" == 1 ] && echo $?
+
+  return 0
 }
 
 run
 
 echo "👍 Healthcheck completed!"
+
+exit 0

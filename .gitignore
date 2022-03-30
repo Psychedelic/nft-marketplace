@@ -1,5 +1,9 @@
 .__PROJECT
 
+node_modules/
+yarn.lock
+yarn.error
+
 .dfx/
 build/
 deploy/

@@ -1,6 +1,6 @@
 # 🤖 Integration
 
-## Overview 
+## Overview
 
 The following document provides a brief explanation on how the integration process came into play. It won't provide every single detail about it, but hopefully an overview to help onboarding.
 
@@ -18,6 +18,7 @@ It's recommended to check how to import the [Plug exported PEM](/docs/dfx.md) id
 ## 🪚 Tools
 
 A set of tools are provided to:
+
 - Create mock identities that you might have control e.g. via Plug
 - Generate mock data
 - Create certain use-cases by triggering events e.g. make an offer
@@ -41,6 +42,7 @@ yarn mock:generate-tokens <NFT Canister Id> <Number of tokens>
 ```
 
 Here's what the process does for you:
+
 - Prepare the identities via [DFX cli](https://smartcontracts.org/docs/developers-guide/cli-reference.html)
 - Mint DIP721 tokens for the users (yourself, Alice and Bob)
 - The "number of tokens" are evenly distributed to all users
@@ -61,10 +63,9 @@ Optionally, a start from token index can be passed. Here's an example where the 
 yarn mock:generate-tokens $(cd ./crowns && dfx canister id crowns) 9 50
 ```
 
-
 ## 🃏 Calling marketplace endpoints
 
-As we know the marketplace has a list of endpoints we can use to interact with, the same goes for any other services such as Crowns, or Cap. 
+As we know the marketplace has a list of endpoints we can use to interact with, the same goes for any other services such as Crowns, or Cap.
 
 Some of these calls might happen at the Service level (imagine that marketplace sending data to Cap, although it seems plausible that this will change and have the data sent from the frontend instead).
 
@@ -74,28 +75,28 @@ Here's an example of the [NFT Marketplace Candid file](https://github.com/Psyche
 
 ```sh
 service : (principal, principal) -> {
-  acceptBuyOffer : (nat64) -> (Result);
+  acceptOffer : (nat64) -> (Result);
   addCollection : (
       principal,
       nat16,
       nat64,
       text,
       principal,
-      NonFungibleTokenType,
+      NFTStandard,
       principal,
-      FungibleTokenType,
+      FungibleStandard,
     ) -> ();
-  cancelListingBySeller : (principal, text) -> (Result);
+  cancelListing : (principal, nat64) -> (Result);
   cancelOfferByBuyer : (nat64) -> (Result);
-  cancelOfferBySeller : (nat64) -> (Result);
-  getBuyOffers : (nat64, nat64) -> (vec BuyOffer) query;
-  getSaleOffers : () -> (
-      vec record { record { principal; nat64 }; SaleOffer },
+  denyOffer : (nat64) -> (Result);
+  directBuy : (principal, nat64) -> (Result);
+  getAllListings : () -> (
+      vec record { record { principal; nat64 }; Listing },
     ) query;
-  listForSale : (principal, nat64, nat) -> (Result);
-  directBuy : (principal, text) -> (Result);
-  makeBuyOffer : (principal, nat64, nat) -> (Result_1);
-  withdrawFungible : (principal, FungibleTokenType) -> (Result);
+  getAllOffers : (nat64, nat64) -> (vec Offer) query;
+  makeListing : (principal, nat64, nat) -> (Result);
+  makeOffer : (principal, nat64, nat) -> (Result_1);
+  withdrawFungible : (principal, FungibleStandard) -> (Result);
 }
 ```
 
@@ -107,7 +108,7 @@ Here's an example of a call without usage of wallet (as that's what our mock did
 dfx canister --no-wallet \
   --network local \
   call $(cd ./nft-marketplace && dfx canister id marketplace) \
-  listForSale "(
+  makeListing "(
     principal \"$(dfx identity get-principal)\",
     (0:nat64),
     (15:nat),
@@ -122,7 +123,7 @@ As mentioned, this applies for any other Canister, let's say check the Token Id 
 dfx canister --no-wallet \
   --network local  \
   call <NFT Canister Id> \
-  ownerOfDip721 "(0:nat64)"
+  ownerOf "(0:nat64)"
 ```
 
-Great! At this point you should have a basic understanding of how to interact with the available service endpoint of marketplace and in their absence, the related services such as the NFT Canister 👍 
+Great! At this point you should have a basic understanding of how to interact with the available service endpoint of marketplace and in their absence, the related services such as the NFT Canister 👍
