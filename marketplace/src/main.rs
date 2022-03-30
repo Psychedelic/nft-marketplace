@@ -74,10 +74,10 @@ pub async fn make_listing(
     // todo direct buy support
     if (direct_buy) {
         return Err(MPApiError::Other(
-            "Listing for direct buy to be supported".to_string(),
+            "direct buy listing unsupported".to_string(),
         ));
         if (token_owner.unwrap() != self_id) {
-            return Err(MPApiError::Unauthorized);
+            return Err(MPApiError::NoDeposit);
         }
     } else {
         if (token_owner.unwrap() != caller) {
@@ -548,6 +548,81 @@ pub async fn get_all_offers(begin: u64, limit: u64) -> Vec<Offer> {
     result
 }
 
+/**
+ * Deposit NFT
+ * Canister should have allow access prior to deposit
+ */
+#[update(name = "depositNFT")]
+#[candid_method(update, rename = "depositNFT")]
+pub async fn deposit_nft(nft_canister_id: Principal, token_id: Nat) -> MPApiResult {
+    let caller = ic::caller();
+    let self_id = ic::id();
+    let collection = collections()
+        .collections
+        .get(&nft_canister_id)
+        .ok_or(MPApiError::NonExistentCollection)?;
+
+    // transfer nft caller -> marketplace
+    if transfer_from_non_fungible(
+        &caller,                                        // from
+        &self_id,                                       // to
+        &convert_nat_to_u64(token_id.clone()).unwrap(), // nft id
+        &nft_canister_id,                               // contract
+        collection.nft_canister_standard.clone(),       // nft type
+    )
+    .await
+    .is_err()
+    {
+        return Err(MPApiError::TransferNonFungibleError);
+    }
+
+    // set token owner in balances ledger
+    balances()
+        .nft_balances
+        .entry((nft_canister_id, token_id))
+        .and_modify(|pid| *pid = caller.clone())
+        .or_insert(caller.clone());
+
+    Ok(())
+}
+
+#[update(name = "withdrawlNFT")]
+#[candid_method(update, rename = "withdrawlNFT")]
+pub async fn withdrawl_nft(nft_canister_id: Principal, token_id: Nat) -> MPApiResult {
+    let caller = ic::caller();
+    let self_id = ic::id();
+    let collection = collections()
+        .collections
+        .get(&nft_canister_id)
+        .ok_or(MPApiError::NonExistentCollection)?;
+
+    if let Some(owner) = balances()
+        .nft_balances
+        .get_mut(&(nft_canister_id.clone(), token_id.clone()))
+    {
+        // marketplace owns this token, check if caller is the stored owner
+        if (caller == owner.clone()) {
+            *owner = self_id;
+            if transfer_non_fungible(
+                &caller,
+                &convert_nat_to_u64(token_id.clone()).unwrap(),
+                &nft_canister_id,
+                collection.nft_canister_standard.clone(),
+            )
+            .await
+            .is_err()
+            {
+                *owner = caller;
+                return Err(MPApiError::TransferNonFungibleError);
+            }
+        } else {
+            return Err(MPApiError::Unauthorized);
+        }
+    }
+
+    Ok(())
+}
+
 #[update(name = "withdrawFungible")]
 #[candid_method(update, rename = "withdrawFungible")]
 pub async fn withdraw_fungible(
@@ -623,9 +698,9 @@ pub async fn cancel_listing(nft_canister_id: Principal, token_id: u64) -> MPApiR
     Ok(())
 }
 
-#[update(name = "cancelOfferByBuyer")]
-#[candid_method(update, rename = "cancelOfferByBuyer")]
-pub async fn cancel_offer_by_buyer(buy_id: u64) -> MPApiResult {
+#[update(name = "cancelOffer")]
+#[candid_method(update, rename = "cancelOffer")]
+pub async fn cancel_offer(buy_id: u64) -> MPApiResult {
     let caller = ic::caller();
     let mut mp = marketplace();
 

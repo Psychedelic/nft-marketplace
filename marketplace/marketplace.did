@@ -8,6 +8,7 @@ type Listing = record {
 type ListingStatus = variant { Selling; Uninitialized; Created };
 type MPApiError = variant {
   NonExistentCollection;
+  NoDeposit;
   InvalidListingStatus;
   InsufficientFungibleBalance;
   InvalidListing;
@@ -50,8 +51,9 @@ service : (principal, principal) -> {
       FungibleStandard,
     ) -> ();
   cancelListing : (principal, nat64) -> (Result);
-  cancelOfferByBuyer : (nat64) -> (Result);
+  cancelOffer : (nat64) -> (Result);
   denyOffer : (nat64) -> (Result);
+  depositNFT : (principal, nat) -> (Result);
   directBuy : (principal, nat64) -> (Result);
   getAllListings : () -> (
       vec record { record { principal; nat64 }; Listing },
@@ -60,4 +62,5 @@ service : (principal, principal) -> {
   makeListing : (bool, principal, nat64, nat) -> (Result);
   makeOffer : (principal, nat64, nat) -> (Result_1);
   withdrawFungible : (principal, FungibleStandard) -> (Result);
+  withdrawlNFT : (principal, nat) -> (Result);
 }

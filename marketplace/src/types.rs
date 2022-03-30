@@ -79,7 +79,9 @@ pub struct Collections {
 
 #[derive(Clone, CandidType, Default, Deserialize, new)]
 pub struct Balances {
+    // (collection, user pid): value
     pub balances: HashMap<(Principal, Principal), Nat>,
+    pub nft_balances: HashMap<(Principal, Nat), Principal>,
     pub failed_tx_log_entries: Vec<TxLogEntry>,
 }
 
@@ -107,6 +109,7 @@ pub enum MPApiError {
     InsufficientFungibleBalance,
     InsufficientNonFungibleBalance,
     Unauthorized,
+    NoDeposit,
     CAPInsertionError,
     NonExistentCollection,
     Other(String),
