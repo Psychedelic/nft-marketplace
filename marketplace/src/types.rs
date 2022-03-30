@@ -81,7 +81,7 @@ pub struct Collections {
 pub struct Balances {
     // (collection, user pid): value
     pub balances: HashMap<(Principal, Principal), Nat>,
-    pub nft_balances: HashMap<(Principal, Nat), Principal>,
+    pub nft_balances: HashMap<(Principal, u64), Principal>,
     pub failed_tx_log_entries: Vec<TxLogEntry>,
 }
 
@@ -95,7 +95,7 @@ pub struct TxLogEntry {
 #[derive(Default)]
 pub(crate) struct Marketplace {
     pub listings: HashMap<(Principal, u64), Listing>,
-    pub buy_offers: Vec<Offer>,
+    pub offers: Vec<Offer>,
 }
 
 #[derive(CandidType, Deserialize, Debug)]

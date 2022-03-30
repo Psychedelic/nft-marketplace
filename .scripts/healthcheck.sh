@@ -177,39 +177,37 @@ addCrownCollection() {
       )"
 }
 
-deposit_withdrawNFT() {
-  echo "🤖 Deposit/Withdraw NFT"
+depositNFT() {
+  echo "🤖 Deposit NFT"
+  
+  _identityName=$1
+  _nonFungibleContractAddress=$2
+  _marketplaceId=$3
+  _token_id=$4
+
+  dfx --identity "$_identityName" \
+    canister call \
+    --update $_marketplaceId depositNFT \
+    "(
+      principal \"$nonFungibleContractAddress\",
+      $_token_id:nat64
+    )"
+}
+
+withdrawNFT() {
+  echo "🤖 Withdraw NFT"
 
   _identityName=$1
   _nonFungibleContractAddress=$2
   _marketplaceId=$3
   _token_id=$4
 
-  echo "approve token for marketplace"
-  dfx --identity "$_identityName" \
-    canister call \
-    --update $nonFungibleContractAddress approve \
-    "(
-      principal \"$_marketplaceId\",
-      $_token_id:nat
-    )"
-
-  echo "deposit token"
   dfx --identity "$_identityName" \
     canister call \
     --update $_marketplaceId withdrawNFT \
     "(
       principal \"$nonFungibleContractAddress\",
-      $_token_id:nat
-    )"
-
-  echo "withdraw token"
-  dfx --identity "$_identityName" \
-    canister call \
-    --update $_marketplaceId withdrawNFT \
-    "(
-      principal \"$nonFungibleContractAddress\",
-      $_token_id:nat
+      $_token_id:nat64
     )"
 }
 
@@ -221,15 +219,16 @@ makeListing() {
   _marketplaceId=$3
   _token_id=$4
   _list_price=$5
+  _direct_buy=$6
 
   printf "🤖 has market id (%s)\n" "$_marketplaceId"
-  printf "🤖 the token id is %s, price %s\n" "$_token_id" "$_list_price"
+  printf "🤖 the token id is %s, price %s, and direct buy %s\n" "$_token_id" "$_list_price" "$_direct_buy"
   printf "🤖 will use identity %s\n" "$_identityName"
 
   dfx --identity "$_identityName" \
     canister call --update "$_marketplaceId" \
     makeListing "(
-        false:bool,
+        $_direct_buy:bool,
         principal \"$_nonFungibleContractAddress\",
         $_token_id,
         $_list_price:nat
@@ -295,14 +294,13 @@ getAllOffers() {
     getAllOffers "($_begin, $_limit)"
 }
 
-approveTransferFromForNFTAcceptOffer() {
-  printf "🤖 Call approveTransferFromForNFTAcceptOffer\n"  
+approveNFT() {
+  printf "🤖 Call approveNFT\n"  
 
   _identityName=$1
   _nonFungibleContractAddress=$2
   _marketplaceId=$3
   _nft_token_id_for_alice=$4
-  _wicpId=$5
 
   printf "🤖 The user (%s) will approve transfer token id (%s) 
   for marketplace (%s) \n" "$_identityName" "$_nft_token_id_for_alice" "$_marketplaceId"
@@ -318,8 +316,8 @@ approveTransferFromForNFTAcceptOffer() {
 }
 
 
-approveTransferFromForWICPAcceptOffer() {
-  printf "🤖 Call approveTransferFromForWICPAcceptOffer\n"
+approveFungible() {
+  printf "🤖 Call approveFungible\n"
 
   _identityName=$1
   _wicpId=$2
@@ -348,6 +346,23 @@ acceptOffer() {
     canister \
     call --update "$_marketplaceId" \
     acceptOffer "($_buy_offer_id:nat64)"
+}
+
+directBuy() {
+  printf "🤖 Call directBuy\n"
+
+  _identityName=$1
+  _nonFungibleContractAddress=$2
+  _marketplaceId=$3
+  _token_id=$4
+
+  dfx --identity "$_identityName" \
+    canister call \
+    --update $_marketplaceId directBuy \
+    "(
+      principal \"$nonFungibleContractAddress\",
+      $_token_id:nat64
+    )"
 }
 
 run() {
@@ -388,20 +403,25 @@ run() {
     10 \
     0
   [ "$DEBUG" == 1 ] && echo $?
-  
-  deposit_withdrawNFT \
-    "$ALICE_IDENTITY_NAME" \
-    "$nonFungibleContractAddress" \
-    "$marketplaceId" \
-    "$nft_token_id_for_alice" 
-  [ "$DEBUG" == 1 ] && echo $?
+
+  accept_offer
+  direct_buy
+
+  echo "👍 Healthcheck completed!"
+
+  return $?
+}
+
+accept_offer() {
+  printf "🤖 Make/Accept Offer Flow\n"
 
   makeListing \
     "$ALICE_IDENTITY_NAME" \
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
     "$nft_token_id_for_alice" \
-    "1_250"
+    "1_250" \
+    "false"
   [ "$DEBUG" == 1 ] && echo $?
 
   getAllListings "$marketplaceId"
@@ -418,19 +438,18 @@ run() {
   getAllOffers "$marketplaceId" 0 10
   [ "$DEBUG" == 1 ] && echo $?
 
-  approveTransferFromForNFTAcceptOffer \
+  approveNFT \
     "$ALICE_IDENTITY_NAME" \
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
-    "$nft_token_id_for_alice" \
-    "$wicpId"
+    "$nft_token_id_for_alice"
   [ "$DEBUG" == 1 ] && echo $?
 
-  approveTransferFromForWICPAcceptOffer \
+  approveFungible \
     "$BOB_IDENTITY_NAME" \
     "$wicpId" \
     "$marketplaceId" \
-    "5_000"
+    "1_300"
   [ "$DEBUG" == 1 ] && echo $?
 
   acceptOffer \
@@ -442,8 +461,51 @@ run() {
   return 0
 }
 
+direct_buy() {
+  printf "🤖 Direct Buy Flow\n"
+
+  approveNFT \
+    "$BOB_IDENTITY_NAME" \
+    "$nonFungibleContractAddress" \
+    "$marketplaceId" \
+    "$nft_token_id_for_alice"
+  [ "$DEBUG" == 1 ] && echo $?
+
+  depositNFT \
+    "$BOB_IDENTITY_NAME" \
+    "$nonFungibleContractAddress" \
+    "$marketplaceId" \
+    "$nft_token_id_for_alice" 
+  [ "$DEBUG" == 1 ] && echo $?
+  
+  makeListing \
+    "$BOB_IDENTITY_NAME" \
+    "$nonFungibleContractAddress" \
+    "$marketplaceId" \
+    "$nft_token_id_for_alice" \
+    "1_250" \
+    "true"
+  [ "$DEBUG" == 1 ] && echo $?
+
+  getAllListings "$marketplaceId"
+  [ "$DEBUG" == 1 ] && echo $?
+
+  approveFungible \
+    "$ALICE_IDENTITY_NAME" \
+    "$wicpId" \
+    "$marketplaceId" \
+    "1_250"
+  [ "$DEBUG" == 1 ] && echo $?
+
+  directBuy \
+    "$ALICE_IDENTITY_NAME" \
+    "$nonFungibleContractAddress" \
+    "$marketplaceId" \
+    "$nft_token_id_for_alice" 
+  [ "$DEBUG" == 1 ] && echo $?
+
+  return 0
+}
+
 run
-
-echo "👍 Healthcheck completed!"
-
 exit 0

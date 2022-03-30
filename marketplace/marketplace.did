@@ -53,7 +53,7 @@ service : (principal, principal) -> {
   cancelListing : (principal, nat64) -> (Result);
   cancelOffer : (nat64) -> (Result);
   denyOffer : (nat64) -> (Result);
-  depositNFT : (principal, nat) -> (Result);
+  depositNFT : (principal, nat64) -> (Result);
   directBuy : (principal, nat64) -> (Result);
   getAllListings : () -> (
       vec record { record { principal; nat64 }; Listing },
@@ -62,5 +62,5 @@ service : (principal, principal) -> {
   makeListing : (bool, principal, nat64, nat) -> (Result);
   makeOffer : (principal, nat64, nat) -> (Result_1);
   withdrawFungible : (principal, FungibleStandard) -> (Result);
-  withdrawNFT : (principal, nat) -> (Result);
+  withdrawNFT : (principal, nat64) -> (Result);
 }
