@@ -213,11 +213,6 @@ deposit_withdrawNFT() {
     )"
 }
 
-withdrawNFT() {
-  echo "🤖 Withdraw NFT"
-  
-}
-
 makeListing() {
   printf "🤖 Call makeListing\n"
 
@@ -393,7 +388,7 @@ run() {
     10 \
     0
   [ "$DEBUG" == 1 ] && echo $?
-
+  
   deposit_withdrawNFT \
     "$ALICE_IDENTITY_NAME" \
     "$nonFungibleContractAddress" \
