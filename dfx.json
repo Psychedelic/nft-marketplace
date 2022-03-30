@@ -31,7 +31,7 @@
       "type": "custom"
     },
     "marketplace": {
-      "build": "cargo build --target wasm32-unknown-unknown --release --package marketplace",
+      "build": "./build.sh",
       "candid": "marketplace/marketplace.did",
       "wasm": "target/wasm32-unknown-unknown/release/marketplace.wasm",
       "type": "custom"
