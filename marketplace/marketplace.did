@@ -62,5 +62,5 @@ service : (principal, principal) -> {
   makeListing : (bool, principal, nat64, nat) -> (Result);
   makeOffer : (principal, nat64, nat) -> (Result_1);
   withdrawFungible : (principal, FungibleStandard) -> (Result);
-  withdrawlNFT : (principal, nat) -> (Result);
+  withdrawNFT : (principal, nat) -> (Result);
 }

@@ -586,9 +586,9 @@ pub async fn deposit_nft(nft_canister_id: Principal, token_id: Nat) -> MPApiResu
     Ok(())
 }
 
-#[update(name = "withdrawlNFT")]
-#[candid_method(update, rename = "withdrawlNFT")]
-pub async fn withdrawl_nft(nft_canister_id: Principal, token_id: Nat) -> MPApiResult {
+#[update(name = "withdrawNFT")]
+#[candid_method(update, rename = "withdrawNFT")]
+pub async fn withdraw_nft(nft_canister_id: Principal, token_id: Nat) -> MPApiResult {
     let caller = ic::caller();
     let self_id = ic::id();
     let collection = collections()
