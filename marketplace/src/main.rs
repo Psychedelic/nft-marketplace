@@ -580,8 +580,8 @@ pub async fn deposit_nft(nft_canister_id: Principal, token_id: Nat) -> MPApiResu
     balances()
         .nft_balances
         .entry((nft_canister_id, token_id))
-        .and_modify(|pid| *pid = caller.clone())
-        .or_insert(caller.clone());
+        .and_modify(|pid| *pid = caller)
+        .or_insert(caller);
 
     Ok(())
 }
@@ -596,13 +596,14 @@ pub async fn withdraw_nft(nft_canister_id: Principal, token_id: Nat) -> MPApiRes
         .get(&nft_canister_id)
         .ok_or(MPApiError::NonExistentCollection)?;
 
+    let mut success = false;
+
     if let Some(owner) = balances()
         .nft_balances
-        .get_mut(&(nft_canister_id.clone(), token_id.clone()))
+        .get(&(nft_canister_id, token_id.clone()))
     {
         // marketplace owns this token, check if caller is the stored owner
-        if (caller == owner.clone()) {
-            *owner = self_id;
+        if (caller == *owner) {
             if transfer_non_fungible(
                 &caller,
                 &convert_nat_to_u64(token_id.clone()).unwrap(),
@@ -612,12 +613,20 @@ pub async fn withdraw_nft(nft_canister_id: Principal, token_id: Nat) -> MPApiRes
             .await
             .is_err()
             {
-                *owner = caller;
                 return Err(MPApiError::TransferNonFungibleError);
             }
+            success = true;
         } else {
-            return Err(MPApiError::Unauthorized);
+            return Err(MPApiError::InsufficientNonFungibleBalance);
         }
+    } else {
+        return Err(MPApiError::InsufficientNonFungibleBalance);
+    }
+
+    if (success) {
+        balances()
+            .nft_balances
+            .remove(&(nft_canister_id, token_id.clone()));
     }
 
     Ok(())
