@@ -435,26 +435,11 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
         .entry((collection.fungible_canister_id, caller))
         .or_default();
 
-    // check if funds are deposited already, or call a transfer_from caller to MP canister
+    // check if funds are deposited
     if (buyer_bal.clone() < listing.price.clone()) {
-        // insufficient balance, call transfer_from
-        // Deposit tokens from the buyer to the MP contract
-        if transfer_from_fungible(
-            &caller,
-            &self_id,
-            &listing.price.clone(),
-            &collection.fungible_canister_id,
-            collection.fungible_canister_standard.clone(),
-        )
-        .await
-        .is_err()
-        {
-            listing.status = ListingStatus::Created;
-            return Err(MPApiError::TransferFungibleError);
-        }
-
-        // add balance to ledger
-        *buyer_bal += listing.price.clone();
+        // insufficient balance
+        listing.status = ListingStatus::Created;
+        return Err(MPApiError::InsufficientFungibleBalance);
     }
 
     // transfer the nft from marketplace to the buyer

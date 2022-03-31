@@ -95,6 +95,15 @@ pub struct TxLogEntry {
 #[derive(Default)]
 pub(crate) struct Marketplace {
     pub listings: HashMap<(Principal, u64), Listing>,
+    /**
+     * Offers:
+     * {
+     *     (collection pid, token id): {
+     *          user pid: Offer
+     *     }
+     * }
+     */
+    pub alt_offers: HashMap<(Principal, u64), HashMap<Principal, Offer>>,
     pub offers: Vec<Offer>,
 }
 
