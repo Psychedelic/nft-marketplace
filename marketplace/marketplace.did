@@ -21,7 +21,7 @@ type MPApiError = variant {
   InvalidOfferStatus;
   CAPInsertionError;
 };
-type NFTStandard = variant { EXT; DIP721 };
+type NFTStandard = variant { EXT; DIP721v2 };
 type Offer = record {
   status : OfferStatus;
   token_id : nat64;

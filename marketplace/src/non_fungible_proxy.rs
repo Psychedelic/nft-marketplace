@@ -17,7 +17,7 @@ pub async fn transfer_from_non_fungible(
     nft_type: NFTStandard,
 ) -> U64Result {
     match nft_type {
-        NFTStandard::DIP721 => Dip721Proxy::transfer_from(from, to, nft_id, contract).await,
+        NFTStandard::DIP721v2 => DIP721v2Proxy::transfer_from(from, to, nft_id, contract).await,
         NFTStandard::EXT => EXTProxy::transfer_from(from, to, nft_id, contract).await,
     }
 }
@@ -29,7 +29,7 @@ pub async fn transfer_non_fungible(
     nft_type: NFTStandard,
 ) -> Result<Nat, MPApiError> {
     match nft_type {
-        NFTStandard::DIP721 => Dip721Proxy::transfer(contract, to, token_id).await,
+        NFTStandard::DIP721v2 => DIP721v2Proxy::transfer(contract, to, token_id).await,
         NFTStandard::EXT => EXTProxy::transfer(to, token_id, contract).await,
     }
 }
@@ -40,14 +40,14 @@ pub async fn owner_of_non_fungible(
     nft_type: NFTStandard,
 ) -> PrincipalResult {
     match nft_type {
-        NFTStandard::DIP721 => Dip721Proxy::owner_of(contract, token_id).await,
+        NFTStandard::DIP721v2 => DIP721v2Proxy::owner_of(contract, token_id).await,
         NFTStandard::EXT => unimplemented!(),
     }
 }
 
-pub(crate) struct Dip721Proxy {}
+pub(crate) struct DIP721v2Proxy {}
 
-impl Dip721Proxy {
+impl DIP721v2Proxy {
     pub async fn transfer_from(
         from: &Principal,
         to: &Principal,
@@ -111,7 +111,7 @@ impl EXTProxy {
         nft_id: &u64,
         contract: &Principal,
     ) -> U64Result {
-        let call_res: Result<(TxReceiptDIP721,), (RejectionCode, String)> = ic::call(
+        let call_res: Result<(TxReceiptDIP721v2,), (RejectionCode, String)> = ic::call(
             *contract,
             "transfer",
             (TransferRequest {
@@ -137,7 +137,7 @@ impl EXTProxy {
         nft_id: &u64,
         contract: &Principal,
     ) -> Result<Nat, MPApiError> {
-        let res = Dip721Proxy::transfer_from(&ic::caller(), to, nft_id, contract).await;
+        let res = DIP721v2Proxy::transfer_from(&ic::caller(), to, nft_id, contract).await;
 
         match res {
             Ok(val) => Ok(Nat::from(val)),

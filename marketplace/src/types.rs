@@ -127,7 +127,7 @@ pub enum FungibleStandard {
 
 #[derive(Clone, CandidType, Deserialize)]
 pub enum NFTStandard {
-    DIP721,
+    DIP721v2,
     EXT,
 }
 

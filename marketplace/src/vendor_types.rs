@@ -64,10 +64,10 @@ pub enum NftError {
     Other(String),
 }
 
-pub type TxReceiptDIP721 = Result<Nat, ApiError>;
+pub type TxReceiptDIP721v2 = Result<Nat, ApiError>;
 pub type OwnerResult = Result<Principal, NftError>;
 
-// END DIP-721 //
+// END DIP-721v2 //
 
 // BEGIN DIP-20 //
 

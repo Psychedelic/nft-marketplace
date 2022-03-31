@@ -71,7 +71,6 @@ pub async fn make_listing(
     )
     .await?;
 
-    // todo direct buy support
     if (direct_buy) {
         if (token_owner.unwrap() != self_id) {
             return Err(MPApiError::NoDeposit);
@@ -157,6 +156,26 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: u64, price: Nat) -
     if (fungible_balance < price) {
         return Err(MPApiError::InsufficientFungibleBalance);
     }
+
+    // transfer the money from the MP to the seller
+    if transfer_from_fungible(
+        &caller,
+        &self_id,
+        &price,
+        &collection.fungible_canister_id,
+        collection.fungible_canister_standard.clone(),
+    )
+    .await
+    .is_err()
+    {
+        return Err(MPApiError::TransferFungibleError);
+    }
+
+    // deposit successful at this point, add balance to ledger
+    *(balances()
+        .balances
+        .entry((collection.fungible_canister_id, caller))
+        .or_default()) += price.clone();
 
     mp.offers.push(Offer::new(
         nft_canister_id,
@@ -632,14 +651,21 @@ pub async fn withdraw_nft(nft_canister_id: Principal, token_id: u64) -> MPApiRes
     }
 
     if (success) {
+        // remove balance
         balances()
             .nft_balances
+            .remove(&(nft_canister_id, token_id.clone()));
+
+        // remove listing if exists
+        marketplace()
+            .listings
             .remove(&(nft_canister_id, token_id.clone()));
     }
 
     Ok(())
 }
 
+// TODO: Figure out logic of locking fungibles in offers, and fungibles available to withdraw
 #[update(name = "withdrawFungible")]
 #[candid_method(update, rename = "withdrawFungible")]
 pub async fn withdraw_fungible(
@@ -662,16 +688,19 @@ pub async fn withdraw_fungible(
         .is_err()
         {
             *balance = balance_to_send;
+            balances().failed_tx_log_entries.push(TxLogEntry::new(
+                self_id,
+                caller.clone(),
+                format!("withdraw failed for user {}", caller,),
+            ));
+
+            return Err(MPApiError::TransferFungibleError);
         }
-
-        balances().failed_tx_log_entries.push(TxLogEntry::new(
-            self_id,
-            caller.clone(),
-            format!("withdraw failed for user {}", caller,),
-        ));
-
-        return Err(MPApiError::TransferFungibleError);
+    } else {
+        return Err(MPApiError::InsufficientFungibleBalance);
     }
+
+    balances().balances.remove(&(fungible_canister_id, caller));
 
     Ok(())
 }
