@@ -157,26 +157,6 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: u64, price: Nat) -
         return Err(MPApiError::InsufficientFungibleBalance);
     }
 
-    // transfer the money from the MP to the seller
-    if transfer_from_fungible(
-        &caller,
-        &self_id,
-        &price,
-        &collection.fungible_canister_id,
-        collection.fungible_canister_standard.clone(),
-    )
-    .await
-    .is_err()
-    {
-        return Err(MPApiError::TransferFungibleError);
-    }
-
-    // deposit successful at this point, add balance to ledger
-    *(balances()
-        .balances
-        .entry((collection.fungible_canister_id, caller))
-        .or_default()) += price.clone();
-
     mp.offers.push(Offer::new(
         nft_canister_id,
         token_id.clone(),
@@ -184,6 +164,22 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: u64, price: Nat) -
         caller,
         OfferStatus::Created,
     ));
+
+    let this_offer = Offer::new(
+        nft_canister_id,
+        token_id.clone(),
+        price.clone(),
+        caller,
+        OfferStatus::Created,
+    );
+
+    let mp_offers = mp
+        .alt_offers
+        .entry((nft_canister_id, token_id.clone()))
+        .or_default();
+
+    if !mp_offers.contains_key(&caller) {}
+
     let buy_id = mp.offers.len() as u64;
 
     capq()
@@ -646,6 +642,38 @@ pub async fn withdraw_nft(nft_canister_id: Principal, token_id: u64) -> MPApiRes
             .listings
             .remove(&(nft_canister_id, token_id.clone()));
     }
+
+    Ok(())
+}
+#[update(name = "depositFungible")]
+#[candid_method(update, rename = "depositFungible")]
+pub async fn deposit_fungible(
+    fungible_canister_id: Principal,
+    fungible_canister_standard: FungibleStandard,
+    amount: Nat,
+) -> MPApiResult {
+    let caller = ic::caller();
+    let self_id = ic::id();
+
+    // deposit funds
+    if transfer_from_fungible(
+        &caller,
+        &self_id,
+        &amount,
+        &fungible_canister_id,
+        fungible_canister_standard.clone(),
+    )
+    .await
+    .is_err()
+    {
+        return Err(MPApiError::TransferFungibleError);
+    }
+
+    // deposit successful at this point, add balance to ledger
+    *(balances()
+        .balances
+        .entry((fungible_canister_id, caller))
+        .or_default()) += amount.clone();
 
     Ok(())
 }
