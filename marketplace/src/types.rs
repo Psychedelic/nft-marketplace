@@ -78,9 +78,15 @@ pub struct Collections {
 }
 
 #[derive(Clone, CandidType, Default, Deserialize, new)]
+pub struct FungibleBalance {
+    pub amount: Nat,
+    pub locked: Nat,
+}
+
+#[derive(Clone, CandidType, Default, Deserialize, new)]
 pub struct Balances {
     // (collection, user pid): value
-    pub balances: HashMap<(Principal, Principal), Nat>,
+    pub balances: HashMap<(Principal, Principal), FungibleBalance>,
     pub nft_balances: HashMap<(Principal, u64), Principal>,
     pub failed_tx_log_entries: Vec<TxLogEntry>,
 }

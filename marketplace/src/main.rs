@@ -117,10 +117,9 @@ pub async fn make_listing(
                     ("seller".into(), DetailValue::Principal(caller)),
                     (
                         "direct_buy".into(),
-                        if (direct_buy) {
-                            DetailValue::True
-                        } else {
-                            DetailValue::False
+                        match (direct_buy) {
+                            true => DetailValue::True,
+                            false => DetailValue::False,
                         },
                     ),
                 ])
@@ -145,17 +144,17 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: u64, price: Nat) -
         .get(&nft_canister_id)
         .ok_or(MPApiError::NonExistentCollection)?;
 
-    // check if the buyer still has the money to pay
-    let fungible_balance = balance_of_fungible(
-        &collection.fungible_canister_id,
-        &caller,
-        collection.fungible_canister_standard.clone(),
-    )
-    .await?;
+    let caller_balance = balances()
+        .balances
+        .entry((collection.fungible_canister_id, caller))
+        .or_default();
 
-    if (fungible_balance < price) {
+    // check if the caller has the funds to post listing
+    if (caller_balance.amount.clone() < price.clone()) {
         return Err(MPApiError::InsufficientFungibleBalance);
     }
+
+    caller_balance.locked += price.clone();
 
     mp.offers.push(Offer::new(
         nft_canister_id,
@@ -291,10 +290,11 @@ pub async fn accept_offer(buy_id: u64) -> MPApiResult {
     .is_err()
     {
         // credit the bid price to the buyer, as he never received the NFT
-        *(balances()
+        balances()
             .balances
             .entry((collection.fungible_canister_id, offer.payment_address))
-            .or_default()) += offer.price.clone();
+            .or_default()
+            .amount += offer.price.clone();
 
         balances().failed_tx_log_entries.push(TxLogEntry::new(
             self_id.clone(),
@@ -312,10 +312,11 @@ pub async fn accept_offer(buy_id: u64) -> MPApiResult {
 
     let owner_fee: Nat = offer.price.clone() * collection.owner_fee_percentage / 100;
     // credit the owner fee to the collection owner
-    *(balances()
+    balances()
         .balances
         .entry((collection.fungible_canister_id, collection.owner))
-        .or_default()) += owner_fee.clone();
+        .or_default()
+        .amount += owner_fee.clone();
 
     // transfer the money from the MP to the seller
     if transfer_fungible(
@@ -328,10 +329,11 @@ pub async fn accept_offer(buy_id: u64) -> MPApiResult {
     .is_err()
     {
         // credit the bid price to the seller
-        *(balances()
+        balances()
             .balances
             .entry((collection.fungible_canister_id, listing.payment_address))
-            .or_default()) += offer.price.clone() - owner_fee.clone();
+            .or_default()
+            .amount += offer.price.clone() - owner_fee.clone();
 
         balances().failed_tx_log_entries.push(TxLogEntry::new(
             self_id.clone(),
@@ -432,7 +434,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
         .or_default();
 
     // check if funds are deposited
-    if (buyer_bal.clone() < listing.price.clone()) {
+    if (buyer_bal.amount.clone() < listing.price.clone()) {
         // insufficient balance
         listing.status = ListingStatus::Created;
         return Err(MPApiError::InsufficientFungibleBalance);
@@ -457,6 +459,8 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
       ),
         ));
 
+        // TODO: fallback to mp balance ledger
+
         listing.status = ListingStatus::Created;
         return Err(MPApiError::TransferNonFungibleError);
     }
@@ -466,10 +470,11 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
     // todo: initiate transfer of fee to owner, if error fallback to credit in mp balance
 
     // credit the owner fee to the collection owner
-    *(balances()
+    balances()
         .balances
         .entry((collection.fungible_canister_id, collection.owner))
-        .or_default()) += owner_fee.clone();
+        .or_default()
+        .amount += owner_fee.clone();
 
     // transfer the funds from the MP to the seller, or
     if transfer_fungible(
@@ -482,10 +487,11 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
     .is_err()
     {
         // credit the bid price to the seller
-        *(balances()
+        balances()
             .balances
             .entry((collection.fungible_canister_id, listing.payment_address))
-            .or_default()) += listing.price.clone() - owner_fee.clone();
+            .or_default()
+            .amount += listing.price.clone() - owner_fee.clone();
 
         balances().failed_tx_log_entries.push(TxLogEntry::new(
             self_id.clone(),
@@ -499,7 +505,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
     }
 
     // subtract amount from buyer balance
-    *buyer_bal -= listing.price.clone();
+    buyer_bal.amount -= listing.price.clone();
 
     let price = listing.price.clone();
 
@@ -556,6 +562,28 @@ pub async fn get_all_offers(begin: u64, limit: u64) -> Vec<Offer> {
     result
 }
 
+#[query(name = "getAllBalances")]
+#[candid_method(query, rename = "getAllBalances")]
+pub async fn get_all_balances() -> HashMap<(Principal, Principal), FungibleBalance> {
+    let bals = &balances().balances;
+    bals.clone()
+}
+
+#[query(name = "balanceOf")]
+#[candid_method(query, rename = "balanceOf")]
+pub async fn balance_of(pid: Principal) -> HashMap<Principal, FungibleBalance> {
+    let balances = balances().balances.clone();
+
+    balances
+        .into_iter()
+        .filter_map(|((collection, principal), value)| {
+            if principal == pid {
+                return Some((collection, value));
+            }
+            return None;
+        })
+        .collect()
+}
 /**
  * Deposit NFT
  * Canister should have allow access prior to deposit
@@ -670,10 +698,11 @@ pub async fn deposit_fungible(
     }
 
     // deposit successful at this point, add balance to ledger
-    *(balances()
+    balances()
         .balances
         .entry((fungible_canister_id, caller))
-        .or_default()) += amount.clone();
+        .or_default()
+        .amount += amount.clone();
 
     Ok(())
 }
@@ -689,8 +718,13 @@ pub async fn withdraw_fungible(
     let self_id = ic::id();
 
     if let Some(balance) = balances().balances.get_mut(&(fungible_canister_id, caller)) {
-        let balance_to_send = balance.clone();
-        *balance = Nat::from(0);
+        let balance_to_send = balance.locked.clone() - balance.amount.clone();
+        if balance_to_send <= Nat::from(0) {
+            return Err(MPApiError::Other(
+                "Error: No unlocked tokens to withdraw".to_string(),
+            ));
+        }
+        balance.amount -= balance_to_send.clone();
         if transfer_fungible(
             &caller,
             &balance_to_send,
@@ -700,7 +734,7 @@ pub async fn withdraw_fungible(
         .await
         .is_err()
         {
-            *balance = balance_to_send;
+            balance.amount += balance_to_send.clone();
             balances().failed_tx_log_entries.push(TxLogEntry::new(
                 self_id,
                 caller.clone(),
@@ -712,8 +746,6 @@ pub async fn withdraw_fungible(
     } else {
         return Err(MPApiError::InsufficientFungibleBalance);
     }
-
-    balances().balances.remove(&(fungible_canister_id, caller));
 
     Ok(())
 }

@@ -1,3 +1,4 @@
+type FungibleBalance = record { locked : nat; amount : nat };
 type FungibleStandard = variant { DIP20 };
 type Listing = record {
   status : ListingStatus;
@@ -50,12 +51,16 @@ service : (principal, principal) -> {
       principal,
       FungibleStandard,
     ) -> ();
+  balanceOf : (principal) -> (vec record { principal; FungibleBalance }) query;
   cancelListing : (principal, nat64) -> (Result);
   cancelOffer : (nat64) -> (Result);
   denyOffer : (nat64) -> (Result);
   depositFungible : (principal, FungibleStandard, nat) -> (Result);
   depositNFT : (principal, nat64) -> (Result);
   directBuy : (principal, nat64) -> (Result);
+  getAllBalances : () -> (
+      vec record { record { principal; principal }; FungibleBalance },
+    ) query;
   getAllListings : () -> (
       vec record { record { principal; nat64 }; Listing },
     ) query;
