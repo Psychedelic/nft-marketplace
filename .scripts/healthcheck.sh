@@ -171,7 +171,7 @@ addCrownCollection() {
         ($_creationTime:nat64),
         \"$_collectionName\",
         principal \"$_nonFungibleContractAddress\",
-        variant { DIP721 },
+        variant { DIP721v2 },
         principal \"$_fungibleContractAddress\",
         variant { DIP20 }
       )"
