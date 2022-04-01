@@ -40,7 +40,7 @@ type OfferStatus = variant {
 type Result = variant { Ok; Err : MPApiError };
 type Result_1 = variant { Ok : nat64; Err : MPApiError };
 service : (principal, principal) -> {
-  acceptOffer : (nat64) -> (Result);
+  acceptOffer : (principal, nat64, principal) -> (Result);
   addCollection : (
       principal,
       nat16,
@@ -64,7 +64,12 @@ service : (principal, principal) -> {
   getAllListings : () -> (
       vec record { record { principal; nat64 }; Listing },
     ) query;
-  getAllOffers : (nat64, nat64) -> (vec Offer) query;
+  getAllOffers : () -> (
+      vec record {
+        principal;
+        vec record { nat64; vec record { principal; Offer } };
+      },
+    ) query;
   makeListing : (bool, principal, nat64, nat) -> (Result);
   makeOffer : (principal, nat64, nat) -> (Result_1);
   withdrawFungible : (principal, FungibleStandard) -> (Result);

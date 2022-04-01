@@ -288,6 +288,8 @@ makeOffer() {
       )"
   )
 
+  echo $_result
+
   _result_num=$(echo "$_result" | pcregrep -o1  'Ok = ([0-9]*)')
 
   printf "🤖 Extracted the latest index in the offers (%s)\n" "$_result_num"
@@ -358,12 +360,18 @@ acceptOffer() {
 
   _identityName=$1
   _marketplaceId=$2
-  _buy_offer_id=$3
+  _nonFungibleContractAddress=$3
+  _token_id=$4
+  _buyerId=$5
 
   dfx --identity "$_identityName" \
     canister \
     call --update "$_marketplaceId" \
-    acceptOffer "($_buy_offer_id:nat64)"
+    acceptOffer "(
+      principal \"$_nonFungibleContractAddress\",
+      $_token_id:nat64,
+      principal \"$_buyerId\"
+    )"
 }
 
 directBuy() {
@@ -440,7 +448,7 @@ accept_offer() {
   printf "🤖 Make/Accept Offer Flow\n"
 
   makeListing \
-    "$BOB_IDENTITY_NAME" \
+    "$ALICE_IDENTITY_NAME" \
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
     "$nft_token_id_for_alice" \
@@ -456,6 +464,13 @@ accept_offer() {
     "$wicpId" \
     "$marketplaceId" \
     "1_200"
+  [ "$DEBUG" == 1 ] && echo $?
+
+  depositFungible \
+    "$BOB_IDENTITY_NAME" \
+    "$wicpId" \
+    "$marketplaceId" \
+    "1_200" 
   [ "$DEBUG" == 1 ] && echo $?
 
   makeOffer \
@@ -476,11 +491,19 @@ accept_offer() {
     "$nft_token_id_for_alice"
   [ "$DEBUG" == 1 ] && echo $?
 
+  depositNFT \
+    "$ALICE_IDENTITY_NAME" \
+    "$nonFungibleContractAddress" \
+    "$marketplaceId" \
+    "$nft_token_id_for_alice" 
+  [ "$DEBUG" == 1 ] && echo $?
 
   acceptOffer \
     "$ALICE_IDENTITY_NAME" \
     "$marketplaceId" \
-    "$buy_offer_id"
+    "$nonFungibleContractAddress" \
+    "$nft_token_id_for_alice" \
+    "$BOB_PRINCIPAL_ID"
   [ "$DEBUG" == 1 ] && echo $?
 
   return 0
@@ -525,9 +548,8 @@ run() {
     0
   [ "$DEBUG" == 1 ] && echo $?
 
-  direct_buy
-
-  # accept_offer
+  # direct_buy
+  accept_offer
 
   echo "👍 Healthcheck completed!"
 
