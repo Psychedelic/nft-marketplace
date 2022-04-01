@@ -134,7 +134,7 @@ pub async fn make_listing(
 
 #[update(name = "makeOffer")]
 #[candid_method(update, rename = "makeOffer")]
-pub async fn make_offer(nft_canister_id: Principal, token_id: u64, price: Nat) -> U64Result {
+pub async fn make_offer(nft_canister_id: Principal, token_id: u64, price: Nat) -> MPApiResult {
     let caller = ic::caller();
     let self_id = ic::id();
     let mut mp = marketplace();
@@ -184,26 +184,6 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: u64, price: Nat) -
             )
         });
 
-    // if let Some(offer) = offers.get_mut(&caller) {
-    //     // offer exists from this user, modify
-    // } else {
-    //     offers.insert(
-    //         caller,
-    //         ,
-    //     );
-    //     caller_balance.locked += price.clone();
-    // }
-
-    mp.offers.push(Offer::new(
-        nft_canister_id,
-        token_id.clone(),
-        price.clone(),
-        caller,
-        OfferStatus::Created,
-    ));
-
-    let buy_id = mp.offers.len() as u64;
-
     capq()
         .insert_into_cap(
             IndefiniteEventBuilder::new()
@@ -215,7 +195,6 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: u64, price: Nat) -
                         "nft_canister_id".into(),
                         DetailValue::Principal(nft_canister_id),
                     ),
-                    ("buy_id".into(), DetailValue::U64(buy_id)),
                     (
                         "price".into(),
                         DetailValue::U64(convert_nat_to_u64(price.clone()).unwrap()),
@@ -227,7 +206,7 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: u64, price: Nat) -
         .await
         .map_err(|_| MPApiError::CAPInsertionError)?;
 
-    Ok(buy_id)
+    Ok(())
 }
 
 #[update(name = "acceptOffer")]
