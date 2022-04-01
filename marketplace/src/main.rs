@@ -680,6 +680,7 @@ pub async fn withdraw_nft(nft_canister_id: Principal, token_id: u64) -> MPApiRes
 
     Ok(())
 }
+
 #[update(name = "depositFungible")]
 #[candid_method(update, rename = "depositFungible")]
 pub async fn deposit_fungible(
@@ -714,7 +715,6 @@ pub async fn deposit_fungible(
     Ok(())
 }
 
-// TODO: Figure out logic of locking fungibles in offers, and fungibles available to withdraw
 #[update(name = "withdrawFungible")]
 #[candid_method(update, rename = "withdrawFungible")]
 pub async fn withdraw_fungible(
@@ -725,7 +725,7 @@ pub async fn withdraw_fungible(
     let self_id = ic::id();
 
     if let Some(balance) = balances().balances.get_mut(&(fungible_canister_id, caller)) {
-        let balance_to_send = balance.locked.clone() - balance.amount.clone();
+        let balance_to_send = balance.amount.clone() - balance.locked.clone();
         if balance_to_send <= Nat::from(0) {
             return Err(MPApiError::Other(
                 "Error: No unlocked tokens to withdraw".to_string(),
@@ -773,6 +773,8 @@ pub async fn cancel_listing(nft_canister_id: Principal, token_id: u64) -> MPApiR
         return Err(MPApiError::InvalidListingStatus);
     }
 
+    let old_price = listing.price.clone();
+
     mp.listings.remove(&(nft_canister_id, token_id.clone()));
 
     capq()
@@ -785,6 +787,10 @@ pub async fn cancel_listing(nft_canister_id: Principal, token_id: u64) -> MPApiR
                     (
                         "nft_canister_id".into(),
                         DetailValue::Principal(nft_canister_id),
+                    ),
+                    (
+                        "price".into(),
+                        DetailValue::U64(convert_nat_to_u64(old_price).unwrap()),
                     ),
                 ])
                 .build()
@@ -821,13 +827,13 @@ pub async fn cancel_offer(nft_canister_id: Principal, token_id: u64) -> MPApiRes
         return Err(MPApiError::InvalidOffer);
     }
 
+    offers.remove(&caller);
+
     if (offers.len() == 0) {
         mp.alt_offers
             .entry(nft_canister_id)
             .or_default()
             .remove(&token_id);
-    } else {
-        offers.remove(&caller);
     }
 
     capq()
@@ -899,7 +905,7 @@ fn add_collection(
     nft_canister_standard: NFTStandard,
     fungible_canister_id: Principal,
     fungible_canister_standard: FungibleStandard,
-) {
+) -> MPApiResult {
     // TODO: related to the init_data, which seems we can remove?
     // assert_eq!(ic::caller(), init_data().owner);
 
@@ -916,6 +922,8 @@ fn add_collection(
             fungible_canister_standard,
         ),
     );
+
+    Ok(())
 }
 
 #[cfg(any(target_arch = "wasm32", test))]

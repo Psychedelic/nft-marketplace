@@ -49,7 +49,7 @@ service : (principal, principal) -> {
       NFTStandard,
       principal,
       FungibleStandard,
-    ) -> ();
+    ) -> (Result);
   balanceOf : (principal) -> (vec record { principal; FungibleBalance }) query;
   cancelListing : (principal, nat64) -> (Result);
   cancelOffer : (principal, nat64) -> (Result);
