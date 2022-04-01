@@ -478,7 +478,7 @@ accept_offer() {
     "Bob" \
     "$nonFungibleContractAddress" \
     "$nft_token_id_for_alice" \
-    "1_200"
+    "600"
   [ "$DEBUG" == 1 ] && echo $?
 
   getAllOffers "$marketplaceId" 0 10

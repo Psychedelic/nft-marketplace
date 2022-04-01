@@ -51,7 +51,7 @@ impl Default for Listing {
     }
 }
 
-#[derive(Clone, CandidType, Debug, Deserialize, new)]
+#[derive(Clone, CandidType, Debug, Deserialize, PartialEq, new)]
 pub struct Offer {
     pub nft_canister_id: Principal,
     pub token_id: u64,
