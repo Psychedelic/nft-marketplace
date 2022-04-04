@@ -134,7 +134,7 @@ pub enum FungibleStandard {
     DIP20,
 }
 
-#[derive(Clone, CandidType, Deserialize)]
+#[derive(Copy, Clone, CandidType, Deserialize)]
 pub enum NFTStandard {
     DIP721v2,
     EXT,

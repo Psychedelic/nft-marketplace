@@ -67,7 +67,7 @@ pub async fn make_listing(
     let token_owner = owner_of_non_fungible(
         &nft_canister_id,
         &token_id,
-        collection.nft_canister_standard.clone(),
+        collection.nft_canister_standard,
     )
     .await?;
 
@@ -249,7 +249,7 @@ pub async fn accept_offer(
     let token_owner = owner_of_non_fungible(
         &nft_canister_id,
         &token_id,
-        collection.nft_canister_standard.clone(),
+        collection.nft_canister_standard,
     )
     .await?;
     if (token_owner.unwrap() != self_id) {
@@ -275,10 +275,10 @@ pub async fn accept_offer(
 
     // transfer the nft from marketplace to the buyer
     if transfer_non_fungible(
-        &buyer,                                   // to
-        &token_id,                                // nft id
-        &nft_canister_id,                         // contract
-        collection.nft_canister_standard.clone(), // nft type
+        &buyer,                           // to
+        &token_id,                        // nft id
+        &nft_canister_id,                 // contract
+        collection.nft_canister_standard, // nft type
     )
     .await
     .is_err()
@@ -425,7 +425,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
     let token_owner = owner_of_non_fungible(
         &nft_canister_id,
         &token_id,
-        collection.nft_canister_standard.clone(),
+        collection.nft_canister_standard,
     )
     .await?;
     if (token_owner.unwrap() != self_id) {
@@ -450,10 +450,10 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
 
     // transfer the nft from marketplace to the buyer
     if transfer_non_fungible(
-        &caller,                                  // to
-        &token_id,                                // nft id
-        &nft_canister_id,                         // contract
-        collection.nft_canister_standard.clone(), // nft type
+        &caller,                          // to
+        &token_id,                        // nft id
+        &nft_canister_id,                 // contract
+        collection.nft_canister_standard, // nft type
     )
     .await
     .is_err()
@@ -605,11 +605,11 @@ pub async fn deposit_nft(nft_canister_id: Principal, token_id: u64) -> MPApiResu
 
     // transfer nft caller -> marketplace
     if transfer_from_non_fungible(
-        &caller,                                  // from
-        &self_id,                                 // to
-        &token_id.clone(),                        // nft id
-        &nft_canister_id,                         // contract
-        collection.nft_canister_standard.clone(), // nft type
+        &caller,                          // from
+        &self_id,                         // to
+        &token_id.clone(),                // nft id
+        &nft_canister_id,                 // contract
+        collection.nft_canister_standard, // nft type
     )
     .await
     .is_err()
@@ -649,7 +649,7 @@ pub async fn withdraw_nft(nft_canister_id: Principal, token_id: u64) -> MPApiRes
                 &caller,
                 &token_id.clone(),
                 &nft_canister_id,
-                collection.nft_canister_standard.clone(),
+                collection.nft_canister_standard,
             )
             .await
             .is_err()
