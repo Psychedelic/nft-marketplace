@@ -195,6 +195,23 @@ depositFungible() {
     )"
 }
 
+withdrawFungible() {
+  echo "🤖 Withdraw Fungible"
+
+  _identityName=$1
+  _nonFungibleContractAddress=$2
+  _marketplaceId=$3
+  _token_id=$4
+
+  dfx --identity "$_identityName" \
+    canister call \
+    --update $_marketplaceId withdrawFungible \
+    "(
+      principal \"$_nonFungibleContractAddress\",
+      variant { DIP20 }
+    )"
+}
+
 depositNFT() {
   echo "🤖 Deposit NFT"
   
@@ -515,11 +532,26 @@ direct_buy() {
     "500" 
   [ "$DEBUG" == 1 ] && echo $?
 
+  echo "halting wicp canister to test balance fallback ..."
+  $(cd wicp && dfx canister stop wicp)
+
   directBuy \
     "$ALICE_IDENTITY_NAME" \
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
     "$nft_token_id_for_alice" 
+  [ "$DEBUG" == 1 ] && echo $?
+
+  getAllBalances "$marketplaceId"
+  [ "$DEBUG" == 1 ] && echo $?
+
+  echo "starting wicp canister to test withdraw..."
+  $(cd wicp && dfx canister start wicp)
+
+  withdrawFungible \
+    "$BOB_IDENTITY_NAME" \
+    "$wicpId" \
+    "$marketplaceId"
   [ "$DEBUG" == 1 ] && echo $?
 
   getAllBalances "$marketplaceId"
