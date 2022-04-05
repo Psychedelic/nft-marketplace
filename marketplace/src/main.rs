@@ -245,16 +245,23 @@ pub async fn accept_offer(
         .get_mut(&(nft_canister_id, token_id.clone()))
         .ok_or(MPApiError::InvalidListing)?;
 
-    // check if the NFT is still hold by the seller
-    let token_owner = owner_of_non_fungible(
-        &nft_canister_id,
-        &token_id,
-        collection.nft_canister_standard,
-    )
-    .await?;
-    if (token_owner.unwrap() != self_id) {
-        return Err(MPApiError::InsufficientNonFungibleBalance);
+    // check if nft is held by marketplace
+    let owner = balances()
+        .nft_balances
+        .get(&(nft_canister_id, token_id.clone()))
+        .ok_or(MPApiError::NoDeposit)?
+        .clone();
+
+    if (owner != caller) {
+        return Err(MPApiError::Unauthorized);
     }
+
+    // // check if the NFT is still hold by the seller
+    // let token_owner = owner_of_non_fungible(
+    //     &nft_canister_id,
+    //     &token_id,
+    //     collection.nft_canister_standard,
+    // );
 
     // guarding agains reentrancy
     listing.status = ListingStatus::Selling;
@@ -286,7 +293,7 @@ pub async fn accept_offer(
         // fallback to balance
         balances()
             .nft_balances
-            .insert((collection.fungible_canister_id, token_id), buyer);
+            .insert((collection.nft_canister_id, token_id), buyer);
 
         balances().failed_tx_log_entries.push(TxLogEntry::new(
             self_id.clone(),
@@ -620,9 +627,7 @@ pub async fn deposit_nft(nft_canister_id: Principal, token_id: u64) -> MPApiResu
     // set token owner in balances ledger
     balances()
         .nft_balances
-        .entry((nft_canister_id, token_id.clone()))
-        .and_modify(|pid| *pid = caller)
-        .or_insert(caller);
+        .insert((nft_canister_id, token_id.clone()), caller);
 
     Ok(())
 }
@@ -642,6 +647,7 @@ pub async fn withdraw_nft(nft_canister_id: Principal, token_id: u64) -> MPApiRes
     if let Some(owner) = balances()
         .nft_balances
         .get(&(nft_canister_id, token_id.clone()))
+        .clone()
     {
         // marketplace owns this token, check if caller is the stored owner
         if (caller == *owner) {

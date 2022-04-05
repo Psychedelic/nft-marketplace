@@ -443,6 +443,10 @@ accept_offer() {
     "$nft_token_id_for_alice" 
   [ "$DEBUG" == 1 ] && echo $?
 
+  echo "halting crowns cansiter to test balance fallback..."
+
+  $(cd crowns && dfx canister stop crowns)
+
   acceptOffer \
     "$ALICE_IDENTITY_NAME" \
     "$marketplaceId" \
@@ -450,6 +454,16 @@ accept_offer() {
     "$nft_token_id_for_alice" \
     "$BOB_PRINCIPAL_ID"
   [ "$DEBUG" == 1 ] && echo $?
+
+  echo "starting crowns canister to test withdraw from balance..."
+
+  $(cd crowns && dfx canister start crowns)
+
+  withdrawNFT \
+    "$BOB_IDENTITY_NAME" \
+    "$nonFungibleContractAddress" \
+    "$marketplaceId" \
+    "$nft_token_id_for_alice" 
 
   getAllBalances "$marketplaceId"
   [ "$DEBUG" == 1 ] && echo $?
