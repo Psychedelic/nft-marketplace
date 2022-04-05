@@ -428,7 +428,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
         .get(&nft_canister_id)
         .ok_or(MPApiError::NonExistentCollection)?;
 
-    // check if the NFT is still hold by the seller
+    // check if the NFT is owned by mp
     let token_owner = owner_of_non_fungible(
         &nft_canister_id,
         &token_id,
@@ -436,7 +436,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
     )
     .await?;
     if (token_owner.unwrap() != self_id) {
-        return Err(MPApiError::InsufficientNonFungibleBalance);
+        return Err(MPApiError::NoDeposit);
     }
 
     // guarding agains reentrancy
@@ -465,6 +465,11 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
     .await
     .is_err()
     {
+        // fallback to balance
+        balances()
+            .nft_balances
+            .insert((nft_canister_id, token_id), caller);
+
         balances().failed_tx_log_entries.push(TxLogEntry::new(
             self_id.clone(),
             caller.clone(),
@@ -473,11 +478,6 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
         caller, nft_canister_id, token_id,
       ),
         ));
-
-        // TODO: fallback to mp balance ledger
-
-        listing.status = ListingStatus::Created;
-        return Err(MPApiError::TransferNonFungibleError);
     }
 
     let owner_fee: Nat = listing.price.clone() * collection.owner_fee_percentage / 100;
