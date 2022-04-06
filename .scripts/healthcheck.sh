@@ -89,7 +89,7 @@ mintDip721() {
           record {
             \"location\";
             variant {
-              \"TextContent\" = \"https://vqcq7-gqaaa-aaaam-qaara-cai.raw.ic0.app/0000.mp4\"
+              \"TextContent\" = \"https://vzb3d-qyaaa-aaaam-qaaqq-cai.raw.ic0.app/0000.mp4\"
             }
           };
           record {
