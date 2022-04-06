@@ -34,7 +34,7 @@ pub struct InitData {
 
 #[derive(Clone, CandidType, Deserialize, Debug, new)]
 pub struct Listing {
-    pub is_direct_buyable: bool,
+    pub direct_buy: bool,
     pub price: Nat,
     pub payment_address: Principal,
     pub status: ListingStatus,

@@ -246,13 +246,12 @@ pub async fn accept_offer(
         .ok_or(MPApiError::InvalidListing)?;
 
     // check if nft is held by marketplace
-    let owner = balances()
+    let nft_owner = balances()
         .nft_balances
-        .get(&(nft_canister_id, token_id.clone()))
-        .ok_or(MPApiError::NoDeposit)?
-        .clone();
+        .get_mut(&(nft_canister_id, token_id.clone()))
+        .ok_or(MPApiError::NoDeposit)?;
 
-    if (owner != caller) {
+    if (nft_owner.clone() != caller) {
         return Err(MPApiError::Unauthorized);
     }
 
@@ -270,12 +269,11 @@ pub async fn accept_offer(
     let buyer_bal = balances()
         .balances
         .entry((collection.fungible_canister_id, buyer))
-        .or_default()
-        .clone();
+        .or_default();
 
     // sanity check for funds
-    if (buyer_bal.amount.clone() < offer.price.clone()) {
-        // insufficient balance
+    if (buyer_bal.locked.clone() < offer.price.clone()) {
+        // insufficient locked balance
         listing.status = ListingStatus::Created;
         return Err(MPApiError::InsufficientFungibleBalance);
     }
@@ -291,9 +289,7 @@ pub async fn accept_offer(
     .is_err()
     {
         // fallback to balance
-        balances()
-            .nft_balances
-            .insert((collection.nft_canister_id, token_id), buyer);
+        *nft_owner = buyer;
 
         balances().failed_tx_log_entries.push(TxLogEntry::new(
             self_id.clone(),
@@ -306,8 +302,6 @@ pub async fn accept_offer(
     }
 
     let owner_fee: Nat = offer.price.clone() * collection.owner_fee_percentage / 100;
-
-    // todo: initiate transfer of fee to owner, if error fallback to credit in mp balance
 
     // credit the owner fee to the collection owners balance
     balances()
@@ -346,10 +340,7 @@ pub async fn accept_offer(
     }
 
     // subtract amount from buyer balance and locked tokens (released to seller)
-    *balances()
-        .balances
-        .entry((collection.fungible_canister_id, buyer))
-        .or_default() = FungibleBalance::new(
+    *buyer_bal = FungibleBalance::new(
         buyer_bal.amount.clone() - offer.price.clone(),
         buyer_bal.locked.clone() - offer.price.clone(),
     );
@@ -417,7 +408,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
         return Err(MPApiError::InvalidListingStatus);
     }
 
-    if (!listing.is_direct_buyable) {
+    if (!listing.direct_buy) {
         return Err(MPApiError::Other(
             "Token is not available for direct buy".to_string(),
         ));
@@ -429,14 +420,24 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
         .ok_or(MPApiError::NonExistentCollection)?;
 
     // check if the NFT is owned by mp
-    let token_owner = owner_of_non_fungible(
+    let _owner = owner_of_non_fungible(
         &nft_canister_id,
         &token_id,
         collection.nft_canister_standard,
     )
     .await?;
-    if (token_owner.unwrap() != self_id) {
+    if (_owner.unwrap() != self_id) {
         return Err(MPApiError::NoDeposit);
+    }
+
+    // check if nft is held by marketplace
+    let nft_owner = balances()
+        .nft_balances
+        .get_mut(&(nft_canister_id, token_id.clone()))
+        .ok_or(MPApiError::NoDeposit)?;
+
+    if (nft_owner.clone() != listing.payment_address) {
+        return Err(MPApiError::Unauthorized);
     }
 
     // guarding agains reentrancy
@@ -466,9 +467,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
     .is_err()
     {
         // fallback to balance
-        balances()
-            .nft_balances
-            .insert((nft_canister_id, token_id), caller);
+        *nft_owner = caller;
 
         balances().failed_tx_log_entries.push(TxLogEntry::new(
             self_id.clone(),
@@ -524,9 +523,14 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
 
     let price = listing.price.clone();
 
-    // remove the sale offer and the bid that triggered the sale
-    // all other bids still should remain valid
+    // remove listing
     mp.listings.remove(&(nft_canister_id, token_id.clone()));
+
+    if (buyer_bal.amount.clone() == 0 && buyer_bal.locked.clone() == 0) {
+        balances()
+            .balances
+            .remove(&(collection.fungible_canister_id, caller));
+    }
 
     capq()
         .insert_into_cap(

@@ -2,7 +2,7 @@ type FungibleBalance = record { locked : nat; amount : nat };
 type FungibleStandard = variant { DIP20 };
 type Listing = record {
   status : ListingStatus;
-  is_direct_buyable : bool;
+  direct_buy : bool;
   price : nat;
   payment_address : principal;
 };
