@@ -10,6 +10,7 @@ The NFT Marketplace is the backend Service for our DIP-721 implementation, and s
 
 ## 📒 Table of Contents
 
+- [Service Flow Docs](/docs/service.md)
 - [Requirements](#-requirements)
 - [Getting started](#-getting-started)
 - [Integrations](/docs/integrations.md)
@@ -69,7 +70,7 @@ yarn services:start
 
 Bare in mind that you'll have to deploy the DIP-721, set allowances, etc on your own, depending on your use-case.
 
-The 🚑 [Healtcheck](./scripts/healthcheck.sh) provides a description of how this can look like for the use-case where a DIP-721 is listed for sale, a user gets a sale offer and accepts it.
+The 🚑 [Healtcheck](./.scripts/healthcheck.sh) provides a description of how this can look like for the use-case where a DIP-721 is listed for sale, a user gets a sale offer and accepts it.
 
 ```sh
 yarn marketplace:healthcheck
