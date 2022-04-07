@@ -40,7 +40,7 @@ pub type TransferResponse = Result<Balance, TransferResponseErrors>;
 
 // END EXT //
 
-// BEGIN DIP-721v2 //
+// BEGIN DIP721v2 //
 
 #[derive(CandidType, Debug, Deserialize)]
 pub enum ApiError {
@@ -64,12 +64,12 @@ pub enum NftError {
     Other(String),
 }
 
-pub type TxReceiptDIP721 = Result<Nat, ApiError>;
+pub type TxReceiptDIP721v2 = Result<Nat, ApiError>;
 pub type OwnerResult = Result<Principal, NftError>;
 
-// END DIP-721 //
+// END DIP721v2 //
 
-// BEGIN DIP-20 //
+// BEGIN DIP20 //
 
 #[derive(CandidType, Debug, Deserialize, Eq, PartialEq)]
 pub enum TxError {
@@ -85,4 +85,4 @@ pub enum TxError {
 }
 pub type TxReceipt = Result<Nat, TxError>;
 
-// END DIP-DIP20 //
+// END DIP20 //

@@ -1,13 +1,15 @@
+type FungibleBalance = record { locked : nat; amount : nat };
 type FungibleStandard = variant { DIP20 };
 type Listing = record {
   status : ListingStatus;
-  is_direct_buyable : bool;
+  direct_buy : bool;
   price : nat;
   payment_address : principal;
 };
 type ListingStatus = variant { Selling; Uninitialized; Created };
 type MPApiError = variant {
   NonExistentCollection;
+  NoDeposit;
   InvalidListingStatus;
   InsufficientFungibleBalance;
   InvalidListing;
@@ -20,7 +22,7 @@ type MPApiError = variant {
   InvalidOfferStatus;
   CAPInsertionError;
 };
-type NFTStandard = variant { EXT; DIP721 };
+type NFTStandard = variant { EXT; DIP721v2 };
 type Offer = record {
   status : OfferStatus;
   token_id : nat64;
@@ -36,9 +38,8 @@ type OfferStatus = variant {
   Created;
 };
 type Result = variant { Ok; Err : MPApiError };
-type Result_1 = variant { Ok : nat64; Err : MPApiError };
 service : (principal, principal) -> {
-  acceptOffer : (nat64) -> (Result);
+  acceptOffer : (principal, nat64, principal) -> (Result);
   addCollection : (
       principal,
       nat16,
@@ -48,16 +49,28 @@ service : (principal, principal) -> {
       NFTStandard,
       principal,
       FungibleStandard,
-    ) -> ();
+    ) -> (Result);
+  balanceOf : (principal) -> (vec record { principal; FungibleBalance }) query;
   cancelListing : (principal, nat64) -> (Result);
-  cancelOfferByBuyer : (nat64) -> (Result);
+  cancelOffer : (principal, nat64) -> (Result);
   denyOffer : (nat64) -> (Result);
+  depositFungible : (principal, FungibleStandard, nat) -> (Result);
+  depositNFT : (principal, nat64) -> (Result);
   directBuy : (principal, nat64) -> (Result);
+  getAllBalances : () -> (
+      vec record { record { principal; principal }; FungibleBalance },
+    ) query;
   getAllListings : () -> (
       vec record { record { principal; nat64 }; Listing },
     ) query;
-  getAllOffers : (nat64, nat64) -> (vec Offer) query;
+  getAllOffers : () -> (
+      vec record {
+        principal;
+        vec record { nat64; vec record { principal; Offer } };
+      },
+    ) query;
   makeListing : (bool, principal, nat64, nat) -> (Result);
-  makeOffer : (principal, nat64, nat) -> (Result_1);
+  makeOffer : (principal, nat64, nat) -> (Result);
   withdrawFungible : (principal, FungibleStandard) -> (Result);
+  withdrawNFT : (principal, nat64) -> (Result);
 }

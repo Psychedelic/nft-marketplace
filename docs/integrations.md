@@ -75,7 +75,6 @@ Here's an example of the [NFT Marketplace Candid file](https://github.com/Psyche
 
 ```sh
 service : (principal, principal) -> {
-  acceptOffer : (nat64) -> (Result);
   addCollection : (
       principal,
       nat16,
@@ -85,18 +84,35 @@ service : (principal, principal) -> {
       NFTStandard,
       principal,
       FungibleStandard,
-    ) -> ();
+    ) -> (Result);
+
+  makeListing : (bool, principal, nat64, nat) -> (Result);
   cancelListing : (principal, nat64) -> (Result);
-  cancelOfferByBuyer : (nat64) -> (Result);
-  denyOffer : (nat64) -> (Result);
-  directBuy : (principal, nat64) -> (Result);
   getAllListings : () -> (
       vec record { record { principal; nat64 }; Listing },
     ) query;
-  getAllOffers : (nat64, nat64) -> (vec Offer) query;
-  makeListing : (principal, nat64, nat) -> (Result);
-  makeOffer : (principal, nat64, nat) -> (Result_1);
+
+  directBuy : (principal, nat64) -> (Result);
+
+  makeOffer : (principal, nat64, nat) -> (Result);
+  cancelOffer : (principal, nat64) -> (Result);
+  denyOffer : (nat64) -> (Result);
+  acceptOffer : (principal, nat64, principal) -> (Result);
+  getAllOffers : () -> (
+      vec record {
+        principal;
+        vec record { nat64; vec record { principal; Offer } };
+      },
+    ) query;
+
+  depositFungible : (principal, FungibleStandard, nat) -> (Result);
+  depositNFT : (principal, nat64) -> (Result);
   withdrawFungible : (principal, FungibleStandard) -> (Result);
+  withdrawNFT : (principal, nat64) -> (Result);
+  balanceOf : (principal) -> (vec record { principal; FungibleBalance }) query;
+  getAllBalances : () -> (
+      vec record { record { principal; principal }; FungibleBalance },
+    ) query;
 }
 ```
 
@@ -127,3 +143,4 @@ dfx canister --no-wallet \
 ```
 
 Great! At this point you should have a basic understanding of how to interact with the available service endpoint of marketplace and in their absence, the related services such as the NFT Canister 👍
+

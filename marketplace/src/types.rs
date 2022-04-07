@@ -34,7 +34,7 @@ pub struct InitData {
 
 #[derive(Clone, CandidType, Deserialize, Debug, new)]
 pub struct Listing {
-    pub is_direct_buyable: bool,
+    pub direct_buy: bool,
     pub price: Nat,
     pub payment_address: Principal,
     pub status: ListingStatus,
@@ -51,7 +51,7 @@ impl Default for Listing {
     }
 }
 
-#[derive(Clone, CandidType, Debug, Deserialize, new)]
+#[derive(Clone, CandidType, Debug, Deserialize, PartialEq, new)]
 pub struct Offer {
     pub nft_canister_id: Principal,
     pub token_id: u64,
@@ -78,8 +78,16 @@ pub struct Collections {
 }
 
 #[derive(Clone, CandidType, Default, Deserialize, new)]
+pub struct FungibleBalance {
+    pub amount: Nat,
+    pub locked: Nat,
+}
+
+#[derive(Clone, CandidType, Default, Deserialize, new)]
 pub struct Balances {
-    pub balances: HashMap<(Principal, Principal), Nat>,
+    // (collection, user pid): value
+    pub balances: HashMap<(Principal, Principal), FungibleBalance>,
+    pub nft_balances: HashMap<(Principal, u64), Principal>,
     pub failed_tx_log_entries: Vec<TxLogEntry>,
 }
 
@@ -92,8 +100,11 @@ pub struct TxLogEntry {
 
 #[derive(Default)]
 pub(crate) struct Marketplace {
+    // (collection, token): listing
     pub listings: HashMap<(Principal, u64), Listing>,
-    pub buy_offers: Vec<Offer>,
+    // collection: { token: { principal: offer } }
+    pub alt_offers: HashMap<Principal, HashMap<u64, HashMap<Principal, Offer>>>,
+    pub offers: Vec<Offer>,
 }
 
 #[derive(CandidType, Deserialize, Debug)]
@@ -107,6 +118,7 @@ pub enum MPApiError {
     InsufficientFungibleBalance,
     InsufficientNonFungibleBalance,
     Unauthorized,
+    NoDeposit,
     CAPInsertionError,
     NonExistentCollection,
     Other(String),
@@ -122,9 +134,9 @@ pub enum FungibleStandard {
     DIP20,
 }
 
-#[derive(Clone, CandidType, Deserialize)]
+#[derive(Copy, Clone, CandidType, Deserialize)]
 pub enum NFTStandard {
-    DIP721,
+    DIP721v2,
     EXT,
 }
 
