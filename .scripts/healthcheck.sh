@@ -74,10 +74,17 @@ mintDip721() {
   _mint_for=$2
   _nonFungibleContractAddress=$3
 
+  crownsNftCanisterId="vlhm2-4iaaa-aaaam-qaatq-cai"
+
   printf "🤖 The mintDip721 has nonFungibleContractAddress (%s), 
   mint_for user (%s) of id (%s)\n" "$_nonFungibleContractAddress" "$_name" "$_mint_for"
 
-  nft_token_id_for_alice=$RANDOM
+  example_nft=$(echo "$RANDOM%5000 + 1" | bc)
+  mainnetMetadataResult=($(dfx canister --network ic call $crownsNftCanisterId getMetadataDip721 "($example_nft:nat64)" | pcregrep -o1  '3_643_416_556 = "([a-zA-Z]*)"'))
+
+  echo $mainnetMetadataResult
+
+  nft_token_id_for_alice=$(echo "$example_nft + 10000" | bc) # shift out of crowns index space
 
   _result=$(
     dfx canister \
@@ -87,15 +94,39 @@ mintDip721() {
         $nft_token_id_for_alice:nat,
         vec {
           record {
+            \"smallgem\";
+            variant {
+              \"TextContent\" = \"${mainnetMetadataResult[0]}\"
+            }
+          };
+          record {
+            \"biggem\";
+            variant {
+              \"TextContent\" = \"${mainnetMetadataResult[1]}\"
+            }
+          };
+          record {
+            \"base\";
+            variant {
+              \"TextContent\" = \"${mainnetMetadataResult[2]}\"
+            }
+          };
+          record {
+            \"rim\";
+            variant {
+              \"TextContent\" = \"${mainnetMetadataResult[3]}\"
+            }
+          };
+          record {
             \"location\";
             variant {
-              \"TextContent\" = \"https://vzb3d-qyaaa-aaaam-qaaqq-cai.raw.ic0.app/0000.mp4\"
+              \"TextContent\" = \"https://vzb3d-qyaaa-aaaam-qaaqq-cai.raw.ic0.app/$example_nft.mp4\"
             }
           };
           record {
             \"thumbnail\";
             variant {
-              \"TextContent\" = \"https://vzb3d-qyaaa-aaaam-qaaqq-cai.raw.ic0.app/thumbnail/0000.png\"
+              \"TextContent\" = \"https://vzb3d-qyaaa-aaaam-qaaqq-cai.raw.ic0.app/thumbnail/$example_nft.png\"
             }
           };
         }
@@ -431,14 +462,14 @@ accept_offer() {
     "$BOB_IDENTITY_NAME" \
     "$wicpId" \
     "$marketplaceId" \
-    "1_200"
+    "600"
   [ "$DEBUG" == 1 ] && echo $?
 
   depositFungible \
     "$BOB_IDENTITY_NAME" \
     "$wicpId" \
     "$marketplaceId" \
-    "1_200" 
+    "600" 
   [ "$DEBUG" == 1 ] && echo $?
 
   makeOffer \
