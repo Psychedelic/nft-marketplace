@@ -116,6 +116,7 @@ pub enum MPApiError {
     InvalidListing,
     InvalidOffer,
     InsufficientFungibleBalance,
+    InsufficientFungibleAllowance,
     InsufficientNonFungibleBalance,
     Unauthorized,
     NoDeposit,

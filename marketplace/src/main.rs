@@ -161,7 +161,7 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: u64, price: Nat) -
     if allowance.is_err() {
         return Err(MPApiError::Other("Error calling allowance".to_string()));
     } else if allowance.ok().unwrap().clone() < price.clone() {
-        return Err(MPApiError::Other("Insufficient allowance".to_string()));
+        return Err(MPApiError::InsufficientFungibleAllowance);
     }
 
     // check wallet balance for token
@@ -283,7 +283,7 @@ pub async fn accept_offer(
     if allowance.is_err() {
         return Err(MPApiError::Other("Error calling allowance".to_string()));
     } else if allowance.ok().unwrap().clone() < offer.price.clone() {
-        return Err(MPApiError::Other("Insufficient allowance".to_string()));
+        return Err(MPApiError::InsufficientFungibleAllowance);
     }
 
     // check buyer wallet balance

@@ -106,7 +106,7 @@ impl Dip20Proxy {
         .await;
 
         call_res
-            .map_err(|_| MPApiError::InsufficientFungibleBalance)
+            .map_err(|_| MPApiError::InsufficientFungibleAllowance)
             .map(|res| res.0)
     }
 }
