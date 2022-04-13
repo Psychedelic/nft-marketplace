@@ -1,5 +1,30 @@
+type BalanceMetadata = record {
+  owner : principal;
+  details : vec record { text; GenericValue };
+  token_type : text;
+  standard : text;
+  contractId : principal;
+};
 type FungibleBalance = record { locked : nat; amount : nat };
 type FungibleStandard = variant { DIP20 };
+type GenericValue = variant {
+  Nat64Content : nat64;
+  Nat32Content : nat32;
+  BoolContent : bool;
+  Nat8Content : nat8;
+  Int64Content : int64;
+  IntContent : int;
+  NatContent : nat;
+  Nat16Content : nat16;
+  Int32Content : int32;
+  Int8Content : int8;
+  FloatContent : float64;
+  Int16Content : int16;
+  BlobContent : vec nat8;
+  NestedContent : vec record { text; GenericValue };
+  Principal : principal;
+  TextContent : text;
+};
 type Listing = record {
   status : ListingStatus;
   direct_buy : bool;
@@ -15,6 +40,7 @@ type MPApiError = variant {
   InvalidListing;
   TransferNonFungibleError;
   Unauthorized;
+  InsufficientFungibleAllowance;
   TransferFungibleError;
   InvalidOffer;
   Other : text;
@@ -71,6 +97,7 @@ service : (principal, principal) -> {
     ) query;
   makeListing : (bool, principal, nat64, nat) -> (Result);
   makeOffer : (principal, nat64, nat) -> (Result);
+  serviceBalanceOf : (principal) -> (vec BalanceMetadata) query;
   withdrawFungible : (principal, FungibleStandard) -> (Result);
   withdrawNFT : (principal, nat64) -> (Result);
 }

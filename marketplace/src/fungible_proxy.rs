@@ -35,11 +35,24 @@ pub async fn transfer_fungible(
 
 pub async fn balance_of_fungible(
     contract: &Principal,
-    principal: &Principal,
+    owner: &Principal,
     fungible_canister_standard: FungibleStandard,
 ) -> NatResult {
     match fungible_canister_standard {
-        FungibleStandard::DIP20 => Dip20Proxy::balance_of(contract, principal).await,
+        FungibleStandard::DIP20 => Dip20Proxy::balance_of(contract, owner).await,
+    }
+}
+
+pub async fn allowance_fungible(
+    contract: &Principal,
+    owner: &Principal,
+    spender: &Principal,
+    fungible_canister_standard: FungibleStandard,
+) -> NatResult {
+    match fungible_canister_standard {
+        FungibleStandard::DIP20 => {
+            Dip20Proxy::allowance(contract, owner, spender).await
+        }
     }
 }
 
@@ -72,11 +85,28 @@ impl Dip20Proxy {
             .map(|res| convert_nat_to_u64(res).unwrap())
     }
 
-    pub async fn balance_of(contract: &Principal, principal: &Principal) -> NatResult {
+    pub async fn balance_of(contract: &Principal, owner: &Principal) -> NatResult {
         let call_res: Result<(Nat,), (RejectionCode, String)> =
-            ic::call(*contract, "balanceOf", (*principal,)).await;
+            ic::call(*contract, "balanceOf", (*owner,)).await;
         call_res
             .map_err(|_| MPApiError::TransferFungibleError)
+            .map(|res| res.0)
+    }
+
+    pub async fn allowance(
+        contract: &Principal,
+        owner: &Principal,
+        spender: &Principal,
+    ) -> NatResult {
+        let call_res: Result<(Nat,), (RejectionCode, String)> = ic::call(
+            *contract,
+            "allowance",
+            (*owner, *spender),
+        )
+        .await;
+
+        call_res
+            .map_err(|_| MPApiError::InsufficientFungibleAllowance)
             .map(|res| res.0)
     }
 }
