@@ -43,10 +43,71 @@ service : (principal, principal) -> {
   depositNFT : (principal, nat64) -> (Result);
   withdrawFungible : (principal, FungibleStandard) -> (Result);
   withdrawNFT : (principal, nat64) -> (Result);
+
+  serviceBalanceOf : (principal) -> (vec BalanceMetadata) query;
   balanceOf : (principal) -> (vec record { principal; FungibleBalance }) query;
   getAllBalances : () -> (
       vec record { record { principal; principal }; FungibleBalance },
     ) query;
+}
+```
+
+## Service Balance Inferface
+
+There is a simple interface for querying for assets held by the service.
+
+```
+// Method //
+
+serviceBalanceOf : (principal) -> (vec BalanceMetadata) query;
+
+// Types //
+
+type GenericValue = variant {
+  Nat64Content : nat64;
+  Nat32Content : nat32;
+  BoolContent : bool;
+  Nat8Content : nat8;
+  Int64Content : int64;
+  IntContent : int;
+  NatContent : nat;
+  Nat16Content : nat16;
+  Int32Content : int32;
+  Int8Content : int8;
+  FloatContent : float64;
+  Int16Content : int16;
+  BlobContent : vec nat8;
+  NestedContent : vec record { text; GenericValue };
+  Principal : principal;
+  TextContent : text;
+};
+
+type BalanceMetadata = record {
+  owner : principal;
+  details : vec record { text; GenericValue };
+  token_type : text;
+  standard : text;
+  contractId : principal;
+};
+```
+
+### Details Vec
+
+For details, there are slightly different values depending on if `token_type` = `Fungible` or `NonFungible`
+
+#### Fungible:
+
+```
+details: vec {
+  amount: GenericValue::Nat
+}
+```
+
+#### NonFungible:
+
+```
+details: vec {
+  token_id: GenericValue::Nat
 }
 ```
 
@@ -57,19 +118,23 @@ service : (principal, principal) -> {
 to create a listing that is available for direct buy, the nft must be deposited before the listing will go though.
 
 ```
+
 call approve on crowns canister for marketplace on token
 call depositNFT on marketplace canister
 call makeListing with direct_buy = true
+
 ```
 
 ### Direct Buy NFT -> `directBuy`
 
-to direct buy a listing, you must deposit funds before the direct buy will go through
+to direct buy a listing, you must deposit funds before the direct buy will go through.
 
 ```
+
 call approve on wicp for marketplace to access x tokens
 call depositFungable on marketplace canister
 call directBuy on marketplace canister for nft
+
 ```
 
 ## Offer Flow:
@@ -81,36 +146,45 @@ call directBuy on marketplace canister for nft
 To create a listing that is only available for offers, you only have to be the current owner of a given nft. No deposit required at the time of listing
 
 ```
+
 call makeListing with direct_buy = false
+
 ```
 
 ### Making an offer -> `makeOffer`
 
-- to make an offer, you must deposit tokens first
-- tokens are "locked" from withdraw until offer is denied or cancelled (both actions will attempt to auto withdraw, but if unsuccessful fall back to balance to manually withdraw)
-- when an offer is made, the tokens are locked until the offer is cancelled
+- to make an offer, you must set a proper allowance for marketplace for a users funds. This can be a one time, really high amount, or with each offer.
+- If the allowance is set with each offer, the amount allowed for marketplace should always be equal or more than the total amount offered for a user.
+- A user must also have at least the amount offered held in their wallet, this is double checked in the backend, but FE should also track a users' wallets' balances
 
 ```
+
 call approve on wicp for marketplace to access x tokens
-call depositFungable on marketplace canister
 call makeOffer for x amount of tokens
+
 ```
 
 ### Accepting an offer -> `acceptOffer`
 
 - to accept an offer, you must deposit nft at time of sale
-- the offer amount is unlocked from the buyer and will attempt to send to the seller, if unsuccessful will fallback to balance that seller can manually withdraw
+- the offer amount is automatically withdrawn from the buyer to makretplace, and will attempt to send to the seller, if unsuccessful will fallback to balance that seller can manually withdraw
 - after an offer is accepted, the offer is removed but the others remain (until denied or cancelled) and can still be accepted by the new owner
 
 ```
+
 call approve on crowns canister for marketplace on token
 call depositNFT on marketplace canister
 call acceptOffer on marketplace canister
+
 ```
 
 ### Cancelling an offer -> `cancelOffer`
 
-- when called, marketplace will unlock tokens and attempt to withdraw them automatically. If autowithdraw fails, falls back to internal balance
+```
+
+call cancelOffer on marketplace canister
+
+```
 
 ## Withdraw methods
 
@@ -124,4 +198,8 @@ These are provided as a fallback way to withdraw a purchased nft or funds that f
 ### NFT (crowns) -> `withdrawNFT`
 
 - you can only withdraw a token that is not listed for direct buy
+
+```
+
+```
 
