@@ -20,7 +20,7 @@
     "services:start": "./.scripts/deploy-all-services.sh",
     "reset": "dfx stop && rm -rf .dfx && yarn cap:reset && yarn crowns:reset && yarn wicp:reset",
     "mock:generate-tokens": "./.scripts/mocks/generate-mocks.sh",
-    "devcheck": "./.scripts/devcheck.sh"
+    "devcheck": "watch ./.scripts/devcheck.sh marketplace/src"
   },
   "repository": {
     "type": "git",
@@ -36,3 +36,4 @@
   },
   "homepage": "https://github.com/Psychedelic/nft-marketplace#readme"
 }
+

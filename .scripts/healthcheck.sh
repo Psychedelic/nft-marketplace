@@ -465,13 +465,6 @@ accept_offer() {
     "600"
   [ "$DEBUG" == 1 ] && echo $?
 
-  depositFungible \
-    "$BOB_IDENTITY_NAME" \
-    "$wicpId" \
-    "$marketplaceId" \
-    "600" 
-  [ "$DEBUG" == 1 ] && echo $?
-
   makeOffer \
     "$BOB_IDENTITY_NAME" \
     "Bob" \
@@ -508,6 +501,14 @@ accept_offer() {
     "$nft_token_id_for_alice" \
     "$BOB_PRINCIPAL_ID"
   [ "$DEBUG" == 1 ] && echo $?
+
+  echo "balance of bob"
+
+  dfx canister call marketplace serviceBalanceOf "(principal \"$(dfx --identity $BOB_IDENTITY_NAME identity get-principal)\")"
+
+  echo "balance of alice"
+
+  dfx canister call marketplace serviceBalanceOf "(principal \"$(dfx --identity $ALICE_IDENTITY_NAME identity get-principal)\")"
 
   echo "starting crowns canister to test withdraw from balance..."
 

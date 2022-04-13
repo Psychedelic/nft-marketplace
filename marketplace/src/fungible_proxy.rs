@@ -43,6 +43,19 @@ pub async fn balance_of_fungible(
     }
 }
 
+pub async fn allowance_fungible(
+    contract: &Principal,
+    marketplace_canister_id: &Principal,
+    principal: &Principal,
+    fungible_canister_standard: FungibleStandard,
+) -> NatResult {
+    match fungible_canister_standard {
+        FungibleStandard::DIP20 => {
+            Dip20Proxy::allowance(contract, principal, marketplace_canister_id).await
+        }
+    }
+}
+
 pub(crate) struct Dip20Proxy {}
 
 impl Dip20Proxy {
@@ -77,6 +90,23 @@ impl Dip20Proxy {
             ic::call(*contract, "balanceOf", (*principal,)).await;
         call_res
             .map_err(|_| MPApiError::TransferFungibleError)
+            .map(|res| res.0)
+    }
+
+    pub async fn allowance(
+        contract: &Principal,
+        principal: &Principal,
+        marketplace_canister_id: &Principal,
+    ) -> NatResult {
+        let call_res: Result<(Nat,), (RejectionCode, String)> = ic::call(
+            *contract,
+            "allowance",
+            (*principal, *marketplace_canister_id),
+        )
+        .await;
+
+        call_res
+            .map_err(|_| MPApiError::InsufficientFungibleBalance)
             .map(|res| res.0)
     }
 }
