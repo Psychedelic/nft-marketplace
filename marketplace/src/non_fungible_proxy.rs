@@ -18,7 +18,15 @@ pub async fn transfer_from_non_fungible(
 ) -> U64Result {
     match nft_type {
         NFTStandard::DIP721v2 => DIP721v2Proxy::transfer_from(from, to, token_id, contract).await,
-        NFTStandard::EXT => EXTProxy::transfer_from(from, to, &convert_nat_to_u64(token_id.clone()).unwrap(), contract).await,
+        NFTStandard::EXT => {
+            EXTProxy::transfer_from(
+                from,
+                to,
+                &convert_nat_to_u64(token_id.clone()).unwrap(),
+                contract,
+            )
+            .await
+        }
     }
 }
 

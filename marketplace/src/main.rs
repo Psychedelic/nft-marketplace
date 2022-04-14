@@ -91,7 +91,10 @@ pub async fn make_listing(
                 .caller(seller)
                 .operation("makeListing")
                 .details(vec![
-                    ("token_id".into(), DetailValue::U64(convert_nat_to_u64(token_id).unwrap())),
+                    (
+                        "token_id".into(),
+                        DetailValue::U64(convert_nat_to_u64(token_id).unwrap()),
+                    ),
                     (
                         "nft_canister_id".into(),
                         DetailValue::Principal(collection.nft_canister_id),
@@ -193,7 +196,10 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: Nat, price: Nat) -
                 .caller(buyer)
                 .operation("makeOffer")
                 .details(vec![
-                    ("token_id".into(), DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap())),
+                    (
+                        "token_id".into(),
+                        DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
+                    ),
                     (
                         "nft_canister_id".into(),
                         DetailValue::Principal(nft_canister_id),
@@ -288,7 +294,8 @@ pub async fn accept_offer(
         return Err(MPApiError::InsufficientFungibleBalance);
     }
 
-    let owner_fee: Nat = offer.price.clone() * collection.owner_fee_percentage.clone() / Nat::from(100);
+    let owner_fee: Nat =
+        offer.price.clone() * collection.owner_fee_percentage.clone() / Nat::from(100);
 
     // withdraw funds from buyer wallet to mkp
     if transfer_from_fungible(
@@ -311,7 +318,7 @@ pub async fn accept_offer(
         ));
         return Err(MPApiError::TransferFungibleError);
     } else {
-        // Successfully withdrawn from buyer wallet, transfer the funds from the MP to the seller, or fallback to balance. 
+        // Successfully withdrawn from buyer wallet, transfer the funds from the MP to the seller, or fallback to balance.
         if transfer_fungible(
             &seller,
             &(offer.price.clone() - owner_fee.clone()),
@@ -322,10 +329,10 @@ pub async fn accept_offer(
         .is_err()
         {
             balances()
-            .balances
-            .entry((collection.fungible_canister_id, seller))
-            .or_default()
-            .amount += listing.price.clone() - owner_fee.clone();
+                .balances
+                .entry((collection.fungible_canister_id, seller))
+                .or_default()
+                .amount += listing.price.clone() - owner_fee.clone();
         }
 
         // credit the owner fee to the collection owners balance
@@ -335,8 +342,6 @@ pub async fn accept_offer(
             .or_default()
             .amount += owner_fee.clone();
     }
-
-    
 
     // transfer the nft from marketplace to the buyer
     if transfer_non_fungible(
@@ -383,7 +388,10 @@ pub async fn accept_offer(
                 .caller(seller)
                 .operation("acceptOffer")
                 .details(vec![
-                    ("token_id".into(), DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap())),
+                    (
+                        "token_id".into(),
+                        DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
+                    ),
                     (
                         "nft_canister_id".into(),
                         DetailValue::Principal(nft_canister_id),
@@ -474,7 +482,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
 
     // transfer the nft from marketplace to the buyer
     if transfer_non_fungible(
-        &buyer,                          // to
+        &buyer,                           // to
         &token_id,                        // nft id
         &nft_canister_id,                 // contract
         collection.nft_canister_standard, // nft type
@@ -495,7 +503,8 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
         ));
     }
 
-    let owner_fee: Nat = listing.price.clone() * collection.owner_fee_percentage.clone() / Nat::from(100);
+    let owner_fee: Nat =
+        listing.price.clone() * collection.owner_fee_percentage.clone() / Nat::from(100);
 
     // todo: initiate transfer of fee to owner, if error fallback to credit in mp balance
 
@@ -554,7 +563,10 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
                 .caller(buyer)
                 .operation("directBuy")
                 .details(vec![
-                    ("token_id".into(), DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap())),
+                    (
+                        "token_id".into(),
+                        DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
+                    ),
                     (
                         "nft_canister_id".into(),
                         DetailValue::Principal(nft_canister_id),
@@ -674,12 +686,10 @@ pub async fn service_balance_of(pid: Principal) -> Vec<BalanceMetadata> {
                         contractId: collection.fungible_canister_id,
                         standard: collection.fungible_canister_standard.to_string(),
                         token_type: "Fungible".to_string(),
-                        details: HashMap::from([
-                            (
-                                "amount".to_string(),
-                                GenericValue::NatContent(fungible_bal.amount.clone()),
-                            ),
-                        ]),
+                        details: HashMap::from([(
+                            "amount".to_string(),
+                            GenericValue::NatContent(fungible_bal.amount.clone()),
+                        )]),
                     },
                 );
             }
@@ -892,7 +902,10 @@ pub async fn cancel_listing(nft_canister_id: Principal, token_id: Nat) -> MPApiR
                 .caller(seller)
                 .operation("cancelListing")
                 .details(vec![
-                    ("token_id".into(), DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap())),
+                    (
+                        "token_id".into(),
+                        DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
+                    ),
                     (
                         "nft_canister_id".into(),
                         DetailValue::Principal(nft_canister_id),
