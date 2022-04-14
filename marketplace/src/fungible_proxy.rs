@@ -50,9 +50,7 @@ pub async fn allowance_fungible(
     fungible_canister_standard: FungibleStandard,
 ) -> NatResult {
     match fungible_canister_standard {
-        FungibleStandard::DIP20 => {
-            Dip20Proxy::allowance(contract, owner, spender).await
-        }
+        FungibleStandard::DIP20 => Dip20Proxy::allowance(contract, owner, spender).await,
     }
 }
 
@@ -98,12 +96,8 @@ impl Dip20Proxy {
         owner: &Principal,
         spender: &Principal,
     ) -> NatResult {
-        let call_res: Result<(Nat,), (RejectionCode, String)> = ic::call(
-            *contract,
-            "allowance",
-            (*owner, *spender),
-        )
-        .await;
+        let call_res: Result<(Nat,), (RejectionCode, String)> =
+            ic::call(*contract, "allowance", (*owner, *spender)).await;
 
         call_res
             .map_err(|_| MPApiError::InsufficientFungibleAllowance)

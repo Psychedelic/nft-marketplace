@@ -34,26 +34,12 @@ pub fn init(cap: Principal, owner: Principal) {
     handshake(1_000_000_000_000, Some(cap));
 }
 
-// LIST FOR SALE
-// params:
-//  `collection_id` : pid of nft collection
-//  `token_id`      : id of token listing for
-//  `direct_buy`    : bool, if true deposit is required with listing (check if collection owns)
-//  `price`         : nat,
-//
-// 1) check ownership:
-//    (direct_buy ? (owner(token) = marketplace) : (owner(token) = caller))
-// 2) cap event:
-//    token_id
-//    nft collection id
-//    price
-//    listing uuid
 #[update(name = "makeListing")]
 #[candid_method(update, rename = "makeListing")]
 pub async fn make_listing(
     direct_buy: bool,
     nft_canister_id: Principal,
-    token_id: u64,
+    token_id: Nat,
     price: Nat,
 ) -> MPApiResult {
     // Todo: if caller is a curator pid, handle fees
@@ -105,7 +91,10 @@ pub async fn make_listing(
                 .caller(seller)
                 .operation("makeListing")
                 .details(vec![
-                    ("token_id".into(), DetailValue::U64(token_id)),
+                    (
+                        "token_id".into(),
+                        DetailValue::U64(convert_nat_to_u64(token_id).unwrap()),
+                    ),
                     (
                         "nft_canister_id".into(),
                         DetailValue::Principal(collection.nft_canister_id),
@@ -134,7 +123,7 @@ pub async fn make_listing(
 
 #[update(name = "makeOffer")]
 #[candid_method(update, rename = "makeOffer")]
-pub async fn make_offer(nft_canister_id: Principal, token_id: u64, price: Nat) -> MPApiResult {
+pub async fn make_offer(nft_canister_id: Principal, token_id: Nat, price: Nat) -> MPApiResult {
     let buyer = ic::caller();
     let self_id = ic::id();
     let mut mp = marketplace();
@@ -207,7 +196,10 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: u64, price: Nat) -
                 .caller(buyer)
                 .operation("makeOffer")
                 .details(vec![
-                    ("token_id".into(), DetailValue::U64(token_id.clone())),
+                    (
+                        "token_id".into(),
+                        DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
+                    ),
                     (
                         "nft_canister_id".into(),
                         DetailValue::Principal(nft_canister_id),
@@ -230,7 +222,7 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: u64, price: Nat) -
 #[candid_method(update, rename = "acceptOffer")]
 pub async fn accept_offer(
     nft_canister_id: Principal,
-    token_id: u64,
+    token_id: Nat,
     buyer: Principal,
 ) -> MPApiResult {
     let seller = ic::caller();
@@ -244,7 +236,7 @@ pub async fn accept_offer(
         .alt_offers
         .entry(nft_canister_id)
         .or_default()
-        .entry(token_id)
+        .entry(token_id.clone())
         .or_default();
 
     let offer = offers.get_mut(&buyer).ok_or(MPApiError::InvalidListing)?;
@@ -270,6 +262,8 @@ pub async fn accept_offer(
 
     // guarding agains reentrancy
     listing.status = ListingStatus::Selling;
+
+    // Withdraw
 
     // check if marketplace has allowance
     let allowance = allowance_fungible(
@@ -300,14 +294,8 @@ pub async fn accept_offer(
         return Err(MPApiError::InsufficientFungibleBalance);
     }
 
-    let owner_fee: Nat = offer.price.clone() * collection.owner_fee_percentage / 100;
-
-    // credit the owner fee to the collection owners balance
-    balances()
-        .balances
-        .entry((collection.fungible_canister_id, collection.owner))
-        .or_default()
-        .amount += owner_fee.clone();
+    let owner_fee: Nat =
+        offer.price.clone() * collection.owner_fee_percentage.clone() / Nat::from(100);
 
     // withdraw funds from buyer wallet to mkp
     if transfer_from_fungible(
@@ -330,7 +318,7 @@ pub async fn accept_offer(
         ));
         return Err(MPApiError::TransferFungibleError);
     } else {
-        // Successfully withdrawn from buyer wallet, transfer the funds from the MP to the seller, or fallback to balance. 
+        // Successfully withdrawn from buyer wallet, transfer the funds from the MP to the seller, or fallback to balance.
         if transfer_fungible(
             &seller,
             &(offer.price.clone() - owner_fee.clone()),
@@ -341,11 +329,18 @@ pub async fn accept_offer(
         .is_err()
         {
             balances()
-            .balances
-            .entry((collection.fungible_canister_id, seller))
-            .or_default()
-            .amount += listing.price.clone() - owner_fee.clone();
+                .balances
+                .entry((collection.fungible_canister_id, seller))
+                .or_default()
+                .amount += listing.price.clone() - owner_fee.clone();
         }
+
+        // credit the owner fee to the collection owners balance
+        balances()
+            .balances
+            .entry((collection.fungible_canister_id, collection.owner))
+            .or_default()
+            .amount += owner_fee.clone();
     }
 
     // transfer the nft from marketplace to the buyer
@@ -393,7 +388,10 @@ pub async fn accept_offer(
                 .caller(seller)
                 .operation("acceptOffer")
                 .details(vec![
-                    ("token_id".into(), DetailValue::U64(token_id.clone())),
+                    (
+                        "token_id".into(),
+                        DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
+                    ),
                     (
                         "nft_canister_id".into(),
                         DetailValue::Principal(nft_canister_id),
@@ -419,7 +417,7 @@ pub async fn accept_offer(
 
 #[update(name = "directBuy")]
 #[candid_method(update, rename = "directBuy")]
-pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResult {
+pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResult {
     let buyer = ic::caller();
     let self_id = ic::id();
     let mut mp = marketplace();
@@ -484,7 +482,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
 
     // transfer the nft from marketplace to the buyer
     if transfer_non_fungible(
-        &buyer,                          // to
+        &buyer,                           // to
         &token_id,                        // nft id
         &nft_canister_id,                 // contract
         collection.nft_canister_standard, // nft type
@@ -505,7 +503,8 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
         ));
     }
 
-    let owner_fee: Nat = listing.price.clone() * collection.owner_fee_percentage / 100;
+    let owner_fee: Nat =
+        listing.price.clone() * collection.owner_fee_percentage.clone() / Nat::from(100);
 
     // todo: initiate transfer of fee to owner, if error fallback to credit in mp balance
 
@@ -552,7 +551,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
     // remove listing
     mp.listings.remove(&(nft_canister_id, token_id.clone()));
 
-    if (buyer_bal.amount.clone() == 0) {
+    if (buyer_bal.amount.clone() == Nat::from(0)) {
         balances()
             .balances
             .remove(&(collection.fungible_canister_id, buyer));
@@ -564,7 +563,10 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
                 .caller(buyer)
                 .operation("directBuy")
                 .details(vec![
-                    ("token_id".into(), DetailValue::U64(token_id.clone())),
+                    (
+                        "token_id".into(),
+                        DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
+                    ),
                     (
                         "nft_canister_id".into(),
                         DetailValue::Principal(nft_canister_id),
@@ -589,7 +591,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: u64) -> MPApiResul
 
 #[query(name = "getAllListings")]
 #[candid_method(query, rename = "getAllListings")]
-pub async fn get_all_listings() -> Vec<((Principal, u64), Listing)> {
+pub async fn get_all_listings() -> Vec<((Principal, Nat), Listing)> {
     marketplace()
         .listings
         .clone()
@@ -600,7 +602,7 @@ pub async fn get_all_listings() -> Vec<((Principal, u64), Listing)> {
 
 #[query(name = "getAllOffers")]
 #[candid_method(query, rename = "getAllOffers")]
-pub async fn get_all_offers() -> HashMap<Principal, HashMap<u64, HashMap<Principal, Offer>>> {
+pub async fn get_all_offers() -> HashMap<Principal, HashMap<Nat, HashMap<Principal, Offer>>> {
     marketplace().alt_offers.clone()
 }
 
@@ -638,7 +640,7 @@ pub async fn service_balance_of(pid: Principal) -> Vec<BalanceMetadata> {
     // index all registered collections
     for collection in collections {
         if !total_balances.contains_key(&collection.nft_canister_id) {
-            let nft_bal: Vec<u64> = balances()
+            let nft_bal: Vec<Nat> = balances()
                 .nft_balances
                 .clone()
                 .into_iter()
@@ -684,12 +686,10 @@ pub async fn service_balance_of(pid: Principal) -> Vec<BalanceMetadata> {
                         contractId: collection.fungible_canister_id,
                         standard: collection.fungible_canister_standard.to_string(),
                         token_type: "Fungible".to_string(),
-                        details: HashMap::from([
-                            (
-                                "amount".to_string(),
-                                GenericValue::NatContent(fungible_bal.amount.clone()),
-                            ),
-                        ]),
+                        details: HashMap::from([(
+                            "amount".to_string(),
+                            GenericValue::NatContent(fungible_bal.amount.clone()),
+                        )]),
                     },
                 );
             }
@@ -705,7 +705,7 @@ pub async fn service_balance_of(pid: Principal) -> Vec<BalanceMetadata> {
  */
 #[update(name = "depositNFT")]
 #[candid_method(update, rename = "depositNFT")]
-pub async fn deposit_nft(nft_canister_id: Principal, token_id: u64) -> MPApiResult {
+pub async fn deposit_nft(nft_canister_id: Principal, token_id: Nat) -> MPApiResult {
     let caller = ic::caller();
     let self_id = ic::id();
     let collection = collections()
@@ -737,7 +737,7 @@ pub async fn deposit_nft(nft_canister_id: Principal, token_id: u64) -> MPApiResu
 
 #[update(name = "withdrawNFT")]
 #[candid_method(update, rename = "withdrawNFT")]
-pub async fn withdraw_nft(nft_canister_id: Principal, token_id: u64) -> MPApiResult {
+pub async fn withdraw_nft(nft_canister_id: Principal, token_id: Nat) -> MPApiResult {
     let caller = ic::caller();
     let self_id = ic::id();
     let collection = collections()
@@ -876,7 +876,7 @@ pub async fn withdraw_fungible(
 
 #[update(name = "cancelListing")]
 #[candid_method(update, rename = "cancelListing")]
-pub async fn cancel_listing(nft_canister_id: Principal, token_id: u64) -> MPApiResult {
+pub async fn cancel_listing(nft_canister_id: Principal, token_id: Nat) -> MPApiResult {
     let seller = ic::caller();
     let mut mp = marketplace();
     let listing = mp
@@ -902,7 +902,10 @@ pub async fn cancel_listing(nft_canister_id: Principal, token_id: u64) -> MPApiR
                 .caller(seller)
                 .operation("cancelListing")
                 .details(vec![
-                    ("token_id".into(), DetailValue::U64(token_id)),
+                    (
+                        "token_id".into(),
+                        DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
+                    ),
                     (
                         "nft_canister_id".into(),
                         DetailValue::Principal(nft_canister_id),
@@ -923,7 +926,7 @@ pub async fn cancel_listing(nft_canister_id: Principal, token_id: u64) -> MPApiR
 
 #[update(name = "cancelOffer")]
 #[candid_method(update, rename = "cancelOffer")]
-pub async fn cancel_offer(nft_canister_id: Principal, token_id: u64) -> MPApiResult {
+pub async fn cancel_offer(nft_canister_id: Principal, token_id: Nat) -> MPApiResult {
     let buyer = ic::caller();
     let mut mp = marketplace();
 
@@ -931,7 +934,7 @@ pub async fn cancel_offer(nft_canister_id: Principal, token_id: u64) -> MPApiRes
         .alt_offers
         .entry(nft_canister_id)
         .or_default()
-        .entry(token_id)
+        .entry(token_id.clone())
         .or_default();
 
     offers.remove(&buyer);
@@ -940,7 +943,7 @@ pub async fn cancel_offer(nft_canister_id: Principal, token_id: u64) -> MPApiRes
         mp.alt_offers
             .entry(nft_canister_id)
             .or_default()
-            .remove(&token_id);
+            .remove(&token_id.clone());
     }
 
     capq()
@@ -984,8 +987,6 @@ pub async fn deny_offer(buy_id: u64) -> MPApiResult {
 
     offer.status = OfferStatus::Denied;
 
-    // todo refund deposit logic
-
     capq()
         .insert_into_cap(
             IndefiniteEventBuilder::new()
@@ -1005,7 +1006,7 @@ pub async fn deny_offer(buy_id: u64) -> MPApiResult {
 #[candid_method(update, rename = "addCollection")]
 fn add_collection(
     owner: Principal,
-    owner_fee_percentage: u16,
+    owner_fee_percentage: Nat,
     creation_time: u64,
     collection_name: String,
     nft_canister_id: Principal,
