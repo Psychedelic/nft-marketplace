@@ -12,19 +12,19 @@ use ic_kit::{
 pub async fn transfer_from_non_fungible(
     from: &Principal,
     to: &Principal,
-    nft_id: &u64,
+    token_id: &Nat,
     contract: &Principal,
     nft_type: NFTStandard,
 ) -> U64Result {
     match nft_type {
-        NFTStandard::DIP721v2 => DIP721v2Proxy::transfer_from(from, to, nft_id, contract).await,
-        NFTStandard::EXT => EXTProxy::transfer_from(from, to, nft_id, contract).await,
+        NFTStandard::DIP721v2 => DIP721v2Proxy::transfer_from(from, to, token_id, contract).await,
+        NFTStandard::EXT => EXTProxy::transfer_from(from, to, &convert_nat_to_u64(token_id.clone()).unwrap(), contract).await,
     }
 }
 
 pub async fn transfer_non_fungible(
     to: &Principal,
-    token_id: &u64,
+    token_id: &Nat,
     contract: &Principal,
     nft_type: NFTStandard,
 ) -> Result<Nat, MPApiError> {
@@ -36,7 +36,7 @@ pub async fn transfer_non_fungible(
 
 pub async fn owner_of_non_fungible(
     contract: &Principal,
-    token_id: &u64,
+    token_id: &Nat,
     nft_type: NFTStandard,
 ) -> PrincipalResult {
     match nft_type {
@@ -51,7 +51,7 @@ impl DIP721v2Proxy {
     pub async fn transfer_from(
         from: &Principal,
         to: &Principal,
-        token_id: &u64,
+        token_id: &Nat,
         contract: &Principal,
     ) -> U64Result {
         let call_res: Result<(Result<Nat, NftError>,), (RejectionCode, String)> = ic::call(
@@ -71,7 +71,7 @@ impl DIP721v2Proxy {
     pub async fn transfer(
         contract: &Principal,
         to: &Principal,
-        token_id: &u64,
+        token_id: &Nat,
     ) -> Result<Nat, MPApiError> {
         let call_res: Result<(Result<Nat, NftError>,), (RejectionCode, String)> =
             ic::call(*contract, "transfer", (*to, Nat::from(token_id.clone()))).await;
@@ -90,7 +90,7 @@ impl DIP721v2Proxy {
 
     pub async fn owner_of(
         contract: &Principal,
-        token_id: &u64,
+        token_id: &Nat,
     ) -> Result<Option<Principal>, MPApiError> {
         let call_res: Result<(Result<Option<Principal>, NftError>,), (RejectionCode, String)> =
             ic::call(*contract, "ownerOf", (Nat::from(token_id.clone()),)).await;
@@ -108,7 +108,7 @@ impl EXTProxy {
     pub async fn transfer_from(
         from: &Principal,
         to: &Principal,
-        nft_id: &u64,
+        token_id: &u64,
         contract: &Principal,
     ) -> U64Result {
         let call_res: Result<(TxReceiptDIP721v2,), (RejectionCode, String)> = ic::call(
@@ -117,7 +117,7 @@ impl EXTProxy {
             (TransferRequest {
                 from: User::principal(from.clone()),
                 to: User::principal(to.clone()),
-                token: nft_id.clone(),
+                token: token_id.clone(),
                 amount: Nat::from(1),
                 memo: vec![],
                 notify: false,
@@ -134,14 +134,15 @@ impl EXTProxy {
 
     pub async fn transfer(
         to: &Principal,
-        nft_id: &u64,
+        token_id: &Nat,
         contract: &Principal,
     ) -> Result<Nat, MPApiError> {
-        let res = DIP721v2Proxy::transfer_from(&ic::caller(), to, nft_id, contract).await;
+        // // let res = DIP721v2Proxy::transfer_from(&ic::caller(), to, token_id.clone(), contract).await;
 
-        match res {
-            Ok(val) => Ok(Nat::from(val)),
-            _ => Err(MPApiError::TransferFungibleError),
-        }
+        // match res {
+        //     Ok(val) => Ok(Nat::from(val)),
+        //     _ => Err(MPApiError::TransferFungibleError),
+        // }
+        Ok(Nat::from(0))
     }
 }

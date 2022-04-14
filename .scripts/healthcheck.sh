@@ -192,7 +192,7 @@ addCrownCollection() {
 
   # Interface
   # owner: Principal,
-  # owner_fee_percentage: u16,
+  # owner_fee_percentage: Nat,
   # creation_time: u64,
   # collection_name: String,
   # non_fungible_contract_address: Principal,
@@ -204,7 +204,7 @@ addCrownCollection() {
     call --update "$_marketplaceId" \
     addCollection "(
         principal \"$_ownerPrincipalId\",
-        ($_fee:nat16),
+        ($_fee:nat),
         ($_creationTime:nat64),
         \"$_collectionName\",
         principal \"$_nonFungibleContractAddress\",

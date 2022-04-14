@@ -54,7 +54,7 @@ impl Default for Listing {
 #[derive(Clone, CandidType, Debug, Deserialize, PartialEq, new)]
 pub struct Offer {
     pub nft_canister_id: Principal,
-    pub token_id: u64,
+    pub token_id: Nat,
     pub price: Nat,
     pub payment_address: Principal,
     pub status: OfferStatus,
@@ -63,7 +63,7 @@ pub struct Offer {
 #[derive(Clone, CandidType, Deserialize, new)]
 pub struct Collection {
     pub owner: Principal,
-    pub owner_fee_percentage: u16,
+    pub owner_fee_percentage: Nat,
     pub creation_time: u64,
     pub collection_name: String,
     pub nft_canister_id: Principal,
@@ -87,7 +87,7 @@ pub struct FungibleBalance {
 pub struct Balances {
     // (collection, user pid): value
     pub balances: HashMap<(Principal, Principal), FungibleBalance>,
-    pub nft_balances: HashMap<(Principal, u64), Principal>,
+    pub nft_balances: HashMap<(Principal, Nat), Principal>,
     pub failed_tx_log_entries: Vec<TxLogEntry>,
 }
 
@@ -101,9 +101,10 @@ pub struct TxLogEntry {
 #[derive(Default)]
 pub(crate) struct Marketplace {
     // (collection, token): listing
-    pub listings: HashMap<(Principal, u64), Listing>,
+    pub listings: HashMap<(Principal, Nat), Listing>,
+
     // collection: { token: { principal: offer } }
-    pub alt_offers: HashMap<Principal, HashMap<u64, HashMap<Principal, Offer>>>,
+    pub alt_offers: HashMap<Principal, HashMap<Nat, HashMap<Principal, Offer>>>,
     pub offers: Vec<Offer>,
 }
 

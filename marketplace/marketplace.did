@@ -51,7 +51,7 @@ type MPApiError = variant {
 type NFTStandard = variant { EXT; DIP721v2 };
 type Offer = record {
   status : OfferStatus;
-  token_id : nat64;
+  token_id : nat;
   price : nat;
   payment_address : principal;
   nft_canister_id : principal;
@@ -65,10 +65,10 @@ type OfferStatus = variant {
 };
 type Result = variant { Ok; Err : MPApiError };
 service : (principal, principal) -> {
-  acceptOffer : (principal, nat64, principal) -> (Result);
+  acceptOffer : (principal, nat, principal) -> (Result);
   addCollection : (
       principal,
-      nat16,
+      nat,
       nat64,
       text,
       principal,
@@ -77,27 +77,27 @@ service : (principal, principal) -> {
       FungibleStandard,
     ) -> (Result);
   balanceOf : (principal) -> (vec record { principal; FungibleBalance }) query;
-  cancelListing : (principal, nat64) -> (Result);
-  cancelOffer : (principal, nat64) -> (Result);
+  cancelListing : (principal, nat) -> (Result);
+  cancelOffer : (principal, nat) -> (Result);
   denyOffer : (nat64) -> (Result);
   depositFungible : (principal, FungibleStandard, nat) -> (Result);
-  depositNFT : (principal, nat64) -> (Result);
-  directBuy : (principal, nat64) -> (Result);
+  depositNFT : (principal, nat) -> (Result);
+  directBuy : (principal, nat) -> (Result);
   getAllBalances : () -> (
       vec record { record { principal; principal }; FungibleBalance },
     ) query;
   getAllListings : () -> (
-      vec record { record { principal; nat64 }; Listing },
+      vec record { record { principal; nat }; Listing },
     ) query;
   getAllOffers : () -> (
       vec record {
         principal;
-        vec record { nat64; vec record { principal; Offer } };
+        vec record { nat; vec record { principal; Offer } };
       },
     ) query;
-  makeListing : (bool, principal, nat64, nat) -> (Result);
-  makeOffer : (principal, nat64, nat) -> (Result);
+  makeListing : (bool, principal, nat, nat) -> (Result);
+  makeOffer : (principal, nat, nat) -> (Result);
   serviceBalanceOf : (principal) -> (vec BalanceMetadata) query;
   withdrawFungible : (principal, FungibleStandard) -> (Result);
-  withdrawNFT : (principal, nat64) -> (Result);
+  withdrawNFT : (principal, nat) -> (Result);
 }
