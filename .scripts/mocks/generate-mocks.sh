@@ -9,6 +9,7 @@
 
 # The NFT Canister id
 nftCanisterId=$(cd crowns && dfx canister id crowns)
+wicpCanisterId=$(cd  wicp && dfx canister id wicp)
 
 # The total tokens to generate
 totalNumberOfTokens=$1
@@ -124,6 +125,28 @@ userIdentityWarning() {
   fi
 }
 
+topupWicp() {
+  _to_principal=$1
+  _wicp_amount=$2
+
+  printf "🤖 Topup (%s) WICP for user (%s)\n" "$_wicp_amount" "$_to_principal"
+
+  dfx canister --network local \
+    call --update "$wicpCanisterId" \
+    transfer "( 
+      principal \"$_to_principal\",
+      $_wicp_amount:nat
+    )"
+
+  printf "🤖 The balanceOf user (%s) is\n" "$_to_principal"
+
+  dfx canister --network local \
+    call --update "$wicpCanisterId" \
+    balanceOf "( 
+      principal \"$_to_principal\"
+    )"
+}
+
 generatorHandler() {
   _identityName=$1
   _userPrincipal=$2
@@ -134,6 +157,7 @@ generatorHandler() {
     do 
       printf "🤖 Will generate token mock for identity (%s), userPrincipal (%s), total (%s)\n\n" "$_identityName" "$_userPrincipal" "$_total"
       generateMock "$_identityName" "$_userPrincipal"
+      topupWicp "$_userPrincipal" 1_000_000_000
   done
 }
 
