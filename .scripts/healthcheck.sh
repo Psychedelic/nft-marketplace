@@ -262,7 +262,7 @@ depositNFT() {
     --update $_marketplaceId depositNFT \
     "(
       principal \"$_nonFungibleContractAddress\",
-      $_token_id:nat64
+      $_token_id:nat
     )"
 }
 
@@ -279,7 +279,7 @@ withdrawNFT() {
     --update $_marketplaceId withdrawNFT \
     "(
       principal \"$_nonFungibleContractAddress\",
-      $_token_id:nat64
+      $_token_id:nat
     )"
 }
 
@@ -346,7 +346,7 @@ makeOffer() {
     canister call --update "$_marketplaceId" \
     makeOffer "(
       principal \"$_nonFungibleContractAddress\",
-      ($_token_id:nat64),
+      ($_token_id:nat),
       ($_offer_price:nat)
     )"
 }
@@ -421,7 +421,7 @@ acceptOffer() {
     call --update "$_marketplaceId" \
     acceptOffer "(
       principal \"$_nonFungibleContractAddress\",
-      $_token_id:nat64,
+      $_token_id:nat,
       principal \"$_buyerId\"
     )"
 }
@@ -439,7 +439,7 @@ directBuy() {
     --update $_marketplaceId directBuy \
     "(
       principal \"$nonFungibleContractAddress\",
-      $_token_id:nat64
+      $_token_id:nat
     )"
 }
 
@@ -608,23 +608,11 @@ run() {
     "$BOB_PRINCIPAL_ID" \
     "100_000_000"
   [ "$DEBUG" == 1 ] && echo $?
-  
-  allowancesForWICP \
-    "$wicpId" \
-    "$marketplaceId" \
-    "50_000_000"
-  [ "$DEBUG" == 1 ] && echo $?
 
   mintDip721 \
     "Alice" \
     "$ALICE_PRINCIPAL_ID" \
     "$nonFungibleContractAddress"
-  [ "$DEBUG" == 1 ] && echo $?
-
-  allowancesForDIP721 \
-    "$nonFungibleContractAddress" \
-    "$marketplaceId" \
-    "$nft_token_id_for_alice"
   [ "$DEBUG" == 1 ] && echo $?
 
   addCrownCollection \
