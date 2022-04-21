@@ -141,8 +141,8 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: Nat, price: Nat) -
     // check if marketplace has allowance
     let allowance = allowance_fungible(
         &collection.fungible_canister_id,
-        &self_id,
         &buyer,
+        &self_id,
         collection.fungible_canister_standard.clone(),
     )
     .await;
@@ -268,8 +268,8 @@ pub async fn accept_offer(
     // check if marketplace has allowance
     let allowance = allowance_fungible(
         &collection.fungible_canister_id,
-        &self_id,
         &buyer,
+        &self_id,
         collection.fungible_canister_standard.clone(),
     )
     .await;
