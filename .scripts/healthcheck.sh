@@ -631,9 +631,8 @@ run() {
     10 \
     0
   [ "$DEBUG" == 1 ] && echo $?
-
-  direct_buy $ALICE_IDENTITY_NAME $BOB_IDENTITY_NAME
-  accept_offer $BOB_IDENTITY_NAME $ALICE_IDENTITY_NAME
+  direct_buy $BOB_IDENTITY_NAME $ALICE_IDENTITY_NAME
+  accept_offer $ALICE_IDENTITY_NAME $BOB_IDENTITY_NAME
 
   echo "👍 Healthcheck completed!"
 
