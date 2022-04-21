@@ -170,13 +170,13 @@ userTotal=$((dividedTotal + (totalNumberOfTokens - (dividedTotal*3))))
 # as the end user will be interacting with the Marketplace via Plug's
 userIdentityWarning "$DEFAULT_PRINCIPAL_ID"
 
-# # generates mock data for the dfx user principal
+# generates mock data for the dfx user principal
 generatorHandler "$INITIAL_IDENTITY" "$DEFAULT_PRINCIPAL_ID" "$userTotal"
 
-# # generates mock data for Alice
+# generates mock data for Alice
 generatorHandler "$ALICE_IDENTITY_NAME" "$ALICE_PRINCIPAL_ID" "$dividedTotal"
 
-# # generates mock data for Bob
+# generates mock data for Bob
 generatorHandler "$BOB_IDENTITY_NAME" "$BOB_PRINCIPAL_ID" "$dividedTotal"
 
 printf "💡 Use the identities in DFX Cli by providing it via flag --identity\n"
