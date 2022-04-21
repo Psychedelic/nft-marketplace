@@ -84,14 +84,14 @@ mintDip721() {
 
   echo $mainnetMetadataResult
 
-  nft_token_id_for_alice=$(echo "$example_nft + 10000" | bc) # shift out of crowns index space
+  nft_token_id=$(echo "$example_nft + 10000" | bc) # shift out of crowns index space
 
   _result=$(
     dfx canister \
       call --update "$_nonFungibleContractAddress" \
       mint "(
         principal \"$_mint_for\",
-        $nft_token_id_for_alice:nat,
+        $nft_token_id:nat,
         vec {
           record {
             \"smallgem\";
@@ -133,7 +133,7 @@ mintDip721() {
       )"
   )
 
-  printf "🤖 Minted Dip721 for user %s, has token ID (%s)\n" "$_name" "$nft_token_id_for_alice"
+  printf "🤖 Minted Dip721 for user %s, has token ID (%s)\n" "$_name" "$nft_token_id"
 
   printf "🤖 The Balance for user %s of id (%s)\n" "$_name" "$_mint_for"
 
@@ -446,11 +446,14 @@ directBuy() {
 accept_offer() {
   printf "\n🌊 Make/Accept Offer Flow\n\n"
 
+  user1=$1
+  user2=$2
+
   makeListing \
-    "$ALICE_IDENTITY_NAME" \
+    "$user1" \
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
-    "$nft_token_id_for_alice" \
+    "$nft_token_id" \
     "1_200" \
     "false"
   [ "$DEBUG" == 1 ] && echo $?
@@ -459,17 +462,17 @@ accept_offer() {
   [ "$DEBUG" == 1 ] && echo $?
 
   approveFungible \
-    "$BOB_IDENTITY_NAME" \
+    "$user2" \
     "$wicpId" \
     "$marketplaceId" \
     "600"
   [ "$DEBUG" == 1 ] && echo $?
 
   makeOffer \
-    "$BOB_IDENTITY_NAME" \
+    "$user2" \
     "Bob" \
     "$nonFungibleContractAddress" \
-    "$nft_token_id_for_alice" \
+    "$nft_token_id" \
     "600"
   [ "$DEBUG" == 1 ] && echo $?
 
@@ -477,17 +480,17 @@ accept_offer() {
   [ "$DEBUG" == 1 ] && echo $?
 
   approveNFT \
-    "$ALICE_IDENTITY_NAME" \
+    "$user1" \
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
-    "$nft_token_id_for_alice"
+    "$nft_token_id"
   [ "$DEBUG" == 1 ] && echo $?
 
   depositNFT \
-    "$ALICE_IDENTITY_NAME" \
+    "$user1" \
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
-    "$nft_token_id_for_alice" 
+    "$nft_token_id" 
   [ "$DEBUG" == 1 ] && echo $?
 
   echo "halting crowns cansiter to test balance fallback..."
@@ -495,16 +498,17 @@ accept_offer() {
   $(cd crowns && dfx canister stop crowns)
 
   acceptOffer \
-    "$ALICE_IDENTITY_NAME" \
+    "$user1" \
     "$marketplaceId" \
     "$nonFungibleContractAddress" \
-    "$nft_token_id_for_alice" \
+    "$nft_token_id" \
     "$BOB_PRINCIPAL_ID"
   [ "$DEBUG" == 1 ] && echo $?
 
+
   echo "balance of bob"
 
-  dfx canister call marketplace serviceBalanceOf "(principal \"$(dfx --identity $BOB_IDENTITY_NAME identity get-principal)\")"
+  dfx canister call marketplace serviceBalanceOf "(principal \"$(dfx --identity $user2 identity get-principal)\")"
 
   echo "balance of alice"
 
@@ -515,10 +519,10 @@ accept_offer() {
   $(cd crowns && dfx canister start crowns)
 
   withdrawNFT \
-    "$BOB_IDENTITY_NAME" \
+    "$user2" \
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
-    "$nft_token_id_for_alice" 
+    "$nft_token_id" 
 
   getAllBalances "$marketplaceId"
   [ "$DEBUG" == 1 ] && echo $?
@@ -530,25 +534,28 @@ accept_offer() {
 direct_buy() {
   printf "\n🌊 Direct Buy Flow\n\n"
 
+  user1=$1
+  user2=$2
+
   approveNFT \
-    "$BOB_IDENTITY_NAME" \
+    "$user1" \
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
-    "$nft_token_id_for_alice"
+    "$nft_token_id"
   [ "$DEBUG" == 1 ] && echo $?
 
   depositNFT \
-    "$BOB_IDENTITY_NAME" \
+    "$user1" \
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
-    "$nft_token_id_for_alice" 
+    "$nft_token_id" 
   [ "$DEBUG" == 1 ] && echo $?
   
   makeListing \
-    "$BOB_IDENTITY_NAME" \
+    "$user1" \
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
-    "$nft_token_id_for_alice" \
+    "$nft_token_id" \
     "500" \
     "true"
   [ "$DEBUG" == 1 ] && echo $?
@@ -557,14 +564,14 @@ direct_buy() {
   [ "$DEBUG" == 1 ] && echo $?
 
   approveFungible \
-    "$ALICE_IDENTITY_NAME" \
+    "$user2" \
     "$wicpId" \
     "$marketplaceId" \
     "500"
   [ "$DEBUG" == 1 ] && echo $?
 
   depositFungible \
-    "$ALICE_IDENTITY_NAME" \
+    "$user2" \
     "$wicpId" \
     "$marketplaceId" \
     "500" 
@@ -574,10 +581,10 @@ direct_buy() {
   $(cd wicp && dfx canister stop wicp)
 
   directBuy \
-    "$ALICE_IDENTITY_NAME" \
+    "$user2" \
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
-    "$nft_token_id_for_alice" 
+    "$nft_token_id" 
   [ "$DEBUG" == 1 ] && echo $?
 
   getAllBalances "$marketplaceId"
@@ -587,7 +594,7 @@ direct_buy() {
   $(cd wicp && dfx canister start wicp)
 
   withdrawFungible \
-    "$BOB_IDENTITY_NAME" \
+    "$user1" \
     "$wicpId" \
     "$marketplaceId"
   [ "$DEBUG" == 1 ] && echo $?
@@ -625,8 +632,8 @@ run() {
     0
   [ "$DEBUG" == 1 ] && echo $?
 
-  accept_offer
-  direct_buy
+  direct_buy $ALICE_IDENTITY_NAME $BOB_IDENTITY_NAME
+  accept_offer $BOB_IDENTITY_NAME $ALICE_IDENTITY_NAME
 
   echo "👍 Healthcheck completed!"
 
