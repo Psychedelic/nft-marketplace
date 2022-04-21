@@ -2,9 +2,8 @@
 
 # set -x
 
-(cd "$(dirname $BASH_SOURCE)" && cd ../../) || exit 1
+cd "$(dirname $BASH_SOURCE)" && cd ../../ || exit 1
 
-# . ".scripts/mocks/identity-mocks.sh"
 . ".scripts/dfx-identity.sh"
 
 # The NFT Canister id
@@ -165,7 +164,7 @@ generatorHandler() {
 dividedTotal=$((totalNumberOfTokens / 3))
 dividedTotal=$(echo "$dividedTotal" | awk '{print int($1+0.5)}')
 
-userTotal=$((dividedTotal + (totalNumberOfTokens - ($dividedTotal*3))))
+userTotal=$((dividedTotal + (totalNumberOfTokens - (dividedTotal*3))))
 
 # Warn the user about identity requirement
 # as the end user will be interacting with the Marketplace via Plug's
@@ -186,3 +185,7 @@ printf "to create the necessary use-case scenarios throughout development\n"
 printf "\n"
 printf "👩🏽‍🦰 Alice identity name (%s)\n" "$ALICE_IDENTITY_NAME"
 printf "👨🏽‍🦰 Bob identity name (%s)\n" "$BOB_IDENTITY_NAME"
+
+printf "✍️ Add collection to Marketplace\n"
+
+./.scripts/add-collection.sh
