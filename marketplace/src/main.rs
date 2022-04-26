@@ -10,7 +10,7 @@ use cap_sdk::{
     handshake, insert, DetailValue, Event, IndefiniteEvent, IndefiniteEventBuilder, TypedEvent,
 };
 use ic_kit::{
-    candid::{candid_method, encode_args, CandidType, Deserialize, Nat},
+    candid::{candid_method, encode_args, CandidType, Deserialize, Nat, export_service},
     ic,
     interfaces::{management, Method},
     macros::*,
@@ -1058,4 +1058,10 @@ fn main() {}
 fn main() {
     candid::export_service!();
     std::print!("{}", __export_service());
+}
+
+#[query(name = "__get_candid_interface_tmp_hack")]
+fn export_candid() -> String {
+    export_service!();
+    __export_service()
 }
