@@ -521,13 +521,6 @@ direct_buy() {
     "$marketplaceId" \
     "$nft_token_id"
   [ "$DEBUG" == 1 ] && echo $?
-
-  # depositNFT \
-  #   "$user1" \
-  #   "$nonFungibleContractAddress" \
-  #   "$marketplaceId" \
-  #   "$nft_token_id" 
-  # [ "$DEBUG" == 1 ] && echo $?
   
   makeListing \
     "$user1" \
