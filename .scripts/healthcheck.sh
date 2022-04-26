@@ -249,40 +249,6 @@ withdrawFungible() {
     )"
 }
 
-depositNFT() {
-  echo "🤖 Deposit NFT"
-  
-  _identityName=$1
-  _nonFungibleContractAddress=$2
-  _marketplaceId=$3
-  _token_id=$4
-
-  dfx --identity "$_identityName" \
-    canister call \
-    --update $_marketplaceId depositNFT \
-    "(
-      principal \"$_nonFungibleContractAddress\",
-      $_token_id:nat
-    )"
-}
-
-withdrawNFT() {
-  echo "🤖 Withdraw NFT"
-
-  _identityName=$1
-  _nonFungibleContractAddress=$2
-  _marketplaceId=$3
-  _token_id=$4
-
-  dfx --identity "$_identityName" \
-    canister call \
-    --update $_marketplaceId withdrawNFT \
-    "(
-      principal \"$_nonFungibleContractAddress\",
-      $_token_id:nat
-    )"
-}
-
 getAllBalances() {
     printf "🤖 Call getAllBalances (fungibles)\n"
 
