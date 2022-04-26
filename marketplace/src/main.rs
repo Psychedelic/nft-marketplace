@@ -66,9 +66,9 @@ pub async fn make_listing(
         &token_id,
         collection.nft_canister_standard,
     )
-    .await?;
+    .await?.ok_or(MPApiError::InvalidOperator)?;
 
-    if (token_operator.unwrap() != self_id) {
+    if (token_operator != self_id) {
         return Err(MPApiError::InvalidOperator);
     }
 
@@ -258,20 +258,34 @@ pub async fn accept_offer(
         .get_mut(&(nft_canister_id, token_id.clone()))
         .ok_or(MPApiError::InvalidListing)?;
 
-    // check if nft is held by marketplace
-    let nft_owner = balances()
-        .nft_balances
-        .get_mut(&(nft_canister_id, token_id.clone()))
-        .ok_or(MPApiError::NoDeposit)?;
+    // check if the NFT is owned by the seller still
+    let token_owner = owner_of_non_fungible(
+        &nft_canister_id,
+        &token_id,
+        collection.nft_canister_standard,
+    )
+    .await?;
 
-    if (nft_owner.clone() != seller) {
+    if (token_owner.unwrap() != listing.payment_address) {
         return Err(MPApiError::Unauthorized);
+    }
+
+    // check if mp is the operator still
+    let token_operator = operator_of_non_fungible(
+        &nft_canister_id,
+        &token_id,
+        collection.nft_canister_standard,
+    )
+    .await?;
+
+    if (token_operator.unwrap() != self_id) {
+        return Err(MPApiError::InvalidOperator);
     }
 
     // guarding agains reentrancy
     listing.status = ListingStatus::Selling;
 
-    // Withdraw
+    // Auto deposit tokens
 
     // check if marketplace has allowance
     let allowance = allowance_fungible(
@@ -305,7 +319,7 @@ pub async fn accept_offer(
     let owner_fee: Nat =
         offer.price.clone() * collection.owner_fee_percentage.clone() / Nat::from(100);
 
-    // withdraw funds from buyer wallet to mkp
+    // auto deposit funds to mp from buyer
     if transfer_from_fungible(
         &buyer,
         &self_id,
@@ -327,7 +341,37 @@ pub async fn accept_offer(
         return Err(MPApiError::TransferFungibleError);
     }
 
-    // Successfully withdrawn from buyer wallet, transfer the funds from the MP to the seller, or fallback to balance.
+    // Successfully auto deposited fungibles from buyer, transfer the nft from the seller to the buyer
+    if transfer_from_non_fungible(
+        &seller,         // from
+        &buyer,                           // to
+        &token_id,                        // nft id
+        &nft_canister_id,                 // contract
+        collection.nft_canister_standard, // nft type
+    )
+    .await
+    .is_err()
+    {
+        // add deposited funds to buyer mp balance
+        balances()
+            .balances
+            .entry((collection.fungible_canister_id, buyer))
+            .or_default()
+            .amount += listing.price.clone();
+
+        balances().failed_tx_log_entries.push(TxLogEntry::new(
+            self_id.clone(),
+            buyer.clone(),
+            format!(
+        "accept_offer non fungible failed for user {} for contract {} for token id {}; transfer 1",
+        buyer, nft_canister_id, token_id,
+      ),
+        ));
+
+        return Err(MPApiError::TransferNonFungibleError);
+    }
+
+    // successfully transferred nft to buyer, release funds to seller
     if transfer_fungible(
         &seller,
         &(offer.price.clone() - owner_fee.clone()),
@@ -350,29 +394,6 @@ pub async fn accept_offer(
         .entry((collection.fungible_canister_id, collection.owner))
         .or_default()
         .amount += owner_fee.clone();
-
-    // transfer the nft from marketplace to the buyer
-    if transfer_non_fungible(
-        &buyer,                           // to
-        &token_id,                        // nft id
-        &nft_canister_id,                 // contract
-        collection.nft_canister_standard, // nft type
-    )
-    .await
-    .is_err()
-    {
-        // fallback to balance
-        *nft_owner = buyer;
-
-        balances().failed_tx_log_entries.push(TxLogEntry::new(
-            self_id.clone(),
-            seller.clone(),
-            format!(
-        "direct_buy non fungible failed for user {} for contract {} for token id {}; transfer 1",
-        seller, nft_canister_id, token_id,
-      ),
-        ));
-    }
 
     offer.status = OfferStatus::Bought;
 

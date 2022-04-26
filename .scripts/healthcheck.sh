@@ -449,6 +449,13 @@ accept_offer() {
   user1=$1
   user2=$2
 
+  approveNFT \
+    "$user1" \
+    "$nonFungibleContractAddress" \
+    "$marketplaceId" \
+    "$nft_token_id"
+  [ "$DEBUG" == 1 ] && echo $?
+
   makeListing \
     "$user1" \
     "$nonFungibleContractAddress" \
@@ -486,17 +493,6 @@ accept_offer() {
     "$nft_token_id"
   [ "$DEBUG" == 1 ] && echo $?
 
-  depositNFT \
-    "$user1" \
-    "$nonFungibleContractAddress" \
-    "$marketplaceId" \
-    "$nft_token_id" 
-  [ "$DEBUG" == 1 ] && echo $?
-
-  echo "halting crowns cansiter to test balance fallback..."
-
-  $(cd crowns && dfx canister stop crowns)
-
   acceptOffer \
     "$user1" \
     "$marketplaceId" \
@@ -513,16 +509,6 @@ accept_offer() {
   echo "balance of alice"
 
   dfx canister call marketplace serviceBalanceOf "(principal \"$(dfx --identity $ALICE_IDENTITY_NAME identity get-principal)\")"
-
-  echo "starting crowns canister to test withdraw from balance..."
-
-  $(cd crowns && dfx canister start crowns)
-
-  withdrawNFT \
-    "$user2" \
-    "$nonFungibleContractAddress" \
-    "$marketplaceId" \
-    "$nft_token_id" 
 
   getAllBalances "$marketplaceId"
   [ "$DEBUG" == 1 ] && echo $?
@@ -632,8 +618,8 @@ run() {
     0
   [ "$DEBUG" == 1 ] && echo $?
 
-  #accept_offer $ALICE_IDENTITY_NAME $BOB_IDENTITY_NAME
-  direct_buy $ALICE_IDENTITY_NAME $BOB_IDENTITY_NAME
+  accept_offer $ALICE_IDENTITY_NAME $BOB_IDENTITY_NAME
+  # direct_buy $BOB_IDENTITY_NAME $ALICE_IDENTITY_NAME
 
   echo "👍 Healthcheck completed!"
 
