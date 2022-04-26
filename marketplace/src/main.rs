@@ -663,16 +663,6 @@ pub async fn get_all_listings() -> Vec<((Principal, Nat), Listing)> {
         .collect()
 }
 
-#[query(name = "getUserOffers")]
-#[candid_method(query, rename = "getUserOffers")]
-pub async fn get_user_offers(
-    nft_canister_id: Principal,
-    user: Principal,
-) -> HashMap<Nat, HashMap<Principal, Offer>> {
-    // marketplace().offers.entry(nft_canister_id)
-    unimplemented!()
-}
-
 #[query(name = "getAllOffers")]
 #[candid_method(query, rename = "getAllOffers")]
 pub async fn get_all_offers() -> HashMap<Principal, HashMap<Nat, HashMap<Principal, Offer>>> {
