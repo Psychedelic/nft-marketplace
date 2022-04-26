@@ -249,40 +249,6 @@ withdrawFungible() {
     )"
 }
 
-depositNFT() {
-  echo "🤖 Deposit NFT"
-  
-  _identityName=$1
-  _nonFungibleContractAddress=$2
-  _marketplaceId=$3
-  _token_id=$4
-
-  dfx --identity "$_identityName" \
-    canister call \
-    --update $_marketplaceId depositNFT \
-    "(
-      principal \"$_nonFungibleContractAddress\",
-      $_token_id:nat
-    )"
-}
-
-withdrawNFT() {
-  echo "🤖 Withdraw NFT"
-
-  _identityName=$1
-  _nonFungibleContractAddress=$2
-  _marketplaceId=$3
-  _token_id=$4
-
-  dfx --identity "$_identityName" \
-    canister call \
-    --update $_marketplaceId withdrawNFT \
-    "(
-      principal \"$_nonFungibleContractAddress\",
-      $_token_id:nat
-    )"
-}
-
 getAllBalances() {
     printf "🤖 Call getAllBalances (fungibles)\n"
 
@@ -449,6 +415,13 @@ accept_offer() {
   user1=$1
   user2=$2
 
+  approveNFT \
+    "$user1" \
+    "$nonFungibleContractAddress" \
+    "$marketplaceId" \
+    "$nft_token_id"
+  [ "$DEBUG" == 1 ] && echo $?
+
   makeListing \
     "$user1" \
     "$nonFungibleContractAddress" \
@@ -479,24 +452,6 @@ accept_offer() {
   getAllOffers "$marketplaceId" 0 10
   [ "$DEBUG" == 1 ] && echo $?
 
-  approveNFT \
-    "$user1" \
-    "$nonFungibleContractAddress" \
-    "$marketplaceId" \
-    "$nft_token_id"
-  [ "$DEBUG" == 1 ] && echo $?
-
-  depositNFT \
-    "$user1" \
-    "$nonFungibleContractAddress" \
-    "$marketplaceId" \
-    "$nft_token_id" 
-  [ "$DEBUG" == 1 ] && echo $?
-
-  echo "halting crowns cansiter to test balance fallback..."
-
-  $(cd crowns && dfx canister stop crowns)
-
   acceptOffer \
     "$user1" \
     "$marketplaceId" \
@@ -505,7 +460,6 @@ accept_offer() {
     "$BOB_PRINCIPAL_ID"
   [ "$DEBUG" == 1 ] && echo $?
 
-
   echo "balance of bob"
 
   dfx canister call marketplace serviceBalanceOf "(principal \"$(dfx --identity $user2 identity get-principal)\")"
@@ -513,16 +467,6 @@ accept_offer() {
   echo "balance of alice"
 
   dfx canister call marketplace serviceBalanceOf "(principal \"$(dfx --identity $ALICE_IDENTITY_NAME identity get-principal)\")"
-
-  echo "starting crowns canister to test withdraw from balance..."
-
-  $(cd crowns && dfx canister start crowns)
-
-  withdrawNFT \
-    "$user2" \
-    "$nonFungibleContractAddress" \
-    "$marketplaceId" \
-    "$nft_token_id" 
 
   getAllBalances "$marketplaceId"
   [ "$DEBUG" == 1 ] && echo $?
@@ -542,13 +486,6 @@ direct_buy() {
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
     "$nft_token_id"
-  [ "$DEBUG" == 1 ] && echo $?
-
-  depositNFT \
-    "$user1" \
-    "$nonFungibleContractAddress" \
-    "$marketplaceId" \
-    "$nft_token_id" 
   [ "$DEBUG" == 1 ] && echo $?
   
   makeListing \
@@ -570,33 +507,11 @@ direct_buy() {
     "500"
   [ "$DEBUG" == 1 ] && echo $?
 
-  depositFungible \
-    "$user2" \
-    "$wicpId" \
-    "$marketplaceId" \
-    "500" 
-  [ "$DEBUG" == 1 ] && echo $?
-
-  echo "halting wicp canister to test balance fallback ..."
-  $(cd wicp && dfx canister stop wicp)
-
   directBuy \
     "$user2" \
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
     "$nft_token_id" 
-  [ "$DEBUG" == 1 ] && echo $?
-
-  getAllBalances "$marketplaceId"
-  [ "$DEBUG" == 1 ] && echo $?
-
-  echo "starting wicp canister to test withdraw..."
-  $(cd wicp && dfx canister start wicp)
-
-  withdrawFungible \
-    "$user1" \
-    "$wicpId" \
-    "$marketplaceId"
   [ "$DEBUG" == 1 ] && echo $?
 
   getAllBalances "$marketplaceId"

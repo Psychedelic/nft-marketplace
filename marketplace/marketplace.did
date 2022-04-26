@@ -27,6 +27,7 @@ type GenericValue = variant {
 };
 type Listing = record {
   status : ListingStatus;
+  created : nat64;
   direct_buy : bool;
   price : nat;
   payment_address : principal;
@@ -46,11 +47,13 @@ type MPApiError = variant {
   Other : text;
   InsufficientNonFungibleBalance;
   InvalidOfferStatus;
+  InvalidOperator;
   CAPInsertionError;
 };
 type NFTStandard = variant { EXT; DIP721v2 };
 type Offer = record {
   status : OfferStatus;
+  created : nat64;
   token_id : nat;
   price : nat;
   payment_address : principal;
@@ -79,9 +82,8 @@ service : (principal, principal) -> {
   balanceOf : (principal) -> (vec record { principal; FungibleBalance }) query;
   cancelListing : (principal, nat) -> (Result);
   cancelOffer : (principal, nat) -> (Result);
-  denyOffer : (nat64) -> (Result);
+  denyOffer : (principal, nat, principal) -> (Result);
   depositFungible : (principal, FungibleStandard, nat) -> (Result);
-  depositNFT : (principal, nat) -> (Result);
   directBuy : (principal, nat) -> (Result);
   getAllBalances : () -> (
       vec record { record { principal; principal }; FungibleBalance },
@@ -99,5 +101,4 @@ service : (principal, principal) -> {
   makeOffer : (principal, nat, nat) -> (Result);
   serviceBalanceOf : (principal) -> (vec BalanceMetadata) query;
   withdrawFungible : (principal, FungibleStandard) -> (Result);
-  withdrawNFT : (principal, nat) -> (Result);
 }

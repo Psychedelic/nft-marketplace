@@ -38,6 +38,7 @@ pub struct Listing {
     pub price: Nat,
     pub payment_address: Principal,
     pub status: ListingStatus,
+    pub created: u64,
 }
 
 impl Default for Listing {
@@ -47,6 +48,7 @@ impl Default for Listing {
             Nat::from(0),
             Principal::anonymous(),
             ListingStatus::Uninitialized,
+            0,
         )
     }
 }
@@ -58,6 +60,7 @@ pub struct Offer {
     pub price: Nat,
     pub payment_address: Principal,
     pub status: OfferStatus,
+    pub created: u64,
 }
 
 #[derive(Clone, CandidType, Deserialize, new)]
@@ -104,8 +107,7 @@ pub(crate) struct Marketplace {
     pub listings: HashMap<(Principal, Nat), Listing>,
 
     // collection: { token: { principal: offer } }
-    pub alt_offers: HashMap<Principal, HashMap<Nat, HashMap<Principal, Offer>>>,
-    pub offers: Vec<Offer>,
+    pub offers: HashMap<Principal, HashMap<Nat, HashMap<Principal, Offer>>>,
 }
 
 #[derive(CandidType, Deserialize, Debug)]
@@ -120,6 +122,7 @@ pub enum MPApiError {
     InsufficientFungibleAllowance,
     InsufficientNonFungibleBalance,
     Unauthorized,
+    InvalidOperator,
     NoDeposit,
     CAPInsertionError,
     NonExistentCollection,
