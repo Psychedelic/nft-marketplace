@@ -107,8 +107,7 @@ pub(crate) struct Marketplace {
     pub listings: HashMap<(Principal, Nat), Listing>,
 
     // collection: { token: { principal: offer } }
-    pub alt_offers: HashMap<Principal, HashMap<Nat, HashMap<Principal, Offer>>>,
-    pub offers: Vec<Offer>,
+    pub offers: HashMap<Principal, HashMap<Nat, HashMap<Principal, Offer>>>,
 }
 
 #[derive(CandidType, Deserialize, Debug)]

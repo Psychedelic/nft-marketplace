@@ -174,7 +174,7 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: Nat, price: Nat) -
     }
 
     let offers = mp
-        .alt_offers
+        .offers
         .entry(nft_canister_id)
         .or_default()
         .entry(token_id.clone())
@@ -240,7 +240,7 @@ pub async fn accept_offer(
         .get(&nft_canister_id)
         .ok_or(MPApiError::NonExistentCollection)?;
     let offers = mp
-        .alt_offers
+        .offers
         .entry(nft_canister_id)
         .or_default()
         .entry(token_id.clone())
@@ -405,7 +405,7 @@ pub async fn accept_offer(
 
     // avoid keeping an empty object for a token if no more offers
     if (offers.len() == 0) {
-        mp.alt_offers
+        mp.offers
             .entry(nft_canister_id)
             .or_default()
             .remove(&token_id.clone());
@@ -669,14 +669,14 @@ pub async fn get_user_offers(
     nft_canister_id: Principal,
     user: Principal,
 ) -> HashMap<Nat, HashMap<Principal, Offer>> {
-    // marketplace().alt_offers.entry(nft_canister_id)
+    // marketplace().offers.entry(nft_canister_id)
     unimplemented!()
 }
 
 #[query(name = "getAllOffers")]
 #[candid_method(query, rename = "getAllOffers")]
 pub async fn get_all_offers() -> HashMap<Principal, HashMap<Nat, HashMap<Principal, Offer>>> {
-    marketplace().alt_offers.clone()
+    marketplace().offers.clone()
 }
 
 #[query(name = "getAllBalances")]
@@ -1004,7 +1004,7 @@ pub async fn cancel_offer(nft_canister_id: Principal, token_id: Nat) -> MPApiRes
     let mut mp = marketplace();
 
     let mut offers = mp
-        .alt_offers
+        .offers
         .entry(nft_canister_id)
         .or_default()
         .entry(token_id.clone())
@@ -1013,7 +1013,7 @@ pub async fn cancel_offer(nft_canister_id: Principal, token_id: Nat) -> MPApiRes
     offers.remove(&buyer);
 
     if (offers.len() == 0) {
-        mp.alt_offers
+        mp.offers
             .entry(nft_canister_id)
             .or_default()
             .remove(&token_id.clone());
@@ -1040,25 +1040,25 @@ pub async fn deny_offer(buy_id: u64) -> MPApiResult {
     let seller = ic::caller();
     let mut mp = marketplace();
 
-    let offer = mp
-        .offers
-        .get_mut(buy_id as usize)
-        .ok_or(MPApiError::InvalidOffer)?;
+    // let offer = mp
+    //     .offers
+    //     .get_mut(buy_id as usize)
+    //     .ok_or(MPApiError::InvalidOffer)?;
 
-    if offer.status != OfferStatus::Created {
-        return Err(MPApiError::InvalidOfferStatus);
-    }
+    // if offer.status != OfferStatus::Created {
+    //     return Err(MPApiError::InvalidOfferStatus);
+    // }
 
-    let listing = mp
-        .listings
-        .get_mut(&(offer.nft_canister_id, offer.token_id.clone()))
-        .ok_or(MPApiError::InvalidListing)?;
+    // let listing = mp
+    //     .listings
+    //     .get_mut(&(offer.nft_canister_id, offer.token_id.clone()))
+    //     .ok_or(MPApiError::InvalidListing)?;
 
-    if (seller != listing.payment_address) {
-        return Err(MPApiError::Unauthorized);
-    }
+    // if (seller != listing.payment_address) {
+    //     return Err(MPApiError::Unauthorized);
+    // }
 
-    offer.status = OfferStatus::Denied;
+    // offer.status = OfferStatus::Denied;
 
     capq()
         .insert_into_cap(
