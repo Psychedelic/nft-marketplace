@@ -1,6 +1,8 @@
 use crate::types::*;
 use crate::utils::convert_nat_to_u64;
 use crate::vendor_types::*;
+use crate::types::NFTStandard::{DIP721v2, EXT};
+use crate::types::FungibleStandard::{DIP20};
 
 use ic_kit::{
     candid::{Nat, Principal},
@@ -17,8 +19,8 @@ pub async fn transfer_from_non_fungible(
     nft_type: NFTStandard,
 ) -> U64Result {
     match nft_type {
-        NFTStandard::DIP721v2 => DIP721v2Proxy::transfer_from(from, to, token_id, contract).await,
-        NFTStandard::EXT => {
+        DIP721v2 => DIP721v2Proxy::transfer_from(from, to, token_id, contract).await,
+        EXT => {
             EXTProxy::transfer_from(
                 from,
                 to,
@@ -37,8 +39,8 @@ pub async fn transfer_non_fungible(
     nft_type: NFTStandard,
 ) -> Result<Nat, MPApiError> {
     match nft_type {
-        NFTStandard::DIP721v2 => DIP721v2Proxy::transfer(contract, to, token_id).await,
-        NFTStandard::EXT => EXTProxy::transfer(to, token_id, contract).await,
+        DIP721v2 => DIP721v2Proxy::transfer(contract, to, token_id).await,
+        EXT => EXTProxy::transfer(to, token_id, contract).await,
     }
 }
 
@@ -48,8 +50,19 @@ pub async fn owner_of_non_fungible(
     nft_type: NFTStandard,
 ) -> PrincipalResult {
     match nft_type {
-        NFTStandard::DIP721v2 => DIP721v2Proxy::owner_of(contract, token_id).await,
-        NFTStandard::EXT => unimplemented!(),
+        DIP721v2 => DIP721v2Proxy::owner_of(contract, token_id).await,
+        EXT => unimplemented!(),
+    }
+}
+
+pub async fn operator_of_non_fungible(
+    contract: &Principal,
+    token_id: &Nat,
+    nft_type: NFTStandard,
+) -> PrincipalResult {
+    match nft_type {
+        DIP721v2 => DIP721v2Proxy::operator_of(contract, token_id).await,
+        EXT => unimplemented!(),
     }
 }
 
@@ -107,6 +120,19 @@ impl DIP721v2Proxy {
             .map_err(|_| MPApiError::Other("".to_string()))?
             .0
             .map_err(|_| MPApiError::TransferFungibleError)
+    }
+
+    pub async fn operator_of(
+        contract: &Principal,
+        token_id: &Nat,
+    ) -> Result<Option<Principal>, MPApiError> {
+        let call_res: Result<(Result<Option<Principal>, NftError>,), (RejectionCode, String)> =
+            ic::call(*contract, "operatorOf", (Nat::from(token_id.clone()),)).await;
+
+        call_res
+            .map_err(|_| MPApiError::Other("".to_string()))?
+            .0
+            .map_err(|e| MPApiError::Other("DIP721v2 Error".to_string()))
     }
 }
 
