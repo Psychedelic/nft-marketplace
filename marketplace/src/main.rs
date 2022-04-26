@@ -606,6 +606,23 @@ pub async fn get_all_offers() -> HashMap<Principal, HashMap<Nat, HashMap<Princip
     marketplace().alt_offers.clone()
 }
 
+#[query(name = "getTokenOffers")]
+#[candid_method(query, rename = "getTokenOffers")]
+pub async fn get_token_offers(nft_canister_id: Principal, token_id: Nat) -> HashMap<Principal, Offer> {
+    let allOffers = marketplace()
+        .alt_offers
+        .clone();
+    let offers = allOffers
+        .get(&nft_canister_id)
+        .and_then(|map| map.get(&token_id));
+
+    if let None = offers {
+        return HashMap::new();
+    };
+
+    return offers.unwrap().clone();
+}
+
 #[query(name = "getAllBalances")]
 #[candid_method(query, rename = "getAllBalances")]
 pub async fn get_all_balances() -> HashMap<(Principal, Principal), FungibleBalance> {
