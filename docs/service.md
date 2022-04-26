@@ -40,9 +40,7 @@ service : (principal, principal) -> {
     ) query;
 
   depositFungible : (principal, FungibleStandard, nat) -> (Result);
-  depositNFT : (principal, nat64) -> (Result);
   withdrawFungible : (principal, FungibleStandard) -> (Result);
-  withdrawNFT : (principal, nat64) -> (Result);
 
   serviceBalanceOf : (principal) -> (vec BalanceMetadata) query;
   balanceOf : (principal) -> (vec record { principal; FungibleBalance }) query;
@@ -115,12 +113,11 @@ details: vec {
 
 ### Listing NFT for direct buy -> `makeListing`
 
-to create a listing that is available for direct buy, the nft must be deposited before the listing will go though.
+To create a listing that is available for direct buy, the nft's operator must be set to the marketplace canister
 
 ```
 
 call approve on crowns canister for marketplace on token
-call depositNFT on marketplace canister
 call makeListing with direct_buy = true
 
 ```
@@ -132,18 +129,15 @@ to direct buy a listing, you must deposit funds before the direct buy will go th
 ```
 
 call approve on wicp for marketplace to access x tokens
-call depositFungable on marketplace canister
 call directBuy on marketplace canister for nft
 
 ```
 
 ## Offer Flow:
 
-- a nft can be listed without a deposit if direct buy is disabled. A user can accept offers regardless of listing status (unlisted, listed for direct buy, listed for offers). When a seller decides to accept an offer, the nft must be deposited.
-
 ### Listing NFT for offers -> `makeListing`
 
-To create a listing that is only available for offers, you only have to be the current owner of a given nft. No deposit required at the time of listing
+To create a listing that is only available for offers, you only have to be the current owner of a given nft, and marketplace must be the token's operator
 
 ```
 
@@ -155,7 +149,6 @@ call makeListing with direct_buy = false
 
 - to make an offer, you must set a proper allowance for marketplace for a users funds. This can be a one time, really high amount, or with each offer.
 - If the allowance is set with each offer, the amount allowed for marketplace should always be equal or more than the total amount offered for a user.
-- A user must also have at least the amount offered held in their wallet, this is double checked in the backend, but FE should also track a users' wallets' balances
 
 ```
 
@@ -166,14 +159,12 @@ call makeOffer for x amount of tokens
 
 ### Accepting an offer -> `acceptOffer`
 
-- to accept an offer, you must deposit nft at time of sale
 - the offer amount is automatically withdrawn from the buyer to makretplace, and will attempt to send to the seller, if unsuccessful will fallback to balance that seller can manually withdraw
 - after an offer is accepted, the offer is removed but the others remain (until denied or cancelled) and can still be accepted by the new owner
 
 ```
 
 call approve on crowns canister for marketplace on token
-call depositNFT on marketplace canister
 call acceptOffer on marketplace canister
 
 ```
@@ -186,20 +177,8 @@ call cancelOffer on marketplace canister
 
 ```
 
-## Withdraw methods
+### Transaction fallback -> `withdrawFungible`
 
-These are provided as a fallback way to withdraw a purchased nft or funds that failed to auto transfer
-
-### Fungible (wicp) -> `withdrawFungible`
-
-- When you withdraw a fungible token, it will withdraw the amount a user has that is not locked
-- Users should only have a balance if a automatic withdraw failed, or they deposited more than they offered
-
-### NFT (crowns) -> `withdrawNFT`
-
-- you can only withdraw a token that is not listed for direct buy
-
-```
-
-```
+This method is provided as a fallback way to withdraw funds that were auto deposited, and a transaction failed.
+If marketplace holds any fungible balance, a banner should pop up in frontends to allow users to withdraw.
 
