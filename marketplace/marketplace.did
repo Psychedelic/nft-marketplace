@@ -95,6 +95,9 @@ service : (principal, principal) -> {
         vec record { nat; vec record { principal; Offer } };
       },
     ) query;
+  getTokenOffers : (principal, nat) -> (
+    vec record { principal; Offer },
+  ) query;
   makeListing : (bool, principal, nat, nat) -> (Result);
   makeOffer : (principal, nat, nat) -> (Result);
   serviceBalanceOf : (principal) -> (vec BalanceMetadata) query;
