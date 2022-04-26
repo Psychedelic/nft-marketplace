@@ -325,31 +325,31 @@ pub async fn accept_offer(
             ),
         ));
         return Err(MPApiError::TransferFungibleError);
-    } else {
-        // Successfully withdrawn from buyer wallet, transfer the funds from the MP to the seller, or fallback to balance.
-        if transfer_fungible(
-            &seller,
-            &(offer.price.clone() - owner_fee.clone()),
-            &collection.fungible_canister_id,
-            collection.fungible_canister_standard.clone(),
-        )
-        .await
-        .is_err()
-        {
-            balances()
-                .balances
-                .entry((collection.fungible_canister_id, seller))
-                .or_default()
-                .amount += listing.price.clone() - owner_fee.clone();
-        }
+    }
 
-        // credit the owner fee to the collection owners balance
+    // Successfully withdrawn from buyer wallet, transfer the funds from the MP to the seller, or fallback to balance.
+    if transfer_fungible(
+        &seller,
+        &(offer.price.clone() - owner_fee.clone()),
+        &collection.fungible_canister_id,
+        collection.fungible_canister_standard.clone(),
+    )
+    .await
+    .is_err()
+    {
         balances()
             .balances
-            .entry((collection.fungible_canister_id, collection.owner))
+            .entry((collection.fungible_canister_id, seller))
             .or_default()
-            .amount += owner_fee.clone();
+            .amount += listing.price.clone() - owner_fee.clone();
     }
+
+    // credit the owner fee to the collection owners balance
+    balances()
+        .balances
+        .entry((collection.fungible_canister_id, collection.owner))
+        .or_default()
+        .amount += owner_fee.clone();
 
     // transfer the nft from marketplace to the buyer
     if transfer_non_fungible(
@@ -451,25 +451,28 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
         .get(&nft_canister_id)
         .ok_or(MPApiError::NonExistentCollection)?;
 
-    // check if the NFT is owned by mp
-    let _owner = owner_of_non_fungible(
+    // check if the NFT is owned by the seller still
+    let token_owner = owner_of_non_fungible(
         &nft_canister_id,
         &token_id,
         collection.nft_canister_standard,
     )
     .await?;
-    if (_owner.unwrap() != self_id) {
-        return Err(MPApiError::NoDeposit);
+
+    if (token_owner.unwrap() != listing.payment_address) {
+        return Err(MPApiError::Unauthorized);
     }
 
-    // check if nft is held by marketplace
-    let nft_owner = balances()
-        .nft_balances
-        .get_mut(&(nft_canister_id, token_id.clone()))
-        .ok_or(MPApiError::NoDeposit)?;
+    // check if mp is the operator still
+    let token_operator = operator_of_non_fungible(
+        &nft_canister_id,
+        &token_id,
+        collection.nft_canister_standard,
+    )
+    .await?;
 
-    if (nft_owner.clone() != listing.payment_address) {
-        return Err(MPApiError::Unauthorized);
+    if (token_operator.unwrap() != self_id) {
+        return Err(MPApiError::InvalidOperator);
     }
 
     // guarding agains reentrancy
@@ -489,7 +492,8 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
     }
 
     // transfer the nft from marketplace to the buyer
-    if transfer_non_fungible(
+    if transfer_from_non_fungible(
+        &listing.payment_address,         // from
         &buyer,                           // to
         &token_id,                        // nft id
         &nft_canister_id,                 // contract
@@ -498,9 +502,6 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
     .await
     .is_err()
     {
-        // fallback to balance
-        *nft_owner = buyer;
-
         balances().failed_tx_log_entries.push(TxLogEntry::new(
             self_id.clone(),
             buyer.clone(),
@@ -509,6 +510,8 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
         buyer, nft_canister_id, token_id,
       ),
         ));
+
+        return Err(MPApiError::TransferNonFungibleError);
     }
 
     let owner_fee: Nat =
@@ -533,22 +536,12 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
     .await
     .is_err()
     {
-        // credit the funds to the seller
+        // fallback to sellers mp balance
         balances()
             .balances
             .entry((collection.fungible_canister_id, listing.payment_address))
             .or_default()
             .amount += listing.price.clone() - owner_fee.clone();
-
-        balances().failed_tx_log_entries.push(TxLogEntry::new(
-            self_id.clone(),
-            buyer.clone(),
-            format!(
-        "direct_buy non fungible failed for user {} for contract {} for token id {}; transfer 2",
-        buyer, nft_canister_id, token_id,
-      ),
-        ));
-        //shouldn't return with error here, seller still gets funds through mp balance
     }
 
     // subtract amount from buyer balance
