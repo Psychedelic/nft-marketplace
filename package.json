@@ -20,7 +20,7 @@
     "services:start": "./.scripts/deploy-all-services.sh",
     "reset": "dfx stop && rm -rf .dfx && yarn cap:reset && yarn crowns:reset && yarn wicp:reset",
     "mock:generate-tokens": "./.scripts/mocks/generate-mocks.sh",
-    "devcheck": "watch ./.scripts/devcheck.sh marketplace/src"
+    "dev": "watch ./.scripts/dev.sh marketplace/src"
   },
   "repository": {
     "type": "git",
