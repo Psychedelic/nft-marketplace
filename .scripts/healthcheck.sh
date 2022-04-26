@@ -486,13 +486,6 @@ accept_offer() {
   getAllOffers "$marketplaceId" 0 10
   [ "$DEBUG" == 1 ] && echo $?
 
-  approveNFT \
-    "$user1" \
-    "$nonFungibleContractAddress" \
-    "$marketplaceId" \
-    "$nft_token_id"
-  [ "$DEBUG" == 1 ] && echo $?
-
   acceptOffer \
     "$user1" \
     "$marketplaceId" \
@@ -500,7 +493,6 @@ accept_offer() {
     "$nft_token_id" \
     "$BOB_PRINCIPAL_ID"
   [ "$DEBUG" == 1 ] && echo $?
-
 
   echo "balance of bob"
 
@@ -556,33 +548,11 @@ direct_buy() {
     "500"
   [ "$DEBUG" == 1 ] && echo $?
 
-  depositFungible \
-    "$user2" \
-    "$wicpId" \
-    "$marketplaceId" \
-    "500" 
-  [ "$DEBUG" == 1 ] && echo $?
-
-  echo "halting wicp canister to test balance fallback ..."
-  $(cd wicp && dfx canister stop wicp)
-
   directBuy \
     "$user2" \
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
     "$nft_token_id" 
-  [ "$DEBUG" == 1 ] && echo $?
-
-  getAllBalances "$marketplaceId"
-  [ "$DEBUG" == 1 ] && echo $?
-
-  echo "starting wicp canister to test withdraw..."
-  $(cd wicp && dfx canister start wicp)
-
-  withdrawFungible \
-    "$user1" \
-    "$wicpId" \
-    "$marketplaceId"
   [ "$DEBUG" == 1 ] && echo $?
 
   getAllBalances "$marketplaceId"
@@ -619,7 +589,7 @@ run() {
   [ "$DEBUG" == 1 ] && echo $?
 
   accept_offer $ALICE_IDENTITY_NAME $BOB_IDENTITY_NAME
-  # direct_buy $BOB_IDENTITY_NAME $ALICE_IDENTITY_NAME
+  direct_buy $BOB_IDENTITY_NAME $ALICE_IDENTITY_NAME
 
   echo "👍 Healthcheck completed!"
 
