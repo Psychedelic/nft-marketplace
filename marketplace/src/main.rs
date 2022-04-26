@@ -57,14 +57,19 @@ pub async fn make_listing(
     )
     .await?;
 
-    if (direct_buy) {
-        if (token_owner.unwrap() != self_id) {
-            return Err(MPApiError::NoDeposit);
-        }
-    } else {
-        if (token_owner.unwrap() != seller) {
-            return Err(MPApiError::Unauthorized);
-        }
+    if (token_owner.unwrap() != seller) {
+        return Err(MPApiError::Unauthorized);
+    }
+
+    let token_operator = operator_of_non_fungible(
+        &nft_canister_id,
+        &token_id,
+        collection.nft_canister_standard,
+    )
+    .await?;
+
+    if (token_operator.unwrap() != self_id) {
+        return Err(MPApiError::InvalidOperator);
     }
 
     let mut mp = marketplace();
@@ -83,6 +88,7 @@ pub async fn make_listing(
         price.clone(),
         seller,
         ListingStatus::Created,
+        ic::time(),
     );
 
     capq()
@@ -187,6 +193,7 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: Nat, price: Nat) -
                 price.clone(),
                 buyer,
                 OfferStatus::Created,
+                ic::time(),
             )
         });
 
@@ -240,6 +247,7 @@ pub async fn accept_offer(
         .or_default();
 
     let offer = offers.get_mut(&buyer).ok_or(MPApiError::InvalidListing)?;
+
     // guarding against re-entrancy
     if offer.status != OfferStatus::Created {
         return Err(MPApiError::InvalidOfferStatus);
@@ -598,6 +606,16 @@ pub async fn get_all_listings() -> Vec<((Principal, Nat), Listing)> {
         .into_iter()
         .map(|offer| offer)
         .collect()
+}
+
+#[query(name = "getUserOffers")]
+#[candid_method(query, rename = "getUserOffers")]
+pub async fn get_user_offers(
+    nft_canister_id: Principal,
+    user: Principal,
+) -> HashMap<Nat, HashMap<Principal, Offer>> {
+    // marketplace().alt_offers.entry(nft_canister_id)
+    unimplemented!()
 }
 
 #[query(name = "getAllOffers")]

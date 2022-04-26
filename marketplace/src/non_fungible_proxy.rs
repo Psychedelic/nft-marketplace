@@ -1,8 +1,8 @@
+use crate::types::FungibleStandard::DIP20;
+use crate::types::NFTStandard::{DIP721v2, EXT};
 use crate::types::*;
 use crate::utils::convert_nat_to_u64;
 use crate::vendor_types::*;
-use crate::types::NFTStandard::{DIP721v2, EXT};
-use crate::types::FungibleStandard::{DIP20};
 
 use ic_kit::{
     candid::{Nat, Principal},

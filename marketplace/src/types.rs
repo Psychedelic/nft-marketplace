@@ -38,6 +38,7 @@ pub struct Listing {
     pub price: Nat,
     pub payment_address: Principal,
     pub status: ListingStatus,
+    pub created: u64,
 }
 
 impl Default for Listing {
@@ -47,6 +48,7 @@ impl Default for Listing {
             Nat::from(0),
             Principal::anonymous(),
             ListingStatus::Uninitialized,
+            0,
         )
     }
 }
@@ -58,6 +60,7 @@ pub struct Offer {
     pub price: Nat,
     pub payment_address: Principal,
     pub status: OfferStatus,
+    pub created: u64,
 }
 
 #[derive(Clone, CandidType, Deserialize, new)]
@@ -120,6 +123,7 @@ pub enum MPApiError {
     InsufficientFungibleAllowance,
     InsufficientNonFungibleBalance,
     Unauthorized,
+    InvalidOperator,
     NoDeposit,
     CAPInsertionError,
     NonExistentCollection,
