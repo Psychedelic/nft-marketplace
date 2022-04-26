@@ -88,9 +88,7 @@ service : (principal, principal) -> {
   getAllBalances : () -> (
       vec record { record { principal; principal }; FungibleBalance },
     ) query;
-  getAllListings : () -> (
-      vec record { record { principal; nat }; Listing },
-    ) query;
+  getAllListings : (principal) -> (vec record { nat; Listing }) query;
   getAllOffers : () -> (
       vec record {
         principal;
