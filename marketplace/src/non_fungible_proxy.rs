@@ -53,6 +53,13 @@ pub async fn owner_of_non_fungible(
     }
 }
 
+// pub async fn owner_token_identifiers(
+//     contract: &Principal,
+//     owner: &Principal,
+// ) -> Result<Option<Vec<Nat>>, MPApiError> {
+//     DIP721v2Proxy::owner_token_identifiers(contract, owner).await
+// }
+
 pub(crate) struct DIP721v2Proxy {}
 
 impl DIP721v2Proxy {
@@ -108,6 +115,19 @@ impl DIP721v2Proxy {
             .0
             .map_err(|_| MPApiError::TransferFungibleError)
     }
+
+    // pub async fn owner_token_identifiers(
+    //     contract: &Principal,
+    //     owner: &Principal,
+    // ) -> Result<Option<Vec<Nat>>, MPApiError> {
+    //     let call_res: Result<(Result<Option<Vec<Nat>>, NftError>,), (RejectionCode, String)> =
+    //         ic::call(*contract, "ownerTokenIdentifiers", (owner.clone(),)).await;
+
+    //     call_res
+    //         .map_err(|_| MPApiError::Other("Oops! Failed to get owner token identifiers".to_string()))?
+    //         .0
+    //         .map_err(|_| MPApiError::TransferFungibleError)
+    // }
 }
 
 pub(crate) struct EXTProxy {}

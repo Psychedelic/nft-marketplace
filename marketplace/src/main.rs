@@ -608,19 +608,78 @@ pub async fn get_all_offers() -> HashMap<Principal, HashMap<Nat, HashMap<Princip
 
 #[query(name = "getTokenOffers")]
 #[candid_method(query, rename = "getTokenOffers")]
-pub async fn get_token_offers(nft_canister_id: Principal, token_id: Nat) -> HashMap<Principal, Offer> {
-    let allOffers = marketplace()
+pub async fn get_token_offers(nft_canister_id: Principal, owner_principal: Principal) -> HashMap<Principal, Vec<Offer>> {
+    ic_cdk::println!("[debug] get_token_offers 1");
+
+    let all_offers = marketplace()
         .alt_offers
         .clone();
-    let offers = allOffers
-        .get(&nft_canister_id)
-        .and_then(|map| map.get(&token_id));
 
-    if let None = offers {
-        return HashMap::new();
-    };
+    ic_cdk::println!("[debug] get_token_offers 2");
+    
+    let nft_canister_offers = all_offers
+        .get(&nft_canister_id);
+    
+    ic_cdk::println!("[debug] get_token_offers 3");
+    
+    let mut owned_token_offers: HashMap<Principal, Vec<Offer>> = HashMap::new();
 
-    return offers.unwrap().clone();
+    // let token_owner_result = owner_token_identifiers(
+    //     &nft_canister_id,
+    //     &owner_principal,
+    // )
+    // .await;
+
+    // if let Error = token_owner_result {
+    //     return HashMap::new();
+    // }
+
+    // let token_owner = token_owner_result.unwrap();
+
+    // if let None = token_owner {
+    //     return HashMap::new();
+    // }
+
+    // let owned_token_ids = token_owner
+    //     .unwrap()
+    //     .clone();
+
+    // TODO: Get the list from the nft canister
+    // by querying the DIP721 ownerTokenIdentifiers(arg: Principal)
+    // for the moment the token ids are hard-typed
+    let tk_a: Nat = Nat::from(0 as u8);
+    let tk_b: Nat = Nat::from(1 as u8);
+    let mut owned_token_ids: Vec<Nat> = vec![tk_a, tk_b];
+
+    for owned_token_id in owned_token_ids {
+        ic_cdk::println!("[debug] get_token_offers 4");
+
+        let has_token_offers = nft_canister_offers
+           .and_then(|map| map.get(&owned_token_id));
+
+        if let None = has_token_offers {
+            return HashMap::new();
+        }
+
+        let token_offers = has_token_offers
+           .unwrap()
+           .clone();
+
+        ic_cdk::println!("[debug] get_token_offers 5");
+
+        for key in token_offers.keys() {
+            let offer = token_offers.get(&key).unwrap().clone();
+
+            owned_token_offers
+                .entry(key.clone())
+                .or_default()
+                .push(offer);
+        }
+    }
+
+    ic_cdk::println!("[debug] get_token_offers 6");
+
+    return owned_token_offers;
 }
 
 #[query(name = "getAllBalances")]
