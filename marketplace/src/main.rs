@@ -863,6 +863,12 @@ pub async fn withdraw_fungible(
 pub async fn cancel_listing(nft_canister_id: Principal, token_id: Nat) -> MPApiResult {
     let seller = ic::caller();
     let mut mp = marketplace();
+
+    let collection = collections()
+    .collections
+    .get(&nft_canister_id)
+    .ok_or(MPApiError::NonExistentCollection)?;
+
     let listing = mp
         .listings
         .get_mut(&(nft_canister_id, token_id.clone()))
@@ -914,12 +920,19 @@ pub async fn cancel_offer(nft_canister_id: Principal, token_id: Nat) -> MPApiRes
     let buyer = ic::caller();
     let mut mp = marketplace();
 
+    let collection = collections()
+        .collections
+        .get(&nft_canister_id)
+        .ok_or(MPApiError::NonExistentCollection)?;
+
     let mut offers = mp
         .offers
         .entry(nft_canister_id)
         .or_default()
         .entry(token_id.clone())
         .or_default();
+
+    let offer = offers.get(&buyer).ok_or(MPApiError::InvalidListing)?.clone();
 
     offers.remove(&buyer);
 
@@ -934,8 +947,25 @@ pub async fn cancel_offer(nft_canister_id: Principal, token_id: Nat) -> MPApiRes
         .insert_into_cap(
             IndefiniteEventBuilder::new()
                 .caller(buyer)
-                .operation("cancelOffer")
-                .details(vec![])
+                .operation("denyOffer")
+                .details(vec![
+                    (
+                        "token_id".into(),
+                        DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
+                    ),
+                    (
+                        "nft_canister_id".into(),
+                        DetailValue::Principal(nft_canister_id),
+                    ),
+                    (
+                        "price".into(),
+                        DetailValue::U64(convert_nat_to_u64(offer.price.clone()).unwrap()),
+                    ),
+                    (
+                        "buyer".into(),
+                        DetailValue::Principal(buyer),
+                    )
+                ])
                 .build()
                 .unwrap(),
         )
@@ -947,36 +977,56 @@ pub async fn cancel_offer(nft_canister_id: Principal, token_id: Nat) -> MPApiRes
 
 #[update(name = "denyOffer")]
 #[candid_method(update, rename = "denyOffer")]
-pub async fn deny_offer(buy_id: u64) -> MPApiResult {
-    let seller = ic::caller();
+pub async fn deny_offer(nft_canister_id: Principal, token_id: Nat, buyer: Principal) -> MPApiResult {
+    let buyer = ic::caller();
     let mut mp = marketplace();
 
-    // let offer = mp
-    //     .offers
-    //     .get_mut(buy_id as usize)
-    //     .ok_or(MPApiError::InvalidOffer)?;
+    let collection = collections()
+        .collections
+        .get(&nft_canister_id)
+        .ok_or(MPApiError::NonExistentCollection)?;
 
-    // if offer.status != OfferStatus::Created {
-    //     return Err(MPApiError::InvalidOfferStatus);
-    // }
+    let mut offers = mp
+        .offers
+        .entry(nft_canister_id)
+        .or_default()
+        .entry(token_id.clone())
+        .or_default();
 
-    // let listing = mp
-    //     .listings
-    //     .get_mut(&(offer.nft_canister_id, offer.token_id.clone()))
-    //     .ok_or(MPApiError::InvalidListing)?;
+    let offer = offers.get(&buyer).ok_or(MPApiError::InvalidListing)?.clone();
 
-    // if (seller != listing.payment_address) {
-    //     return Err(MPApiError::Unauthorized);
-    // }
+    offers.remove(&buyer);
 
-    // offer.status = OfferStatus::Denied;
+    if (offers.len() == 0) {
+        mp.offers
+            .entry(nft_canister_id)
+            .or_default()
+            .remove(&token_id.clone());
+    }
 
     capq()
         .insert_into_cap(
             IndefiniteEventBuilder::new()
-                .caller(seller)
+                .caller(buyer)
                 .operation("denyOffer")
-                .details(vec![("buy_id".into(), DetailValue::U64(buy_id))])
+                .details(vec![
+                    (
+                        "token_id".into(),
+                        DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
+                    ),
+                    (
+                        "nft_canister_id".into(),
+                        DetailValue::Principal(nft_canister_id),
+                    ),
+                    (
+                        "price".into(),
+                        DetailValue::U64(convert_nat_to_u64(offer.price.clone()).unwrap()),
+                    ),
+                    (
+                        "buyer".into(),
+                        DetailValue::Principal(buyer),
+                    )
+                ])
                 .build()
                 .unwrap(),
         )
