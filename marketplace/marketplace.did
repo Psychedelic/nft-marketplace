@@ -67,6 +67,7 @@ type OfferStatus = variant {
   Created;
 };
 type Result = variant { Ok; Err : MPApiError };
+type Result_1 = variant { Ok : nat; Err : MPApiError };
 service : (principal, principal) -> {
   acceptOffer : (principal, nat, principal) -> (Result);
   addCollection : (
@@ -95,6 +96,7 @@ service : (principal, principal) -> {
         vec record { nat; vec record { principal; Offer } };
       },
     ) query;
+  getFloor : (principal) -> (Result_1) query;
   makeListing : (bool, principal, nat, nat) -> (Result);
   makeOffer : (principal, nat, nat) -> (Result);
   serviceBalanceOf : (principal) -> (vec BalanceMetadata) query;

@@ -34,7 +34,26 @@ pub fn init(cap: Principal, owner: Principal) {
     handshake(1_000_000_000_000, Some(cap));
 }
 
+// QUERY METHODS //
 
+#[query(name = getFloor)]
+#[candid_method(query, rename = "getFloor")]
+pub async fn get_floor(nft_canister_id: Principal) -> NatResult {
+    let collection = collections()
+        .collections
+        .get(&nft_canister_id)
+        .ok_or(MPApiError::NonExistentCollection)?;
+
+    let listings = marketplace().listings.get(&nft_canister_id).ok_or(MPApiError::Other("No Listings".to_string()))?;
+    
+    if let Some((_, listing)) = listings.iter().min_by_key(|(_, listing)| listing.price.clone()) {
+        return Ok(listing.price.clone())
+    }
+    
+    return Err(MPApiError::Other("No Listings".to_string()));
+}
+
+// UPDATE METHODS //
 
 #[update(name = "makeListing")]
 #[candid_method(update, rename = "makeListing")]

@@ -287,10 +287,13 @@ getAllListings() {
     printf "🤖 Call getAllListings\n"
 
   _marketplaceId=$1
+  _nonFungibleContractAddress=$2
 
   dfx canister \
     call --query "$_marketplaceId" \
-    getAllListings "()"
+    getAllListings "(
+      principal \"$_nonFungibleContractAddress\"
+    )"
 }
 
 makeOffer() {
@@ -431,7 +434,8 @@ accept_offer() {
     "false"
   [ "$DEBUG" == 1 ] && echo $?
 
-  getAllListings "$marketplaceId"
+  getAllListings "$marketplaceId" \
+    "$nonFungibleContractAddress"
   [ "$DEBUG" == 1 ] && echo $?
 
   approveFungible \
@@ -497,7 +501,8 @@ direct_buy() {
     "true"
   [ "$DEBUG" == 1 ] && echo $?
 
-  getAllListings "$marketplaceId"
+  getAllListings "$marketplaceId" \
+    "$nonFungibleContractAddress"
   [ "$DEBUG" == 1 ] && echo $?
 
   approveFungible \
