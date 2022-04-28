@@ -715,12 +715,12 @@ pub async fn get_all_offers() -> HashMap<Principal, HashMap<Nat, HashMap<Princip
 pub async fn get_token_offers(
     nft_canister_id: Principal,
     token_id: Nat,
-) -> HashMap<Principal, Offer> {
+) -> Vec<Offer> {
     marketplace()
         .offers
         .entry(nft_canister_id)
         .or_default()
-        .entry(token_id).or_default().clone()
+        .entry(token_id).or_default().values().cloned().collect()
 }
 
 #[query(name = getBuyerOffers)]
