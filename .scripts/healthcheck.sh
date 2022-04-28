@@ -259,6 +259,39 @@ getAllBalances() {
     getAllBalances "()"
 }
 
+
+
+getTokenListing() {
+    printf "🤖 Call getTokenListing\n"
+
+  _marketplaceId=$1
+  _nonFungibleContractAddress=$2
+  _token_id=$3
+
+
+  dfx canister \
+    call --query "$_marketplaceId" \
+    getTokenListing "(
+      principal \"$_nonFungibleContractAddress\",
+      $_token_id,
+    )"
+}
+
+getTokenOffers() {
+  printf "🤖 Call getTokenOffers\n"
+
+  _marketplaceId=$1
+  _nonFungibleContractAddress=$2
+  _token_id=$3
+
+  dfx canister \
+    call --query "$_marketplaceId" \
+    getTokenOffers "(
+      principal \"$_nonFungibleContractAddress\",
+      $_token_id,
+    )"
+}
+
 makeListing() {
   printf "🤖 Call makeListing\n"
 
@@ -283,19 +316,6 @@ makeListing() {
       )"
 }
 
-getAllListings() {
-    printf "🤖 Call getAllListings\n"
-
-  _marketplaceId=$1
-  _nonFungibleContractAddress=$2
-
-  dfx canister \
-    call --query "$_marketplaceId" \
-    getAllListings "(
-      principal \"$_nonFungibleContractAddress\"
-    )"
-}
-
 makeOffer() {
   printf "🤖 Call makeOffer\n"
 
@@ -318,21 +338,6 @@ makeOffer() {
       ($_token_id:nat),
       ($_offer_price:nat)
     )"
-}
-
-getAllOffers() {
-  printf "🤖 Call getAllOffers\n"
-
-  _marketplaceId=$1
-  _begin=$2
-  _limit=$3
-
-  printf "🤖 The getAllOffers from marketplace id (%s) 
-  was called with being (%s) and limit (%s)\n" "$_marketplaceId" "$_begin" "$_limit"
-
-  dfx canister \
-    call --query "$_marketplaceId" \
-    getAllOffers "($_begin, $_limit)"
 }
 
 approveNFT() {
@@ -434,8 +439,10 @@ accept_offer() {
     "false"
   [ "$DEBUG" == 1 ] && echo $?
 
-  getAllListings "$marketplaceId" \
-    "$nonFungibleContractAddress"
+  getTokenListing \
+    "$marketplaceId" \
+    "$nonFungibleContractAddress" \
+    "$nft_token_id"
   [ "$DEBUG" == 1 ] && echo $?
 
   approveFungible \
@@ -453,7 +460,10 @@ accept_offer() {
     "600"
   [ "$DEBUG" == 1 ] && echo $?
 
-  getAllOffers "$marketplaceId" 0 10
+  getTokenOffers \
+    "$marketplaceId" \
+    "$nonFungibleContractAddress" \
+    "$nft_token_id"
   [ "$DEBUG" == 1 ] && echo $?
 
   acceptOffer \
@@ -501,8 +511,10 @@ direct_buy() {
     "true"
   [ "$DEBUG" == 1 ] && echo $?
 
-  getAllListings "$marketplaceId" \
-    "$nonFungibleContractAddress"
+  getTokenListing \
+    "$marketplaceId" \
+    "$nonFungibleContractAddress" \
+    "$nft_token_id"
   [ "$DEBUG" == 1 ] && echo $?
 
   approveFungible \

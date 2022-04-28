@@ -68,6 +68,7 @@ type OfferStatus = variant {
 };
 type Result = variant { Ok; Err : MPApiError };
 type Result_1 = variant { Ok : nat; Err : MPApiError };
+type Result_2 = variant { Ok : Listing; Err : MPApiError };
 service : (principal, principal) -> {
   acceptOffer : (principal, nat, principal) -> (Result);
   addCollection : (
@@ -89,15 +90,9 @@ service : (principal, principal) -> {
   getAllBalances : () -> (
       vec record { record { principal; principal }; FungibleBalance },
     ) query;
-  getAllListings : (principal) -> (vec record { nat; Listing }) query;
-  getAllOffers : () -> (
-      vec record {
-        principal;
-        vec record { nat; vec record { principal; Offer } };
-      },
-    ) query;
   getBuyerOffers : (principal, principal) -> (vec Offer) query;
   getFloor : (principal) -> (Result_1) query;
+  getTokenListing : (principal, nat) -> (Result_2) query;
   getTokenOffers : (principal, vec nat) -> (
       vec record { nat; vec Offer },
     ) query;
