@@ -98,7 +98,9 @@ service : (principal, principal) -> {
     ) query;
   getBuyerOffers : (principal, principal) -> (vec Offer) query;
   getFloor : (principal) -> (Result_1) query;
-  getTokenOffers : (principal, nat) -> (vec Offer) query;
+  getTokenOffers : (principal, vec nat) -> (
+      vec record { nat; vec Offer },
+    ) query;
   makeListing : (bool, principal, nat, nat) -> (Result);
   makeOffer : (principal, nat, nat) -> (Result);
   serviceBalanceOf : (principal) -> (vec BalanceMetadata) query;
