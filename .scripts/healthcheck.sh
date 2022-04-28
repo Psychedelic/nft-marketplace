@@ -288,7 +288,9 @@ getTokenOffers() {
     call --query "$_marketplaceId" \
     getTokenOffers "(
       principal \"$_nonFungibleContractAddress\",
-      $_token_id,
+      vec { 
+        $_token_id;
+      },
     )"
 }
 
@@ -300,16 +302,14 @@ makeListing() {
   _marketplaceId=$3
   _token_id=$4
   _list_price=$5
-  _direct_buy=$6
 
   printf "🤖 has market id (%s)\n" "$_marketplaceId"
-  printf "🤖 the token id is %s, price %s, and direct buy %s\n" "$_token_id" "$_list_price" "$_direct_buy"
+  printf "🤖 the token id is %s, price %s\n" "$_token_id" "$_list_price"
   printf "🤖 will use identity %s\n" "$_identityName"
 
   dfx --identity "$_identityName" \
     canister call --update "$_marketplaceId" \
     makeListing "(
-        $_direct_buy:bool,
         principal \"$_nonFungibleContractAddress\",
         $_token_id,
         $_list_price:nat
