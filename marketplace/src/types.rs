@@ -103,11 +103,14 @@ pub struct TxLogEntry {
 
 #[derive(Default)]
 pub(crate) struct Marketplace {
-    // (collection, token): listing
+    // collection { token: { listing } }
     pub listings: HashMap<Principal, HashMap<Nat, Listing>>,
 
     // collection: { token: { principal: offer } }
     pub offers: HashMap<Principal, HashMap<Nat, HashMap<Principal, Offer>>>,
+
+    // user: (collection, token)
+    pub user_offers: HashMap<Principal, HashMap<Principal, Vec<Nat>>>,
 }
 
 #[derive(CandidType, Deserialize, Debug)]
