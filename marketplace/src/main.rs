@@ -1002,39 +1002,6 @@ pub async fn deny_offer(
     Ok(())
 }
 
-#[update(name = "depositFungible")]
-#[candid_method(update, rename = "depositFungible")]
-pub async fn deposit_fungible(
-    fungible_canister_id: Principal,
-    fungible_canister_standard: FungibleStandard,
-    amount: Nat,
-) -> MPApiResult {
-    let caller = ic::caller();
-    let self_id = ic::id();
-
-    // deposit funds
-    if transfer_from_fungible(
-        &caller,
-        &self_id,
-        &amount,
-        &fungible_canister_id,
-        fungible_canister_standard.clone(),
-    )
-    .await
-    .is_err()
-    {
-        return Err(MPApiError::TransferFungibleError);
-    }
-
-    // deposit successful at this point, add balance to ledger
-    *balances()
-        .balances
-        .entry((fungible_canister_id, caller))
-        .or_default() += amount.clone();
-
-    Ok(())
-}
-
 #[update(name = "withdrawFungible")]
 #[candid_method(update, rename = "withdrawFungible")]
 pub async fn withdraw_fungible(

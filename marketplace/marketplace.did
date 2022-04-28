@@ -58,7 +58,6 @@ service : (principal, principal) -> {
   cancelListing : (principal, nat) -> (Result);
   cancelOffer : (principal, nat) -> (Result);
   denyOffer : (principal, nat, principal) -> (Result);
-  depositFungible : (principal, FungibleStandard, nat) -> (Result);
   directBuy : (principal, nat) -> (Result);
   getAllBalances : () -> (
       vec record { record { principal; principal }; nat },
