@@ -678,25 +678,28 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
     Ok(())
 }
 
-#[query(name = "getAllListings")]
-#[candid_method(query, rename = "getAllListings")]
-pub async fn get_all_listings(nft_canister_id: Principal) -> Vec<(Nat, Listing)> {
+#[query(name = "getTokenListing")]
+#[candid_method(query, rename = "getTokenListing")]
+pub async fn get_token_listing(
+    nft_canister_id: Principal,
+    token_id: Nat,
+) -> Result<Listing, MPApiError> {
+    // verify collection is registered
+    let collection = collections()
+        .collections
+        .get(&nft_canister_id)
+        .ok_or(MPApiError::NonExistentCollection)?;
+
     let listings = marketplace()
         .listings
         .entry(nft_canister_id)
         .or_default()
         .clone();
 
-    listings
-        .into_iter()
-        .map(|offer| offer)
-        .collect()
-}
-
-#[query(name = "getAllOffers")]
-#[candid_method(query, rename = "getAllOffers")]
-pub async fn get_all_offers() -> HashMap<Principal, HashMap<Nat, HashMap<Principal, Offer>>> {
-    marketplace().offers.clone()
+    Ok(listings
+        .get(&token_id)
+        .ok_or(MPApiError::InvalidListing)?
+        .clone())
 }
 
 #[query(name = "getAllBalances")]
