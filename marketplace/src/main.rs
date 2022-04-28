@@ -262,7 +262,6 @@ fn add_collection(
 #[update(name = "makeListing")]
 #[candid_method(update, rename = "makeListing")]
 pub async fn make_listing(
-    direct_buy: bool,
     nft_canister_id: Principal,
     token_id: Nat,
     price: Nat,
@@ -312,7 +311,6 @@ pub async fn make_listing(
     }
 
     *listing = Listing::new(
-        direct_buy.clone(),
         price.clone(),
         seller,
         ListingStatus::Created,
@@ -338,13 +336,6 @@ pub async fn make_listing(
                         DetailValue::U64(convert_nat_to_u64(price.clone()).unwrap()),
                     ),
                     ("seller".into(), DetailValue::Principal(seller)),
-                    (
-                        "direct_buy".into(),
-                        match (direct_buy) {
-                            true => DetailValue::True,
-                            false => DetailValue::False,
-                        },
-                    ),
                 ])
                 .build()
                 .unwrap(),
@@ -479,12 +470,6 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
     // guarding against re-entrancy
     if listing.status != ListingStatus::Created {
         return Err(MPApiError::InvalidListingStatus);
-    }
-
-    if (!listing.direct_buy) {
-        return Err(MPApiError::Other(
-            "Token is not available for direct buy".to_string(),
-        ));
     }
 
     let collection = collections()

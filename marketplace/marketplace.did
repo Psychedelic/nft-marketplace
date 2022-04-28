@@ -28,7 +28,6 @@ type GenericValue = variant {
 type Listing = record {
   status : ListingStatus;
   created : nat64;
-  direct_buy : bool;
   price : nat;
   payment_address : principal;
 };
@@ -96,7 +95,7 @@ service : (principal, principal) -> {
   getTokenOffers : (principal, vec nat) -> (
       vec record { nat; vec Offer },
     ) query;
-  makeListing : (bool, principal, nat, nat) -> (Result);
+  makeListing : (principal, nat, nat) -> (Result);
   makeOffer : (principal, nat, nat) -> (Result);
   serviceBalanceOf : (principal) -> (vec BalanceMetadata) query;
   withdrawFungible : (principal, FungibleStandard) -> (Result);

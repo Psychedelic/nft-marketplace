@@ -34,7 +34,6 @@ pub struct InitData {
 
 #[derive(Clone, CandidType, Deserialize, Debug, new)]
 pub struct Listing {
-    pub direct_buy: bool,
     pub price: Nat,
     pub payment_address: Principal,
     pub status: ListingStatus,
@@ -44,7 +43,6 @@ pub struct Listing {
 impl Default for Listing {
     fn default() -> Self {
         Listing::new(
-            false,
             Nat::from(0),
             Principal::anonymous(),
             ListingStatus::Uninitialized,
