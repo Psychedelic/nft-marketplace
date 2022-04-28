@@ -44,12 +44,18 @@ pub async fn get_floor(nft_canister_id: Principal) -> NatResult {
         .get(&nft_canister_id)
         .ok_or(MPApiError::NonExistentCollection)?;
 
-    let listings = marketplace().listings.get(&nft_canister_id).ok_or(MPApiError::Other("No Listings".to_string()))?;
-    
-    if let Some((_, listing)) = listings.iter().min_by_key(|(_, listing)| listing.price.clone()) {
-        return Ok(listing.price.clone())
+    let listings = marketplace()
+        .listings
+        .get(&nft_canister_id)
+        .ok_or(MPApiError::Other("No Listings".to_string()))?;
+
+    if let Some((_, listing)) = listings
+        .iter()
+        .min_by_key(|(_, listing)| listing.price.clone())
+    {
+        return Ok(listing.price.clone());
     }
-    
+
     return Err(MPApiError::Other("No Listings".to_string()));
 }
 
@@ -220,6 +226,16 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: Nat, price: Nat) -
                 ic::time(),
             )
         });
+
+    let buyer_offers = mp
+        .user_offers
+        .entry(buyer)
+        .or_default()
+        .entry(nft_canister_id)
+        .or_default();
+    if !buyer_offers.contains(&token_id.clone()) {
+        buyer_offers.push(token_id.clone());
+    }
 
     capq()
         .insert_into_cap(
@@ -435,6 +451,15 @@ pub async fn accept_offer(
             .or_default()
             .remove(&token_id.clone());
     }
+
+    mp.user_offers
+        .entry(buyer)
+        .or_default()
+        .entry(nft_canister_id)
+        .and_modify(|tokens| {
+            tokens.retain(|token| token != &token_id.clone());
+        })
+        .or_default();
 
     capq()
         .insert_into_cap(
@@ -687,16 +712,63 @@ pub async fn get_all_listings(nft_canister_id: Principal) -> Vec<(Nat, Listing)>
         .or_default()
         .clone();
 
-    listings
-        .into_iter()
-        .map(|offer| offer)
-        .collect()
+    listings.into_iter().map(|offer| offer).collect()
 }
 
 #[query(name = "getAllOffers")]
 #[candid_method(query, rename = "getAllOffers")]
 pub async fn get_all_offers() -> HashMap<Principal, HashMap<Nat, HashMap<Principal, Offer>>> {
     marketplace().offers.clone()
+}
+
+#[query(name = "getTokenOffers")]
+#[candid_method(query, rename = "getTokenOffers")]
+pub async fn get_token_offers(
+    nft_canister_id: Principal,
+    token_ids: Vec<Nat>,
+) -> HashMap<Nat, Vec<Offer>> {
+    token_ids
+        .into_iter()
+        .map(|token_id| {
+            (
+                token_id.clone(),
+                marketplace()
+                    .offers
+                    .entry(nft_canister_id)
+                    .or_default()
+                    .entry(token_id.clone())
+                    .or_default()
+                    .values()
+                    .cloned()
+                    .collect(),
+            )
+        })
+        .collect()
+}
+
+#[query(name = getBuyerOffers)]
+#[candid_method(query, rename = "getBuyerOffers")]
+pub async fn get_buyer_offers(nft_canister_id: Principal, buyer: Principal) -> Vec<Offer> {
+    let offers = marketplace()
+        .offers
+        .entry(nft_canister_id)
+        .or_default()
+        .clone();
+    let token_list = marketplace()
+        .user_offers
+        .entry(buyer)
+        .or_default()
+        .entry(nft_canister_id)
+        .or_default()
+        .clone();
+
+    let mut user_offers: Vec<Offer> = Vec::new();
+
+    for token in token_list {
+        user_offers.push(offers.get(&token).unwrap().get(&buyer).unwrap().clone())
+    }
+
+    user_offers
 }
 
 #[query(name = "getAllBalances")]
@@ -889,10 +961,7 @@ pub async fn cancel_listing(nft_canister_id: Principal, token_id: Nat) -> MPApiR
         .get(&nft_canister_id)
         .ok_or(MPApiError::NonExistentCollection)?;
 
-    let listings = mp
-        .listings
-        .entry(nft_canister_id)
-        .or_default();
+    let listings = mp.listings.entry(nft_canister_id).or_default();
 
     let listing = listings
         .get_mut(&token_id.clone())
@@ -970,11 +1039,20 @@ pub async fn cancel_offer(nft_canister_id: Principal, token_id: Nat) -> MPApiRes
             .remove(&token_id.clone());
     }
 
+    mp.user_offers
+        .entry(buyer)
+        .or_default()
+        .entry(nft_canister_id)
+        .and_modify(|tokens| {
+            tokens.retain(|token| token != &token_id.clone());
+        })
+        .or_default();
+
     capq()
         .insert_into_cap(
             IndefiniteEventBuilder::new()
                 .caller(buyer)
-                .operation("denyOffer")
+                .operation("cancelOffer")
                 .details(vec![
                     (
                         "token_id".into(),
@@ -1034,6 +1112,15 @@ pub async fn deny_offer(
             .or_default()
             .remove(&token_id.clone());
     }
+
+    mp.user_offers
+        .entry(buyer)
+        .or_default()
+        .entry(nft_canister_id)
+        .and_modify(|tokens| {
+            tokens.retain(|token| token != &token_id.clone());
+        })
+        .or_default();
 
     capq()
         .insert_into_cap(
