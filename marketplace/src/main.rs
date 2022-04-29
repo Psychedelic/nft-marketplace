@@ -12,7 +12,10 @@ use cap_sdk::{
 use ic_kit::{
     candid::{candid_method, encode_args, CandidType, Deserialize, Nat},
     ic,
-    interfaces::{management::{self, CanisterStatus, CanisterStatusResponse, WithCanisterId}, Method},
+    interfaces::{
+        management::{self, CanisterStatus, CanisterStatusResponse, WithCanisterId},
+        Method,
+    },
     macros::*,
     Principal, RejectionCode,
 };
@@ -41,7 +44,9 @@ pub async fn is_controller(principal: &Principal) -> Result<(), String> {
 
     let status = CanisterStatus::perform(
         Principal::management_canister(),
-        (WithCanisterId { canister_id: ic::id() },),
+        (WithCanisterId {
+            canister_id: ic::id(),
+        },),
     )
     .await
     .map(|(status,)| Ok(status))

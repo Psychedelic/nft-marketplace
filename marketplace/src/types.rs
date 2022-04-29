@@ -94,7 +94,6 @@ pub struct TxLogEntry {
 
 #[derive(Default)]
 
-
 pub(crate) struct Marketplace {
     // collection { token: { listing } }
     pub listings: HashMap<Principal, HashMap<Nat, Listing>>,
