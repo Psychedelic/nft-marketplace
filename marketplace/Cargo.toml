@@ -5,13 +5,13 @@ authors = ["Ossian Mapes <oz@fleek.co>"]
 edition = "2018"
 
 [dependencies]
-ic-cdk-macros = "0.3"
+ic-cdk-macros = "0.5"
 candid = "0.7.4"
 serde = "1.0"
 serde_cbor = "0.11.2"
 serde_bytes = "0.11.5"
-ic-kit = "0.4.3"
-ic-cdk = "0.3.1"
+ic-kit = "0.4.4"
+ic-cdk = "0.5.0"
 assert-panic = "1.0.1"
 derive_builder = "0.10.2"
 derive-new = "0.5"
