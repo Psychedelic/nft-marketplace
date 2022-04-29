@@ -1,7 +1,7 @@
 [package]
 name = "marketplace"
-version = "0.1.0"
-authors = ["Daniel Graczer <daniel@fleek.co>"]
+version = "1.0.0"
+authors = ["Ossian Mapes <oz@fleek.co>"]
 edition = "2018"
 
 [dependencies]
