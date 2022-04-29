@@ -312,9 +312,9 @@ checksum = "631ae5198c9be5e753e5cc215e1bd73c2b466a3565173db433f52bb9d3e66dba"
 
 [[package]]
 name = "candid"
-version = "0.7.8"
+version = "0.7.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d7577605c33073dcafc17a5ed6373aa0cb7005e7d4e4b7cd40ca01cb2385533"
+checksum = "ba9e536514a3c655568e23e36e68cbef20ee6595f641719ade03a849a13ed0ac"
 dependencies = [
  "anyhow",
  "binread",
@@ -352,9 +352,10 @@ dependencies = [
 [[package]]
 name = "cap-common"
 version = "0.1.0"
-source = "git+https://github.com/Psychedelic/cap.git?branch=main#caf6e873ab3111f7557a2b45c82b33482dff2665"
+source = "git+https://github.com/Psychedelic/cap.git?branch=main#65aa7995a65fe0963f505f6dfd625eaea3f53e9b"
 dependencies = [
  "async-std",
+ "certified-vars",
  "ic-cdk",
  "ic-certified-map",
  "ic-kit",
@@ -367,7 +368,7 @@ dependencies = [
 [[package]]
 name = "cap-sdk"
 version = "0.1.0-alpha1"
-source = "git+https://github.com/Psychedelic/cap.git?branch=main#caf6e873ab3111f7557a2b45c82b33482dff2665"
+source = "git+https://github.com/Psychedelic/cap.git?branch=main#65aa7995a65fe0963f505f6dfd625eaea3f53e9b"
 dependencies = [
  "async-stream",
  "cap-sdk-core",
@@ -382,7 +383,7 @@ dependencies = [
 [[package]]
 name = "cap-sdk-core"
 version = "0.1.0-alpha1"
-source = "git+https://github.com/Psychedelic/cap.git?branch=main#caf6e873ab3111f7557a2b45c82b33482dff2665"
+source = "git+https://github.com/Psychedelic/cap.git?branch=main#65aa7995a65fe0963f505f6dfd625eaea3f53e9b"
 dependencies = [
  "cap-common",
  "ic-cdk",
@@ -394,7 +395,7 @@ dependencies = [
 [[package]]
 name = "cap-standards"
 version = "0.1.0-alpha1"
-source = "git+https://github.com/Psychedelic/cap.git?branch=main#caf6e873ab3111f7557a2b45c82b33482dff2665"
+source = "git+https://github.com/Psychedelic/cap.git?branch=main#65aa7995a65fe0963f505f6dfd625eaea3f53e9b"
 dependencies = [
  "bincode",
  "candid",
@@ -410,6 +411,21 @@ name = "cc"
 version = "1.0.72"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "22a9137b95ea06864e018375b72adfb7db6e6f68cfc8df5a04d00288050485ee"
+
+[[package]]
+name = "certified-vars"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3c5355bc98273ac7230620fe5b23eb5c3714666c8c353f0e22ad8e0bcb0dc9be"
+dependencies = [
+ "candid",
+ "hex",
+ "ic-cdk",
+ "serde",
+ "serde_bytes",
+ "serde_cbor",
+ "sha2",
+]
 
 [[package]]
 name = "cfg-if"
@@ -864,9 +880,9 @@ dependencies = [
 
 [[package]]
 name = "ic-types"
-version = "0.2.2"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2c021c11ae1d716f45d783f5764f418a11f12aea1fdc4fc8a2b2242e0dae708"
+checksum = "0e78ec6f58886cdc252d6f912dc794211bd6bbc39ddc9dcda434b2dc16c335b3"
 dependencies = [
  "base32",
  "crc32fast",
@@ -1024,7 +1040,7 @@ dependencies = [
 
 [[package]]
 name = "marketplace"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "assert-panic",
  "async-std",
