@@ -34,7 +34,6 @@ pub struct InitData {
 
 #[derive(Clone, CandidType, Deserialize, Debug, new)]
 pub struct Listing {
-    pub direct_buy: bool,
     pub price: Nat,
     pub payment_address: Principal,
     pub status: ListingStatus,
@@ -44,7 +43,6 @@ pub struct Listing {
 impl Default for Listing {
     fn default() -> Self {
         Listing::new(
-            false,
             Nat::from(0),
             Principal::anonymous(),
             ListingStatus::Uninitialized,
@@ -81,16 +79,9 @@ pub struct Collections {
 }
 
 #[derive(Clone, CandidType, Default, Deserialize, new)]
-pub struct FungibleBalance {
-    pub amount: Nat,
-    pub locked: Nat,
-}
-
-#[derive(Clone, CandidType, Default, Deserialize, new)]
 pub struct Balances {
     // (collection, user pid): value
-    pub balances: HashMap<(Principal, Principal), FungibleBalance>,
-    pub nft_balances: HashMap<(Principal, Nat), Principal>,
+    pub balances: HashMap<(Principal, Principal), Nat>,
     pub failed_tx_log_entries: Vec<TxLogEntry>,
 }
 
@@ -102,6 +93,7 @@ pub struct TxLogEntry {
 }
 
 #[derive(Default)]
+
 pub(crate) struct Marketplace {
     // collection { token: { listing } }
     pub listings: HashMap<Principal, HashMap<Nat, Listing>>,

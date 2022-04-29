@@ -288,7 +288,9 @@ getTokenOffers() {
     call --query "$_marketplaceId" \
     getTokenOffers "(
       principal \"$_nonFungibleContractAddress\",
-      $_token_id,
+      vec { 
+        $_token_id;
+      },
     )"
 }
 
@@ -300,16 +302,14 @@ makeListing() {
   _marketplaceId=$3
   _token_id=$4
   _list_price=$5
-  _direct_buy=$6
 
   printf "🤖 has market id (%s)\n" "$_marketplaceId"
-  printf "🤖 the token id is %s, price %s, and direct buy %s\n" "$_token_id" "$_list_price" "$_direct_buy"
+  printf "🤖 the token id is %s, price %s\n" "$_token_id" "$_list_price"
   printf "🤖 will use identity %s\n" "$_identityName"
 
   dfx --identity "$_identityName" \
     canister call --update "$_marketplaceId" \
     makeListing "(
-        $_direct_buy:bool,
         principal \"$_nonFungibleContractAddress\",
         $_token_id,
         $_list_price:nat
@@ -417,7 +417,7 @@ directBuy() {
     )"
 }
 
-accept_offer() {
+offer_flow() {
   printf "\n🌊 Make/Accept Offer Flow\n\n"
 
   user1=$1
@@ -474,14 +474,6 @@ accept_offer() {
     "$BOB_PRINCIPAL_ID"
   [ "$DEBUG" == 1 ] && echo $?
 
-  echo "balance of bob"
-
-  dfx canister call marketplace serviceBalanceOf "(principal \"$(dfx --identity $user2 identity get-principal)\")"
-
-  echo "balance of alice"
-
-  dfx canister call marketplace serviceBalanceOf "(principal \"$(dfx --identity $ALICE_IDENTITY_NAME identity get-principal)\")"
-
   getAllBalances "$marketplaceId"
   [ "$DEBUG" == 1 ] && echo $?
 
@@ -489,7 +481,7 @@ accept_offer() {
 }
 
 
-direct_buy() {
+buy_flow() {
   printf "\n🌊 Direct Buy Flow\n\n"
 
   user1=$1
@@ -564,8 +556,16 @@ run() {
     0
   [ "$DEBUG" == 1 ] && echo $?
 
-  accept_offer $ALICE_IDENTITY_NAME $BOB_IDENTITY_NAME
-  direct_buy $BOB_IDENTITY_NAME $ALICE_IDENTITY_NAME
+  getAllBalances "$marketplaceId"
+  [ "$DEBUG" == 1 ] && echo $?
+
+  offer_flow \
+    $ALICE_IDENTITY_NAME \
+    $BOB_IDENTITY_NAME
+
+  buy_flow \
+    $BOB_IDENTITY_NAME \
+    $ALICE_IDENTITY_NAME
 
   echo "👍 Healthcheck completed!"
 

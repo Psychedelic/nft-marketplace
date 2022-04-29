@@ -1,34 +1,7 @@
-type BalanceMetadata = record {
-  owner : principal;
-  details : vec record { text; GenericValue };
-  token_type : text;
-  standard : text;
-  contractId : principal;
-};
-type FungibleBalance = record { locked : nat; amount : nat };
 type FungibleStandard = variant { DIP20 };
-type GenericValue = variant {
-  Nat64Content : nat64;
-  Nat32Content : nat32;
-  BoolContent : bool;
-  Nat8Content : nat8;
-  Int64Content : int64;
-  IntContent : int;
-  NatContent : nat;
-  Nat16Content : nat16;
-  Int32Content : int32;
-  Int8Content : int8;
-  FloatContent : float64;
-  Int16Content : int16;
-  BlobContent : vec nat8;
-  NestedContent : vec record { text; GenericValue };
-  Principal : principal;
-  TextContent : text;
-};
 type Listing = record {
   status : ListingStatus;
   created : nat64;
-  direct_buy : bool;
   price : nat;
   payment_address : principal;
 };
@@ -81,14 +54,13 @@ service : (principal, principal) -> {
       principal,
       FungibleStandard,
     ) -> (Result);
-  balanceOf : (principal) -> (vec record { principal; FungibleBalance }) query;
+  balanceOf : (principal) -> (vec record { principal; nat }) query;
   cancelListing : (principal, nat) -> (Result);
   cancelOffer : (principal, nat) -> (Result);
   denyOffer : (principal, nat, principal) -> (Result);
-  depositFungible : (principal, FungibleStandard, nat) -> (Result);
   directBuy : (principal, nat) -> (Result);
   getAllBalances : () -> (
-      vec record { record { principal; principal }; FungibleBalance },
+      vec record { record { principal; principal }; nat },
     ) query;
   getBuyerOffers : (principal, principal) -> (vec Offer) query;
   getFloor : (principal) -> (Result_1) query;
@@ -96,8 +68,7 @@ service : (principal, principal) -> {
   getTokenOffers : (principal, vec nat) -> (
       vec record { nat; vec Offer },
     ) query;
-  makeListing : (bool, principal, nat, nat) -> (Result);
+  makeListing : (principal, nat, nat) -> (Result);
   makeOffer : (principal, nat, nat) -> (Result);
-  serviceBalanceOf : (principal) -> (vec BalanceMetadata) query;
   withdrawFungible : (principal, FungibleStandard) -> (Result);
 }
