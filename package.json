@@ -30,6 +30,10 @@
     "name": "Helder Oliveira",
     "email": "helder@fleek.co"
   },
+  "contributors": [
+    "Ossian Mapes <oz@fleek.co>",
+    "Daniel Graczer <daniel@fleek.co>"
+  ],
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/Psychedelic/nft-marketplace/issues"
