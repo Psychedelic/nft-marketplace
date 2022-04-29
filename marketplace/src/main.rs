@@ -12,7 +12,7 @@ use cap_sdk::{
 use ic_kit::{
     candid::{candid_method, encode_args, CandidType, Deserialize, Nat},
     ic,
-    interfaces::{management, Method},
+    interfaces::{management::{self, CanisterStatus, CanisterStatusResponse, WithCanisterId}, Method},
     macros::*,
     Principal, RejectionCode,
 };
@@ -32,6 +32,25 @@ mod vendor_types;
 pub fn init(cap: Principal, owner: Principal) {
     ic_kit::ic::store(InitData { cap, owner });
     handshake(1_000_000_000_000, Some(cap));
+}
+
+// to let the canister call the `aaaaa-aa` Management API `canister_status`
+pub async fn is_controller(principal: &Principal) -> Result<(), String> {
+    let caller = ic::caller();
+    let self_id = ic::id();
+
+    let status = CanisterStatus::perform(
+        Principal::management_canister(),
+        (WithCanisterId { canister_id: ic::id() },),
+    )
+    .await
+    .map(|(status,)| Ok(status))
+    .unwrap_or_else(|(code, message)| Err(format!("Code: {:?}, Message: {}", code, message)))?;
+
+    match status.settings.controllers.contains(&caller) {
+        true => Ok(()),
+        false => Err(format!("{} is not a controller of {}", caller, self_id)),
+    }
 }
 
 // QUERY METHODS //
@@ -169,8 +188,7 @@ fn add_collection(
     fungible_canister_id: Principal,
     fungible_canister_standard: FungibleStandard,
 ) -> MPApiResult {
-    // TODO: related to the init_data, which seems we can remove?
-    // assert_eq!(ic::caller(), init_data().owner);
+    assert_eq!(ic::caller(), init_data().owner);
 
     collections().collections.insert(
         nft_canister_id,
