@@ -620,11 +620,17 @@ pub async fn accept_offer(
         .or_default();
 
     let offer = offers.get_mut(&buyer).ok_or(MPApiError::InvalidListing)?;
+    let offer_price = offer.price.clone();
 
     // guarding against re-entrancy
     if offer.status != OfferStatus::Created {
         return Err(MPApiError::InvalidOfferStatus);
     }
+
+    let listings = mp.listings.entry(nft_canister_id).or_default();
+
+    let listing = listings
+        .get_mut(&token_id.clone());
 
     // check if the NFT is owned by the seller still
     let token_owner = owner_of_non_fungible(
@@ -635,8 +641,13 @@ pub async fn accept_offer(
     .await?;
 
     // check if caller/seller is the token owner
-    if (token_owner.unwrap() != seller) {
-        return Err(MPApiError::Unauthorized);
+    match token_owner {
+        Some(principal) => {
+            if (principal != seller) {
+                return Err(MPApiError::Unauthorized);
+            }
+        },
+        None => return Err(MPApiError::Unauthorized)
     }
 
     // check if mp is the operator still
@@ -647,8 +658,18 @@ pub async fn accept_offer(
     )
     .await?;
 
-    if (token_operator.unwrap() != self_id) {
-        return Err(MPApiError::InvalidOperator);
+    match token_operator {
+        Some(principal) => {
+            if (token_operator.unwrap() != self_id) {
+                return Err(MPApiError::InvalidOperator);
+            }
+        },
+        None => return Err(MPApiError::InvalidOperator)
+    }
+
+    if let Some(listed) = listing {
+        // guarding against reentrancy
+        listed.status = ListingStatus::Selling;
     }
 
     // Auto deposit tokens
@@ -664,7 +685,7 @@ pub async fn accept_offer(
 
     if allowance.is_err() {
         return Err(MPApiError::Other("Error calling allowance".to_string()));
-    } else if allowance.ok().unwrap().clone() < offer.price.clone() {
+    } else if allowance.ok().unwrap().clone() < offer_price.clone() {
         return Err(MPApiError::InsufficientFungibleAllowance);
     }
 
@@ -678,18 +699,18 @@ pub async fn accept_offer(
 
     if balance.is_err() {
         return Err(MPApiError::Other("Error calling balanceOf".to_string()));
-    } else if balance.ok().unwrap().clone() < offer.price.clone() {
+    } else if balance.ok().unwrap().clone() < offer_price.clone() {
         return Err(MPApiError::InsufficientFungibleBalance);
     }
 
     let owner_fee: Nat =
-        offer.price.clone() * collection.owner_fee_percentage.clone() / Nat::from(100);
+    offer_price.clone() * collection.owner_fee_percentage.clone() / Nat::from(100);
 
     // auto deposit funds to mp from buyer
     if transfer_from_fungible(
         &buyer,
         &self_id,
-        &offer.price.clone(),
+        &offer_price.clone(),
         &collection.fungible_canister_id,
         collection.fungible_canister_standard.clone(),
     )
@@ -722,7 +743,7 @@ pub async fn accept_offer(
         *balances()
             .balances
             .entry((collection.fungible_canister_id, buyer))
-            .or_default() += listing.price.clone();
+            .or_default() += offer_price.clone();
 
         balances().failed_tx_log_entries.push(TxLogEntry::new(
             self_id.clone(),
@@ -746,10 +767,11 @@ pub async fn accept_offer(
     .await
     .is_err()
     {
+        // add deposited funds to buyer mp balance
         *balances()
             .balances
-            .entry((collection.fungible_canister_id, seller))
-            .or_default() += listing.price.clone() - owner_fee.clone();
+            .entry((collection.fungible_canister_id, buyer))
+            .or_default() += offer_price.clone() - owner_fee.clone();
     }
 
     // credit the owner fee to the collection owners balance
@@ -759,8 +781,6 @@ pub async fn accept_offer(
         .or_default() += owner_fee.clone();
 
     offer.status = OfferStatus::Bought;
-
-    let price = offer.price.clone();
 
     // remove listing and offer
     listings.remove(&token_id.clone());
@@ -800,7 +820,7 @@ pub async fn accept_offer(
                     ("buyer".into(), DetailValue::Principal(buyer)),
                     (
                         "price".into(),
-                        DetailValue::U64(convert_nat_to_u64(price.clone()).unwrap()),
+                        DetailValue::U64(convert_nat_to_u64(offer_price.clone()).unwrap()),
                     ),
                     (
                         "owner_fee".into(),
