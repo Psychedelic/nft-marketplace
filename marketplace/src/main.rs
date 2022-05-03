@@ -660,7 +660,7 @@ pub async fn accept_offer(
 
     match token_operator {
         Some(principal) => {
-            if (token_operator.unwrap() != self_id) {
+            if (principal != self_id) {
                 return Err(MPApiError::InvalidOperator);
             }
         },
@@ -685,8 +685,10 @@ pub async fn accept_offer(
 
     if allowance.is_err() {
         return Err(MPApiError::Other("Error calling allowance".to_string()));
-    } else if allowance.ok().unwrap().clone() < offer_price.clone() {
-        return Err(MPApiError::InsufficientFungibleAllowance);
+    } else if let Some(has_allowance) = allowance.ok() {
+        if has_allowance < offer_price.clone() {
+            return Err(MPApiError::InsufficientFungibleAllowance);
+        }
     }
 
     // check buyer wallet balance
@@ -699,8 +701,10 @@ pub async fn accept_offer(
 
     if balance.is_err() {
         return Err(MPApiError::Other("Error calling balanceOf".to_string()));
-    } else if balance.ok().unwrap().clone() < offer_price.clone() {
-        return Err(MPApiError::InsufficientFungibleBalance);
+    } else if let Some(has_balance) = balance.ok() {
+        if has_balance < offer_price.clone() {
+            return Err(MPApiError::InsufficientFungibleBalance);
+        }
     }
 
     let owner_fee: Nat =
