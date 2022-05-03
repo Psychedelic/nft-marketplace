@@ -316,6 +316,22 @@ makeListing() {
       )"
 }
 
+cancelListing() {
+  printf "🤖 Call cancelListing\n"
+
+  _identityName=$1
+  _nonFungibleContractAddress=$2
+  _marketplaceId=$3
+  _token_id=$4
+
+  dfx --identity "$_identityName" \
+    canister call --update "$_marketplaceId" \
+    cancelListing "(
+        principal \"$_nonFungibleContractAddress\",
+        $_token_id,
+      )"
+}
+
 makeOffer() {
   printf "🤖 Call makeOffer\n"
 
@@ -445,6 +461,34 @@ offer_flow() {
     "$nft_token_id"
   [ "$DEBUG" == 1 ] && echo $?
 
+  cancelListing \
+    "$user1" \
+    "$nonFungibleContractAddress" \
+    "$marketplaceId" \
+    "$nft_token_id"
+  [ "$DEBUG" == 1 ] && echo $?
+
+  getTokenListing \
+    "$marketplaceId" \
+    "$nonFungibleContractAddress" \
+    "$nft_token_id"
+  [ "$DEBUG" == 1 ] && echo $?
+
+  makeListing \
+    "$user1" \
+    "$nonFungibleContractAddress" \
+    "$marketplaceId" \
+    "$nft_token_id" \
+    "1_200" \
+    "false"
+  [ "$DEBUG" == 1 ] && echo $?
+
+  getTokenListing \
+    "$marketplaceId" \
+    "$nonFungibleContractAddress" \
+    "$nft_token_id"
+  [ "$DEBUG" == 1 ] && echo $?
+
   approveFungible \
     "$user2" \
     "$wicpId" \
@@ -535,6 +579,13 @@ run() {
 
   topupWICP \
     "$wicpId" \
+    "Alice" \
+    "$ALICE_PRINCIPAL_ID" \
+    "100_000_000"
+  [ "$DEBUG" == 1 ] && echo $?
+
+  topupWICP \
+    "$wicpId" \
     "Bob" \
     "$BOB_PRINCIPAL_ID" \
     "100_000_000"
@@ -566,6 +617,8 @@ run() {
   buy_flow \
     $BOB_IDENTITY_NAME \
     $ALICE_IDENTITY_NAME
+
+  #
 
   echo "👍 Healthcheck completed!"
 

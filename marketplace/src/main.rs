@@ -838,18 +838,17 @@ pub async fn cancel_listing(nft_canister_id: Principal, token_id: Nat) -> MPApiR
     let listings = mp.listings.entry(nft_canister_id).or_default();
 
     let listing = listings
-        .get_mut(&token_id.clone())
-        .ok_or(MPApiError::InvalidListing)?;
+        .get(&token_id.clone())
+        .ok_or(MPApiError::InvalidListing)?
+        .clone();
+
     if (seller != listing.payment_address) {
         return Err(MPApiError::Unauthorized);
     }
+
     if listing.status != ListingStatus::Created {
         return Err(MPApiError::InvalidListingStatus);
     }
-
-    // todo: attempt auto withdraw
-
-    let old_price = listing.price.clone();
 
     listings.remove(&token_id.clone());
 
@@ -869,7 +868,7 @@ pub async fn cancel_listing(nft_canister_id: Principal, token_id: Nat) -> MPApiR
                     ),
                     (
                         "price".into(),
-                        DetailValue::U64(convert_nat_to_u64(old_price).unwrap()),
+                        DetailValue::U64(convert_nat_to_u64(listing.price.clone()).unwrap()),
                     ),
                 ])
                 .build()
