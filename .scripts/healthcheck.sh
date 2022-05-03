@@ -603,7 +603,7 @@ run() {
     "$nonFungibleContractAddress" \
     "$fungibleContractAddress" \
     "Crowns Collection" \
-    10 \
+    1000 \
     0
   [ "$DEBUG" == 1 ] && echo $?
 

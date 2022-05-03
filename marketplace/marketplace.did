@@ -2,8 +2,8 @@ type FungibleStandard = variant { DIP20 };
 type Listing = record {
   status : ListingStatus;
   created : nat64;
+  seller : principal;
   price : nat;
-  payment_address : principal;
 };
 type ListingStatus = variant { Selling; Uninitialized; Created };
 type MPApiError = variant {
@@ -28,8 +28,9 @@ type Offer = record {
   status : OfferStatus;
   created : nat64;
   token_id : nat;
+  token_owner : principal;
+  buyer : principal;
   price : nat;
-  payment_address : principal;
   nft_canister_id : principal;
 };
 type OfferStatus = variant {

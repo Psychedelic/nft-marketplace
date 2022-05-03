@@ -1,5 +1,7 @@
 use crate::vendor_types::*;
 
+
+
 use cap_sdk::{insert, Event, IndefiniteEvent, TypedEvent};
 use ic_kit::{
     candid::{CandidType, Deserialize, Int, Nat},
@@ -35,7 +37,7 @@ pub struct InitData {
 #[derive(Clone, CandidType, Deserialize, Debug, new)]
 pub struct Listing {
     pub price: Nat,
-    pub payment_address: Principal,
+    pub seller: Principal,
     pub status: ListingStatus,
     pub created: u64,
 }
@@ -56,7 +58,8 @@ pub struct Offer {
     pub nft_canister_id: Principal,
     pub token_id: Nat,
     pub price: Nat,
-    pub payment_address: Principal,
+    pub buyer: Principal,
+    pub token_owner: Principal,
     pub status: OfferStatus,
     pub created: u64,
 }

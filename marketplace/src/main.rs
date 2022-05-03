@@ -108,14 +108,15 @@ pub async fn get_token_offers(
         .collect()
 }
 
-#[query(name = getBuyerOffers)]
+#[query(name = "getBuyerOffers")]
 #[candid_method(query, rename = "getBuyerOffers")]
 pub async fn get_buyer_offers(nft_canister_id: Principal, buyer: Principal) -> Vec<Offer> {
-    let offers = marketplace()
+    let mut offers = marketplace()
         .offers
         .entry(nft_canister_id)
         .or_default()
         .clone();
+    let listings = marketplace().listings.entry(nft_canister_id).or_default().clone();
     let token_list = marketplace()
         .user_offers
         .entry(buyer)
@@ -127,7 +128,12 @@ pub async fn get_buyer_offers(nft_canister_id: Principal, buyer: Principal) -> V
     let mut user_offers: Vec<Offer> = Vec::new();
 
     for token in token_list {
-        user_offers.push(offers.get(&token).unwrap().get(&buyer).unwrap().clone())
+        let token_offers = offers.entry(token).or_default();
+        let offer = token_offers.get(&buyer);
+        match offer {
+            Some(o) => user_offers.push(o.clone()),
+            None => {},
+        }
     }
 
     user_offers
@@ -223,6 +229,7 @@ pub async fn make_listing(nft_canister_id: Principal, token_id: Nat, price: Nat)
         .get(&nft_canister_id)
         .ok_or(MPApiError::NonExistentCollection)?;
 
+    // check if the NFT is owned by the seller still
     let token_owner = owner_of_non_fungible(
         &nft_canister_id,
         &token_id,
@@ -230,20 +237,32 @@ pub async fn make_listing(nft_canister_id: Principal, token_id: Nat, price: Nat)
     )
     .await?;
 
-    if (token_owner.unwrap() != seller) {
-        return Err(MPApiError::Unauthorized);
+     // check if caller/seller is the token owner
+     match token_owner {
+        Some(principal) => {
+            if (principal != seller) {
+                return Err(MPApiError::Unauthorized);
+            }
+        },
+        None => return Err(MPApiError::Unauthorized)
     }
 
+    // check if mp is the operator still
     let token_operator = operator_of_non_fungible(
         &nft_canister_id,
         &token_id,
         collection.nft_canister_standard,
     )
-    .await?
-    .ok_or(MPApiError::InvalidOperator)?;
+    .await?;
 
-    if (token_operator != self_id) {
-        return Err(MPApiError::InvalidOperator);
+     // check if caller/seller is the token owner
+     match token_operator {
+        Some(principal) => {
+            if (principal != self_id) {
+                return Err(MPApiError::InvalidOperator);
+            }
+        },
+        None => return Err(MPApiError::InvalidOperator)
     }
 
     let mut mp = marketplace();
@@ -302,10 +321,12 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: Nat, price: Nat) -
         .get(&nft_canister_id)
         .ok_or(MPApiError::NonExistentCollection)?;
 
-    let buyer_balance = balances()
-        .balances
-        .entry((collection.fungible_canister_id, buyer))
-        .or_default();
+    let token_owner = owner_of_non_fungible(
+        &nft_canister_id,
+        &token_id,
+        collection.nft_canister_standard,
+    )
+    .await?.ok_or(MPApiError::Other("error calling owner_of".to_string()))?;
 
     // check if marketplace has allowance
     let allowance = allowance_fungible(
@@ -314,25 +335,21 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: Nat, price: Nat) -
         &self_id,
         collection.fungible_canister_standard.clone(),
     )
-    .await;
+    .await.map_err(|_| MPApiError::Other("Error calling allowance".to_string()))?;
 
-    if allowance.is_err() {
-        return Err(MPApiError::Other("Error calling allowance".to_string()));
-    } else if allowance.ok().unwrap().clone() < price.clone() {
+    if allowance.clone() < price.clone() {
         return Err(MPApiError::InsufficientFungibleAllowance);
     }
 
-    // check wallet balance for token
+    // check buyer wallet balance
     let balance = balance_of_fungible(
         &collection.fungible_canister_id,
         &buyer,
         collection.fungible_canister_standard.clone(),
     )
-    .await;
+    .await.map_err(|_| MPApiError::Other("Error calling balanceOf".to_string()))?;
 
-    if balance.is_err() {
-        return Err(MPApiError::Other("Error calling balanceOf".to_string()));
-    } else if balance.ok().unwrap().clone() < price.clone() {
+    if balance.clone() < price.clone() {
         return Err(MPApiError::InsufficientFungibleBalance);
     }
 
@@ -355,6 +372,7 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: Nat, price: Nat) -
                 token_id.clone(),
                 price.clone(),
                 buyer,
+                token_owner,
                 OfferStatus::Created,
                 ic::time(),
             )
@@ -429,8 +447,14 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
     )
     .await?;
 
-    if (token_owner.unwrap() != listing.payment_address) {
-        return Err(MPApiError::Unauthorized);
+     // check if caller/seller is the token owner
+     match token_owner {
+        Some(principal) => {
+            if (principal != listing.seller) {
+                return Err(MPApiError::Unauthorized);
+            }
+        },
+        None => return Err(MPApiError::Unauthorized)
     }
 
     // check if mp is the operator still
@@ -441,8 +465,14 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
     )
     .await?;
 
-    if (token_operator.unwrap() != self_id) {
-        return Err(MPApiError::InvalidOperator);
+     // check if caller/seller is the token owner
+     match token_operator {
+        Some(principal) => {
+            if (principal != self_id) {
+                return Err(MPApiError::InvalidOperator);
+            }
+        },
+        None => return Err(MPApiError::InvalidOperator)
     }
 
     // guarding agains reentrancy
@@ -457,11 +487,9 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
         &self_id,
         collection.fungible_canister_standard.clone(),
     )
-    .await;
+    .await.map_err(|_| MPApiError::Other("Error calling allowance".to_string()))?;
 
-    if allowance.is_err() {
-        return Err(MPApiError::Other("Error calling allowance".to_string()));
-    } else if allowance.ok().unwrap().clone() < listing.price.clone() {
+    if allowance.clone() < listing.price.clone() {
         return Err(MPApiError::InsufficientFungibleAllowance);
     }
 
@@ -471,16 +499,15 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
         &buyer,
         collection.fungible_canister_standard.clone(),
     )
-    .await;
+    .await.map_err(|_| MPApiError::Other("Error calling balanceOf".to_string()))?;
 
-    if balance.is_err() {
-        return Err(MPApiError::Other("Error calling balanceOf".to_string()));
-    } else if balance.ok().unwrap().clone() < listing.price.clone() {
+    if balance.clone() < listing.price.clone() {
         return Err(MPApiError::InsufficientFungibleBalance);
     }
 
+    // divide by 10000 to allow 2 digits of precision in the fee
     let owner_fee: Nat =
-        listing.price.clone() * collection.owner_fee_percentage.clone() / Nat::from(100);
+        listing.price.clone() * collection.owner_fee_percentage.clone() / Nat::from(10000);
 
     // auto deposit funds to mp from buyer
     if transfer_from_fungible(
@@ -495,10 +522,10 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
     {
         balances().failed_tx_log_entries.push(TxLogEntry::new(
             self_id.clone(),
-            listing.payment_address.clone(),
+            listing.seller.clone(),
             format!(
                 "accept_offer failed for user {} for contract {} for token id {}; transfer 2",
-                listing.payment_address, nft_canister_id, token_id,
+                listing.seller, nft_canister_id, token_id,
             ),
         ));
         return Err(MPApiError::TransferFungibleError);
@@ -506,7 +533,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
 
     // Successfully auto deposited fungibles, transfer the nft from marketplace to the buyer
     if transfer_from_non_fungible(
-        &listing.payment_address,         // from
+        &listing.seller,         // from
         &buyer,                           // to
         &token_id,                        // nft id
         &nft_canister_id,                 // contract
@@ -533,8 +560,9 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
         return Err(MPApiError::TransferNonFungibleError);
     }
 
+    // divide by 10000 to allow 2 digits of precision in the fee
     let owner_fee: Nat =
-        listing.price.clone() * collection.owner_fee_percentage.clone() / Nat::from(100);
+        listing.price.clone() * collection.owner_fee_percentage.clone() / Nat::from(10000);
 
     // todo: initiate transfer of fee to owner, if error fallback to credit in mp balance
 
@@ -546,7 +574,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
 
     // transfer the funds from the MP to the seller, or
     if transfer_fungible(
-        &listing.payment_address,
+        &listing.seller,
         &(listing.price.clone() - owner_fee.clone()),
         &collection.fungible_canister_id,
         collection.fungible_canister_standard.clone(),
@@ -557,7 +585,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
         // fallback to sellers mp balance
         *balances()
             .balances
-            .entry((collection.fungible_canister_id, listing.payment_address))
+            .entry((collection.fungible_canister_id, listing.seller))
             .or_default() += listing.price.clone() - owner_fee.clone();
     }
 
@@ -681,14 +709,10 @@ pub async fn accept_offer(
         &self_id,
         collection.fungible_canister_standard.clone(),
     )
-    .await;
+    .await.map_err(|_| MPApiError::Other("Error calling allowance".to_string()))?;
 
-    if allowance.is_err() {
-        return Err(MPApiError::Other("Error calling allowance".to_string()));
-    } else if let Some(has_allowance) = allowance.ok() {
-        if has_allowance < offer_price.clone() {
-            return Err(MPApiError::InsufficientFungibleAllowance);
-        }
+    if allowance.clone() < offer_price.clone() {
+        return Err(MPApiError::InsufficientFungibleAllowance);
     }
 
     // check buyer wallet balance
@@ -697,18 +721,14 @@ pub async fn accept_offer(
         &buyer,
         collection.fungible_canister_standard.clone(),
     )
-    .await;
+    .await.map_err(|_| MPApiError::Other("Error calling balanceOf".to_string()))?;
 
-    if balance.is_err() {
-        return Err(MPApiError::Other("Error calling balanceOf".to_string()));
-    } else if let Some(has_balance) = balance.ok() {
-        if has_balance < offer_price.clone() {
-            return Err(MPApiError::InsufficientFungibleBalance);
-        }
+    if balance.clone() < offer_price.clone() {
+        return Err(MPApiError::InsufficientFungibleBalance);
     }
 
     let owner_fee: Nat =
-    offer_price.clone() * collection.owner_fee_percentage.clone() / Nat::from(100);
+    offer_price.clone() * collection.owner_fee_percentage.clone() / Nat::from(10000);
 
     // auto deposit funds to mp from buyer
     if transfer_from_fungible(
@@ -858,7 +878,7 @@ pub async fn cancel_listing(nft_canister_id: Principal, token_id: Nat) -> MPApiR
         .ok_or(MPApiError::InvalidListing)?
         .clone();
 
-    if (seller != listing.payment_address) {
+    if (seller != listing.seller) {
         return Err(MPApiError::Unauthorized);
     }
 
