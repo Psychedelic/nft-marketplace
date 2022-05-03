@@ -626,12 +626,6 @@ pub async fn accept_offer(
         return Err(MPApiError::InvalidOfferStatus);
     }
 
-    let listings = mp.listings.entry(nft_canister_id).or_default();
-
-    let listing = listings
-        .get_mut(&token_id.clone())
-        .ok_or(MPApiError::InvalidListing)?;
-
     // check if the NFT is owned by the seller still
     let token_owner = owner_of_non_fungible(
         &nft_canister_id,
@@ -640,7 +634,8 @@ pub async fn accept_offer(
     )
     .await?;
 
-    if (token_owner.unwrap() != listing.payment_address) {
+    // check if caller/seller is the token owner
+    if (token_owner.unwrap() != seller) {
         return Err(MPApiError::Unauthorized);
     }
 
@@ -655,9 +650,6 @@ pub async fn accept_offer(
     if (token_operator.unwrap() != self_id) {
         return Err(MPApiError::InvalidOperator);
     }
-
-    // guarding agains reentrancy
-    listing.status = ListingStatus::Selling;
 
     // Auto deposit tokens
 
