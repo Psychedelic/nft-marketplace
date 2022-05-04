@@ -577,6 +577,16 @@ run() {
   printf "🚑 Healthcheck runtime details\n"
   printf "Owner address -> %s\n" "$ownerPrincipalId"
 
+  addCrownCollection \
+    "$DEFAULT_PRINCIPAL_ID" \
+    "$marketplaceId" \
+    "$nonFungibleContractAddress" \
+    "$fungibleContractAddress" \
+    "Crowns Collection" \
+    1000 \
+    0
+  [ "$DEBUG" == 1 ] && echo $?
+
   topupWICP \
     "$wicpId" \
     "Alice" \
@@ -603,7 +613,7 @@ run() {
     "$nonFungibleContractAddress" \
     "$fungibleContractAddress" \
     "Crowns Collection" \
-    10 \
+    1000 \
     0
   [ "$DEBUG" == 1 ] && echo $?
 
