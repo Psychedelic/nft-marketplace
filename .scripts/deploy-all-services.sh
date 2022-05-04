@@ -42,7 +42,7 @@ deployMarketplace() {
   _owner=$1
   _icHistoryRouter=$2
 
-  yes yes | yarn marketplace:deploy "$_owner" "$_icHistoryRouter"
+  yes yes | yarn marketplace:deploy "$_owner" "$_icHistoryRouter" 100
 }
 
 deployWICP() {
