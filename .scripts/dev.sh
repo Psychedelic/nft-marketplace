@@ -7,5 +7,5 @@ cargo run > marketplace/marketplace.did
 cat marketplace/marketplace.did
 printf "\n\n > Reinstalling canister...\n\n"
 # reinstall canister (upgrade breaks cap?)
-yarn marketplace:deploy $(dfx identity get-principal) $(cd cap && dfx canister id ic-history-router) 100 "-m reinstall" <<<yes
+yarn marketplace:deploy $(dfx identity get-principal) $(cd cap && dfx canister id ic-history-router) 250 "-m reinstall" <<<yes
 printf "\n ✅ Success\n\n\a"
