@@ -84,5 +84,6 @@ service : (principal, principal, nat) -> {
     ) query;
   makeListing : (principal, nat, nat) -> (Result);
   makeOffer : (principal, nat, nat) -> (Result);
+  setProtocolFee : (nat) -> (Result);
   withdrawFungible : (principal, FungibleStandard) -> (Result);
 }

@@ -254,6 +254,21 @@ fn add_collection(
     Ok(())
 }
 
+#[update(name = "setProtocolFee")]
+#[candid_method(update, rename = "setProtocolFee")]
+fn set_protocol_fee(fee: Nat) -> MPApiResult {
+    let init_data = init_data().clone();
+    assert_eq!(ic::caller(), init_data.owner);
+    
+    ic_kit::ic::store(InitData {
+        cap: init_data.cap,
+        owner: init_data.owner,
+        protocol_fee: fee,
+    });
+
+    Ok(())
+}
+
 #[update(name = "makeListing")]
 #[candid_method(update, rename = "makeListing")]
 pub async fn make_listing(nft_canister_id: Principal, token_id: Nat, price: Nat) -> MPApiResult {
