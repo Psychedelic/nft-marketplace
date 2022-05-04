@@ -507,10 +507,6 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
         return Err(MPApiError::InsufficientFungibleBalance);
     }
 
-    // divide by 10000 to allow 2 digits of precision in the fee
-    let owner_fee: Nat =
-        listing.price.clone() * collection.owner_fee_percentage.clone() / Nat::from(10000);
-
     // auto deposit funds to mp from buyer
     if transfer_from_fungible(
         &buyer,
@@ -564,7 +560,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
 
     // divide by 10000 to allow 2 digits of precision in the fee
     let owner_fee: Nat =
-        listing.price.clone() * collection.owner_fee_percentage.clone() / Nat::from(10000);
+        listing.price.clone() * collection.collection_fee.clone() / Nat::from(10000);
 
     // todo: initiate transfer of fee to owner, if error fallback to credit in mp balance
 
@@ -730,7 +726,7 @@ pub async fn accept_offer(
     }
 
     let owner_fee: Nat =
-    offer_price.clone() * collection.owner_fee_percentage.clone() / Nat::from(10000);
+    offer_price.clone() * collection.collection_fee.clone() / Nat::from(10000);
 
     // auto deposit funds to mp from buyer
     if transfer_from_fungible(

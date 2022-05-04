@@ -70,7 +70,7 @@ pub struct Offer {
 #[derive(Clone, CandidType, Deserialize, new)]
 pub struct Collection {
     pub owner: Principal,
-    pub owner_fee_percentage: Nat,
+    pub collection_fee: Nat,
     pub creation_time: u64,
     pub collection_name: String,
     pub nft_canister_id: Principal,
