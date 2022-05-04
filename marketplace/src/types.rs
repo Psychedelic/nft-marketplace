@@ -30,6 +30,7 @@ pub enum ListingStatus {
 pub struct InitData {
     pub cap: Principal,
     pub owner: Principal,
+    pub protocol_fee: Nat,
 }
 
 #[derive(Clone, CandidType, Deserialize, Debug, new)]
@@ -38,6 +39,7 @@ pub struct Listing {
     pub payment_address: Principal,
     pub status: ListingStatus,
     pub created: u64,
+    pub fee: Vec<(String, Principal, Nat)>,
 }
 
 impl Default for Listing {
@@ -47,6 +49,7 @@ impl Default for Listing {
             Principal::anonymous(),
             ListingStatus::Uninitialized,
             0,
+            Vec::new()
         )
     }
 }

@@ -32,8 +32,8 @@ mod vendor_types;
 
 #[init]
 #[candid_method(init)]
-pub fn init(cap: Principal, owner: Principal) {
-    ic_kit::ic::store(InitData { cap, owner });
+pub fn init(cap: Principal, owner: Principal, protocol_fee: Nat) {
+    ic_kit::ic::store(InitData { cap, owner, protocol_fee });
     handshake(1_000_000_000_000, Some(cap));
 }
 
@@ -185,7 +185,7 @@ pub async fn get_floor(nft_canister_id: Principal) -> NatResult {
 #[candid_method(update, rename = "addCollection")]
 fn add_collection(
     owner: Principal,
-    owner_fee_percentage: Nat,
+    collection_fee: Nat,
     creation_time: u64,
     collection_name: String,
     nft_canister_id: Principal,
@@ -199,7 +199,7 @@ fn add_collection(
         nft_canister_id,
         Collection::new(
             owner,
-            owner_fee_percentage,
+            collection_fee,
             creation_time,
             collection_name,
             nft_canister_id,
@@ -223,6 +223,9 @@ pub async fn make_listing(nft_canister_id: Principal, token_id: Nat, price: Nat)
         .get(&nft_canister_id)
         .ok_or(MPApiError::NonExistentCollection)?;
 
+    let protocol = init_data();
+
+    // check if the NFT is owned by the seller still
     let token_owner = owner_of_non_fungible(
         &nft_canister_id,
         &token_id,
@@ -259,7 +262,7 @@ pub async fn make_listing(nft_canister_id: Principal, token_id: Nat, price: Nat)
         return Err(MPApiError::InvalidListingStatus);
     }
 
-    *listing = Listing::new(price.clone(), seller, ListingStatus::Created, ic::time());
+    *listing = Listing::new(price.clone(), seller, ListingStatus::Created, ic::time(), [("Protocol Fee".to_string(), protocol.owner, protocol.protocol_fee.clone())].to_vec());
 
     capq()
         .insert_into_cap(
