@@ -75,8 +75,9 @@ service : (principal, principal, nat) -> {
       vec record { record { principal; principal }; nat },
     ) query;
   getBuyerOffers : (principal, principal) -> (vec Offer) query;
-  getCollections : (principal, nat) -> (vec Collection) query;
+  getCollections : () -> (vec Collection) query;
   getFloor : (principal) -> (Result_1) query;
+  getProtocolFee : () -> (nat) query;
   getTokenListing : (principal, nat) -> (Result_2) query;
   getTokenOffers : (principal, vec nat) -> (
       vec record { nat; vec Offer },

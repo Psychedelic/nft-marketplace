@@ -84,12 +84,15 @@ pub fn process_fees(fungible_canister_id: Principal, price: Nat, fees: Vec<(Stri
 
 // QUERY METHODS //
 
+#[query(name = "getProtocolFee")]
+#[candid_method(query, rename = "getProtocolFee")]
+pub async fn get_protocol_fee() -> Nat {
+    init_data().protocol_fee.clone()
+}
+
 #[query(name = "getCollections")]
 #[candid_method(query, rename = "getCollections")]
-pub async fn get_collections(
-    nft_canister_id: Principal,
-    token_id: Nat,
-) -> Vec<Collection> {
+pub async fn get_collections() -> Vec<Collection> {
     collections().collections.clone().values().cloned().collect()
 }
 

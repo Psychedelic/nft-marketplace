@@ -1,7 +1,5 @@
 use crate::vendor_types::*;
 
-
-
 use cap_sdk::{insert, Event, IndefiniteEvent, TypedEvent};
 use ic_kit::{
     candid::{CandidType, Deserialize, Int, Nat},
