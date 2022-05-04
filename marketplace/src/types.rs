@@ -49,7 +49,7 @@ impl Default for Listing {
             Principal::anonymous(),
             ListingStatus::Uninitialized,
             0,
-            Vec::new()
+            Vec::new(),
         )
     }
 }

@@ -33,7 +33,11 @@ mod vendor_types;
 #[init]
 #[candid_method(init)]
 pub fn init(cap: Principal, owner: Principal, protocol_fee: Nat) {
-    ic_kit::ic::store(InitData { cap, owner, protocol_fee });
+    ic_kit::ic::store(InitData {
+        cap,
+        owner,
+        protocol_fee,
+    });
     handshake(1_000_000_000_000, Some(cap));
 }
 
@@ -262,7 +266,23 @@ pub async fn make_listing(nft_canister_id: Principal, token_id: Nat, price: Nat)
         return Err(MPApiError::InvalidListingStatus);
     }
 
-    *listing = Listing::new(price.clone(), seller, ListingStatus::Created, ic::time(), [("Protocol Fee".to_string(), protocol.owner, protocol.protocol_fee.clone())].to_vec());
+    *listing = Listing::new(
+        price.clone(),
+        seller,
+        ListingStatus::Created,
+        ic::time(),
+        [(
+            "Protocol Fee".to_string(),
+            protocol.owner,
+            protocol.protocol_fee.clone(),
+        ),
+        (
+            "Collection Fee".to_string(),
+            collection.owner,
+            collection.collection_fee.clone(),
+        )]
+        .to_vec(),
+    );
 
     capq()
         .insert_into_cap(
@@ -482,9 +502,6 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
         return Err(MPApiError::InsufficientFungibleBalance);
     }
 
-    let owner_fee: Nat =
-        listing.price.clone() * collection.collection_fee.clone() / Nat::from(100);
-
     // auto deposit funds to mp from buyer
     if transfer_from_fungible(
         &buyer,
@@ -536,8 +553,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
         return Err(MPApiError::TransferNonFungibleError);
     }
 
-    let owner_fee: Nat =
-        listing.price.clone() * collection.collection_fee.clone() / Nat::from(100);
+    let owner_fee: Nat = listing.price.clone() * collection.collection_fee.clone() / Nat::from(100);
 
     // todo: initiate transfer of fee to owner, if error fallback to credit in mp balance
 
@@ -632,8 +648,7 @@ pub async fn accept_offer(
 
     let listings = mp.listings.entry(nft_canister_id).or_default();
 
-    let listing = listings
-        .get_mut(&token_id.clone());
+    let listing = listings.get_mut(&token_id.clone());
 
     // check if the NFT is owned by the seller still
     let token_owner = owner_of_non_fungible(
@@ -649,8 +664,8 @@ pub async fn accept_offer(
             if (principal != seller) {
                 return Err(MPApiError::Unauthorized);
             }
-        },
-        None => return Err(MPApiError::Unauthorized)
+        }
+        None => return Err(MPApiError::Unauthorized),
     }
 
     // check if mp is the operator still
@@ -666,8 +681,8 @@ pub async fn accept_offer(
             if (principal != self_id) {
                 return Err(MPApiError::InvalidOperator);
             }
-        },
-        None => return Err(MPApiError::InvalidOperator)
+        }
+        None => return Err(MPApiError::InvalidOperator),
     }
 
     if let Some(listed) = listing {
@@ -710,8 +725,7 @@ pub async fn accept_offer(
         }
     }
 
-    let owner_fee: Nat =
-    offer_price.clone() * collection.collection_fee.clone() / Nat::from(100);
+    let owner_fee: Nat = offer_price.clone() * collection.collection_fee.clone() / Nat::from(100);
 
     // auto deposit funds to mp from buyer
     if transfer_from_fungible(
