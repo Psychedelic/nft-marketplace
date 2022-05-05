@@ -7,6 +7,7 @@ cd ../../ || exit 1
 # Args
 _owner=$1
 _icHistoryRouter=$2
+_protocol_fee=$3
 
 dfx canister \
   create marketplace --controller "$_owner"
@@ -22,6 +23,7 @@ dfx canister \
 dfx deploy \
   marketplace --argument "(
     principal \"$_icHistoryRouter\",
-    principal \"$_owner\"
+    principal \"$_owner\",
+    $_protocol_fee:nat
   )" \
-  $3
+  $4

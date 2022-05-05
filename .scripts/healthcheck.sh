@@ -451,7 +451,7 @@ offer_flow() {
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
     "$nft_token_id" \
-    "1_200" \
+    "200_000_000" \
     "false"
   [ "$DEBUG" == 1 ] && echo $?
 
@@ -479,7 +479,7 @@ offer_flow() {
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
     "$nft_token_id" \
-    "1_200" \
+    "200_000_000" \
     "false"
   [ "$DEBUG" == 1 ] && echo $?
 
@@ -493,7 +493,7 @@ offer_flow() {
     "$user2" \
     "$wicpId" \
     "$marketplaceId" \
-    "600"
+    "150_000_000"
   [ "$DEBUG" == 1 ] && echo $?
 
   makeOffer \
@@ -501,7 +501,7 @@ offer_flow() {
     "Bob" \
     "$nonFungibleContractAddress" \
     "$nft_token_id" \
-    "600"
+    "150_000_000"
   [ "$DEBUG" == 1 ] && echo $?
 
   getTokenOffers \
@@ -537,13 +537,15 @@ buy_flow() {
     "$marketplaceId" \
     "$nft_token_id"
   [ "$DEBUG" == 1 ] && echo $?
-  
+
+
+  # make listing that costs 1.000 WICP
   makeListing \
     "$user1" \
     "$nonFungibleContractAddress" \
     "$marketplaceId" \
     "$nft_token_id" \
-    "500" \
+    "100_000_000" \
     "true"
   [ "$DEBUG" == 1 ] && echo $?
 
@@ -557,7 +559,7 @@ buy_flow() {
     "$user2" \
     "$wicpId" \
     "$marketplaceId" \
-    "500"
+    "100_000_000"
   [ "$DEBUG" == 1 ] && echo $?
 
   directBuy \
@@ -578,12 +580,12 @@ run() {
   printf "Owner address -> %s\n" "$ownerPrincipalId"
 
   addCrownCollection \
-    "$DEFAULT_PRINCIPAL_ID" \
+    "3crrz-quea6-mdmy3-3btit-f2mgf-esqo6-ybiz7-i6s4z-xrf7g-izcxw-zae" \
     "$marketplaceId" \
     "$nonFungibleContractAddress" \
     "$fungibleContractAddress" \
     "Crowns Collection" \
-    1000 \
+    250 \
     0
   [ "$DEBUG" == 1 ] && echo $?
 
@@ -591,30 +593,22 @@ run() {
     "$wicpId" \
     "Alice" \
     "$ALICE_PRINCIPAL_ID" \
-    "100_000_000"
+    "10_000_000_000"
+    # 100 WICP
   [ "$DEBUG" == 1 ] && echo $?
 
   topupWICP \
     "$wicpId" \
     "Bob" \
     "$BOB_PRINCIPAL_ID" \
-    "100_000_000"
+    "10_000_000_000"
+    # 100 WICP
   [ "$DEBUG" == 1 ] && echo $?
 
   mintDip721 \
     "Alice" \
     "$ALICE_PRINCIPAL_ID" \
     "$nonFungibleContractAddress"
-  [ "$DEBUG" == 1 ] && echo $?
-
-  addCrownCollection \
-    "$DEFAULT_PRINCIPAL_ID" \
-    "$marketplaceId" \
-    "$nonFungibleContractAddress" \
-    "$fungibleContractAddress" \
-    "Crowns Collection" \
-    1000 \
-    0
   [ "$DEBUG" == 1 ] && echo $?
 
   getAllBalances "$marketplaceId"
@@ -627,8 +621,6 @@ run() {
   buy_flow \
     $BOB_IDENTITY_NAME \
     $ALICE_IDENTITY_NAME
-
-  #
 
   echo "👍 Healthcheck completed!"
 

@@ -1,7 +1,5 @@
 use crate::vendor_types::*;
 
-
-
 use cap_sdk::{insert, Event, IndefiniteEvent, TypedEvent};
 use ic_kit::{
     candid::{CandidType, Deserialize, Int, Nat},
@@ -32,6 +30,7 @@ pub enum ListingStatus {
 pub struct InitData {
     pub cap: Principal,
     pub owner: Principal,
+    pub protocol_fee: Nat,
 }
 
 #[derive(Clone, CandidType, Deserialize, Debug, new)]
@@ -40,6 +39,7 @@ pub struct Listing {
     pub seller: Principal,
     pub status: ListingStatus,
     pub created: u64,
+    pub fee: Vec<(String, Principal, Nat)>,
 }
 
 impl Default for Listing {
@@ -49,6 +49,7 @@ impl Default for Listing {
             Principal::anonymous(),
             ListingStatus::Uninitialized,
             0,
+            Vec::new(),
         )
     }
 }
@@ -67,7 +68,7 @@ pub struct Offer {
 #[derive(Clone, CandidType, Deserialize, new)]
 pub struct Collection {
     pub owner: Principal,
-    pub owner_fee_percentage: Nat,
+    pub collection_fee: Nat,
     pub creation_time: u64,
     pub collection_name: String,
     pub nft_canister_id: Principal,

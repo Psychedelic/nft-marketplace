@@ -42,7 +42,7 @@ deployMarketplace() {
   _owner=$1
   _icHistoryRouter=$2
 
-  yes yes | yarn marketplace:deploy "$_owner" "$_icHistoryRouter"
+  yes yes | yarn marketplace:deploy "$_owner" "$_icHistoryRouter" 250
 }
 
 deployWICP() {
@@ -76,7 +76,7 @@ deployDip721 "$DEFAULT_PRINCIPAL_ID" "Crowns" "CRW"
 deployMarketplace "$DEFAULT_PRINCIPAL_ID" "$IC_HISTORY_ROUTER" 
 [ "$DEBUG" == 1 ] && echo $?
 
-deployWICP "$DEFAULT_PRINCIPAL_ID" "$IC_HISTORY_ROUTER" 1_000_000_000_000""
+deployWICP "$DEFAULT_PRINCIPAL_ID" "$IC_HISTORY_ROUTER" 1_000_000_000_000_000""
 [ "$DEBUG" == 1 ] && echo $?
 
 echo "👍 Deploy services completed!"

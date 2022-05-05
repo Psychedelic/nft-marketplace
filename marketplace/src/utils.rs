@@ -21,7 +21,6 @@ pub(crate) fn balances() -> &'static mut Balances {
     get_mut::<Balances>()
 }
 
-// TODO: this seems not be used and can be removed?
 pub(crate) fn init_data() -> &'static InitData {
     get_maybe::<InitData>().unwrap()
 }
