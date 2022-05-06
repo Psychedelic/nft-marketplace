@@ -12,7 +12,7 @@ token_index=0
 
 # To use, provide the txt filename
 # where each principal is in a new line
-filename=$0
+filename=$1
 
 generateMock() {
   _identityName=$1
