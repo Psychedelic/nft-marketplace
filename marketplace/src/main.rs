@@ -673,6 +673,14 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
     // remove listing
     listings.remove(&token_id.clone());
 
+    // update market cap for collection
+    collections()
+        .collections
+        .entry(nft_canister_id)
+        .and_modify(|collection_data| {
+            collection_data.total_market_cap = collection_data.total_market_cap.clone() + price.clone();
+        });
+
     capq()
         .insert_into_cap(
             IndefiniteEventBuilder::new()
@@ -917,6 +925,14 @@ pub async fn accept_offer(
             tokens.retain(|token| token != &token_id.clone());
         })
         .or_default();
+
+    // update market cap for collection
+    collections()
+        .collections
+        .entry(nft_canister_id)
+        .and_modify(|collection_data| {
+            collection_data.total_market_cap = collection_data.total_market_cap.clone() + offer_price.clone();
+        });
 
     capq()
         .insert_into_cap(
