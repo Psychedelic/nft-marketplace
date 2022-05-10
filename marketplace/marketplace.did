@@ -2,6 +2,7 @@ type Collection = record {
   collection_fee : nat;
   creation_time : nat64;
   nft_canister_standard : NFTStandard;
+  total_market_cap : nat;
   owner : principal;
   collection_name : text;
   fungible_canister_standard : FungibleStandard;

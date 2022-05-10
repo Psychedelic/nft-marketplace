@@ -70,7 +70,7 @@ pub fn process_fees(
     let mut total_fee: Nat = Nat::from(0);
 
     for (_, principal, fee) in fees {
-        // divide by 10000 to allow 2 digits of precision in the fee
+        // divide by 100 * 100 to allow 2 digits of precision in the fee percentage
         let amount: Nat = price.clone() * fee.clone() / Nat::from(10000);
 
         total_fee += amount.clone();
@@ -260,12 +260,16 @@ fn add_collection(
             nft_canister_standard,
             fungible_canister_id,
             fungible_canister_standard,
+            Nat::from(0),
         ),
     );
 
     Ok(())
 }
 
+/// Set Protocol Fee
+/// fee: e2 nat, for 2 decimals of precision
+/// so a 2.50% fee would be 250:nat
 #[update(name = "setProtocolFee")]
 #[candid_method(update, rename = "setProtocolFee")]
 fn set_protocol_fee(fee: Nat) -> MPApiResult {
@@ -678,7 +682,8 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
         .collections
         .entry(nft_canister_id)
         .and_modify(|collection_data| {
-            collection_data.total_market_cap = collection_data.total_market_cap.clone() + price.clone();
+            collection_data.total_market_cap =
+                collection_data.total_market_cap.clone() + price.clone();
         });
 
     capq()
@@ -931,7 +936,8 @@ pub async fn accept_offer(
         .collections
         .entry(nft_canister_id)
         .and_modify(|collection_data| {
-            collection_data.total_market_cap = collection_data.total_market_cap.clone() + offer_price.clone();
+            collection_data.total_market_cap =
+                collection_data.total_market_cap.clone() + offer_price.clone();
         });
 
     capq()
