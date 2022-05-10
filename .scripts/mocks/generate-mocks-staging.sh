@@ -146,3 +146,18 @@ done < "$filename"
 printf "✍️ Add collection to Marketplace\n"
 
 ./.scripts/add-collection.sh
+
+# TODO: Call the kyasshu:cache <number of mock
+
+# Deployment notes
+# verify correct commit on submodules
+# local replica bind to 0.0.0.0
+# reset by services:reset
+# cd to nft-marketplace
+# dfx start --clean --host 0.0.0.0:8000
+# generate mocks
+# ./.scripts/mocks/generate-mocks-staging.sh ./fleek-ids.txt && cd .. && yarn kyasshu:cache 34
+# Build as:
+# REACT_APP_NODE_ENV=production yarn build
+# Served as:
+# npx servor build/ index.html 8001
