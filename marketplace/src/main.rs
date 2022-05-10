@@ -95,13 +95,10 @@ pub async fn get_protocol_fee() -> Nat {
 
 #[query(name = "getCollections")]
 #[candid_method(query, rename = "getCollections")]
-pub async fn get_collections() -> Vec<Collection> {
+pub async fn get_collections() -> HashMap<Principal, Collection> {
     collections()
         .collections
         .clone()
-        .values()
-        .cloned()
-        .collect()
 }
 
 #[query(name = "getTokenListing")]
