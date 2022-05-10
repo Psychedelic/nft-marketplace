@@ -682,8 +682,8 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
         .collections
         .entry(nft_canister_id)
         .and_modify(|collection_data| {
-            collection_data.total_market_cap =
-                collection_data.total_market_cap.clone() + price.clone();
+            collection_data.fungible_volume =
+                collection_data.fungible_volume.clone() + price.clone();
         });
 
     capq()
@@ -936,8 +936,8 @@ pub async fn accept_offer(
         .collections
         .entry(nft_canister_id)
         .and_modify(|collection_data| {
-            collection_data.total_market_cap =
-                collection_data.total_market_cap.clone() + offer_price.clone();
+            collection_data.fungible_volume =
+                collection_data.fungible_volume.clone() + offer_price.clone();
         });
 
     capq()
