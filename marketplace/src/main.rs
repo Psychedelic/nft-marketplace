@@ -235,9 +235,17 @@ pub async fn get_floor(nft_canister_id: Principal) -> NatResult {
 
 // UPDATE METHODS //
 
+/// Add a Collection
+/// - owner: principal id of the owner of the collection, collection fees will be distributed to this user
+/// - collection_fee: fee multiplied by e2, for precision. `2.50% fee` = `250:nat`
+/// - collection_name: string representing the collection name. Should match dab registry entry
+/// - nft_canister_id: principal of the nft collection
+/// - nft_canister_standard: nft standard, eg; `DIP721v2`
+/// - fungible_canister_id: principal of the fungible a collection is traded with
+/// - fungible_canister_standard: fungible standard, eg; `DIP20`
 #[update(name = "addCollection")]
 #[candid_method(update, rename = "addCollection")]
-fn add_collection(
+pub async fn add_collection(
     owner: Principal,
     collection_fee: Nat,
     creation_time: u64,
@@ -247,7 +255,9 @@ fn add_collection(
     fungible_canister_id: Principal,
     fungible_canister_standard: FungibleStandard,
 ) -> MPApiResult {
-    assert_eq!(ic::caller(), init_data().owner);
+    if let Err(e) = is_controller(&ic::caller()).await {
+        return Err(MPApiError::Unauthorized);
+    }
 
     collections().collections.insert(
         nft_canister_id,
