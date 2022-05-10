@@ -126,7 +126,7 @@ mintDip721() {
           record {
             \"thumbnail\";
             variant {
-              \"TextContent\" = \"https://vzb3d-qyaaa-aaaam-qaaqq-cai.raw.ic0.app/thumbnail/$example_nft.png\"
+              \"TextContent\" = \"https://vzb3d-qyaaa-aaaam-qaaqq-cai.raw.ic0.app/thumbnails/$example_nft.png\"
             }
           };
         }
