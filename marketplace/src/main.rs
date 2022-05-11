@@ -279,9 +279,11 @@ pub async fn add_collection(
 /// so a 2.50% fee would be 250:nat
 #[update(name = "setProtocolFee")]
 #[candid_method(update, rename = "setProtocolFee")]
-fn set_protocol_fee(fee: Nat) -> MPApiResult {
+pub async fn set_protocol_fee(fee: Nat) -> MPApiResult {
     let init_data = init_data().clone();
-    assert_eq!(ic::caller(), init_data.owner);
+    if let Err(e) = is_controller(&ic::caller()).await {
+        return Err(MPApiError::Unauthorized);
+    }
 
     ic_kit::ic::store(InitData {
         cap: init_data.cap,
