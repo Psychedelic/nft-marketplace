@@ -22,9 +22,11 @@ generateMock() {
 
   crownsNftCanisterId="vlhm2-4iaaa-aaaam-qaatq-cai"
   filename=$(printf "%04d.mp4" "$token_index")
+  thumbnail=$(printf "thumbnails/%04d.png" "$token_index")
   crownsCertifiedAssetsA="vzb3d-qyaaa-aaaam-qaaqq-cai"
   crownsCertifiedAssetsB="vqcq7-gqaaa-aaaam-qaara-cai"
   assetUrl="https://$crownsCertifiedAssetsA.raw.ic0.app/$filename"
+  thumbnailUrl="https://$crownsCertifiedAssetsA.raw.ic0.app/$thumbnail"
 
   dfx canister --network ic call $crownsNftCanisterId getMetadataDip721 "($token_index:nat64)"
 
@@ -77,6 +79,12 @@ generateMock() {
           \"location\";
           variant {
             \"TextContent\" = \"$assetUrl\"
+          }
+        };
+        record {
+          \"thumbnail\";
+          variant {
+            \"TextContent\" = \"$thumbnailUrl\"
           }
         };
       }
@@ -134,7 +142,7 @@ generatorHandler() {
     do 
       printf "🤖 Will generate token mock for identity (%s), userPrincipal (%s), total (%s)\n\n" "$_identityName" "$_userPrincipal" "$_total"
       generateMock "$_identityName" "$_userPrincipal"
-      topupWicp "$_userPrincipal" 1_000_000_000
+      topupWicp "$_userPrincipal" 10_000_000_000
   done
 }
 
