@@ -29,9 +29,11 @@ generateMock() {
 
   crownsNftCanisterId="vlhm2-4iaaa-aaaam-qaatq-cai"
   filename=$(printf "%04d.mp4" "$token_index")
+  thumbnail=$(printf "thumbnails/%04d.png" "$token_index")
   crownsCertifiedAssetsA="vzb3d-qyaaa-aaaam-qaaqq-cai"
   crownsCertifiedAssetsB="vqcq7-gqaaa-aaaam-qaara-cai"
   assetUrl="https://$crownsCertifiedAssetsA.raw.ic0.app/$filename"
+  thumbnailUrl="https://$crownsCertifiedAssetsA.raw.ic0.app/$thumbnail"
 
   dfx canister --network ic call $crownsNftCanisterId getMetadataDip721 "($token_index:nat64)"
 
@@ -84,6 +86,12 @@ generateMock() {
           \"location\";
           variant {
             \"TextContent\" = \"$assetUrl\"
+          }
+        };
+        record {
+          \"thumbnail\";
+          variant {
+            \"TextContent\" = \"$thumbnailUrl\"
           }
         };
       }
