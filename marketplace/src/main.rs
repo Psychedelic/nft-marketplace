@@ -70,7 +70,7 @@ pub fn process_fees(
     let mut total_fee: Nat = Nat::from(0);
 
     for (_, principal, fee) in fees {
-        // divide by 10000 to allow 2 digits of precision in the fee
+        // divide by 100 * 100 to allow 2 digits of precision in the fee percentage
         let amount: Nat = price.clone() * fee.clone() / Nat::from(10000);
 
         total_fee += amount.clone();
@@ -95,13 +95,10 @@ pub async fn get_protocol_fee() -> Nat {
 
 #[query(name = "getCollections")]
 #[candid_method(query, rename = "getCollections")]
-pub async fn get_collections() -> Vec<Collection> {
+pub async fn get_collections() -> HashMap<Principal, Collection> {
     collections()
         .collections
         .clone()
-        .values()
-        .cloned()
-        .collect()
 }
 
 #[query(name = "getTokenListing")]
@@ -235,9 +232,17 @@ pub async fn get_floor(nft_canister_id: Principal) -> NatResult {
 
 // UPDATE METHODS //
 
+/// Add a Collection
+/// - owner: principal id of the owner of the collection, collection fees will be distributed to this user
+/// - collection_fee: fee multiplied by e2, for precision. `2.50% fee` = `250:nat`
+/// - collection_name: string representing the collection name. Should match dab registry entry
+/// - nft_canister_id: principal of the nft collection
+/// - nft_canister_standard: nft standard, eg; `DIP721v2`
+/// - fungible_canister_id: principal of the fungible a collection is traded with
+/// - fungible_canister_standard: fungible standard, eg; `DIP20`
 #[update(name = "addCollection")]
 #[candid_method(update, rename = "addCollection")]
-fn add_collection(
+pub async fn add_collection(
     owner: Principal,
     collection_fee: Nat,
     creation_time: u64,
@@ -247,7 +252,9 @@ fn add_collection(
     fungible_canister_id: Principal,
     fungible_canister_standard: FungibleStandard,
 ) -> MPApiResult {
-    assert_eq!(ic::caller(), init_data().owner);
+    if let Err(e) = is_controller(&ic::caller()).await {
+        return Err(MPApiError::Unauthorized);
+    }
 
     collections().collections.insert(
         nft_canister_id,
@@ -260,11 +267,13 @@ fn add_collection(
             nft_canister_standard,
             fungible_canister_id,
             fungible_canister_standard,
+            Nat::from(0),
         ),
     );
 
     Ok(())
 }
+
 
 /// Set the protocol level fee
 /// fee is an e2, so for a 2.5% fee, you would put 250
@@ -680,6 +689,15 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
     // remove listing
     listings.remove(&token_id.clone());
 
+    // update market cap for collection
+    collections()
+        .collections
+        .entry(nft_canister_id)
+        .and_modify(|collection_data| {
+            collection_data.fungible_volume =
+                collection_data.fungible_volume.clone() + price.clone();
+        });
+
     capq()
         .insert_into_cap(
             IndefiniteEventBuilder::new()
@@ -925,6 +943,15 @@ pub async fn accept_offer(
             tokens.retain(|token| token != &token_id.clone());
         })
         .or_default();
+
+    // update market cap for collection
+    collections()
+        .collections
+        .entry(nft_canister_id)
+        .and_modify(|collection_data| {
+            collection_data.fungible_volume =
+                collection_data.fungible_volume.clone() + offer_price.clone();
+        });
 
     capq()
         .insert_into_cap(
