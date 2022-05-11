@@ -4,6 +4,7 @@ type Collection = record {
   nft_canister_standard : NFTStandard;
   owner : principal;
   collection_name : text;
+  fungible_volume : nat;
   fungible_canister_standard : FungibleStandard;
   fungible_canister_id : principal;
   nft_canister_id : principal;
