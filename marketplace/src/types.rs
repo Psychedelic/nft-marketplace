@@ -75,6 +75,7 @@ pub struct Collection {
     pub nft_canister_standard: NFTStandard,
     pub fungible_canister_id: Principal,
     pub fungible_canister_standard: FungibleStandard,
+    pub fungible_volume: Nat,
 }
 
 #[derive(Clone, CandidType, Default, Deserialize, new)]

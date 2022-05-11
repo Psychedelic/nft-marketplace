@@ -4,6 +4,7 @@ type Collection = record {
   nft_canister_standard : NFTStandard;
   owner : principal;
   collection_name : text;
+  fungible_volume : nat;
   fungible_canister_standard : FungibleStandard;
   fungible_canister_id : principal;
   nft_canister_id : principal;
@@ -75,7 +76,7 @@ service : (principal, principal, nat) -> {
       vec record { record { principal; principal }; nat },
     ) query;
   getBuyerOffers : (principal, principal) -> (vec Offer) query;
-  getCollections : () -> (vec Collection) query;
+  getCollections : () -> (vec record { principal; Collection }) query;
   getFloor : (principal) -> (Result_1) query;
   getProtocolFee : () -> (nat) query;
   getTokenListing : (principal, nat) -> (Result_2) query;

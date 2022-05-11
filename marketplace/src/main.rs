@@ -70,7 +70,7 @@ pub fn process_fees(
     let mut total_fee: Nat = Nat::from(0);
 
     for (_, principal, fee) in fees {
-        // divide by 10000 to allow 2 digits of precision in the fee
+        // divide by 100 * 100 to allow 2 digits of precision in the fee percentage
         let amount: Nat = price.clone() * fee.clone() / Nat::from(10000);
 
         total_fee += amount.clone();
@@ -95,13 +95,10 @@ pub async fn get_protocol_fee() -> Nat {
 
 #[query(name = "getCollections")]
 #[candid_method(query, rename = "getCollections")]
-pub async fn get_collections() -> Vec<Collection> {
+pub async fn get_collections() -> HashMap<Principal, Collection> {
     collections()
         .collections
         .clone()
-        .values()
-        .cloned()
-        .collect()
 }
 
 #[query(name = "getTokenListing")]
@@ -235,9 +232,17 @@ pub async fn get_floor(nft_canister_id: Principal) -> NatResult {
 
 // UPDATE METHODS //
 
+/// Add a Collection
+/// - owner: principal id of the owner of the collection, collection fees will be distributed to this user
+/// - collection_fee: fee multiplied by e2, for precision. `2.50% fee` = `250:nat`
+/// - collection_name: string representing the collection name. Should match dab registry entry
+/// - nft_canister_id: principal of the nft collection
+/// - nft_canister_standard: nft standard, eg; `DIP721v2`
+/// - fungible_canister_id: principal of the fungible a collection is traded with
+/// - fungible_canister_standard: fungible standard, eg; `DIP20`
 #[update(name = "addCollection")]
 #[candid_method(update, rename = "addCollection")]
-fn add_collection(
+pub async fn add_collection(
     owner: Principal,
     collection_fee: Nat,
     creation_time: u64,
@@ -247,7 +252,9 @@ fn add_collection(
     fungible_canister_id: Principal,
     fungible_canister_standard: FungibleStandard,
 ) -> MPApiResult {
-    assert_eq!(ic::caller(), init_data().owner);
+    if let Err(e) = is_controller(&ic::caller()).await {
+        return Err(MPApiError::Unauthorized);
+    }
 
     collections().collections.insert(
         nft_canister_id,
@@ -260,12 +267,16 @@ fn add_collection(
             nft_canister_standard,
             fungible_canister_id,
             fungible_canister_standard,
+            Nat::from(0),
         ),
     );
 
     Ok(())
 }
 
+
+/// Set the protocol level fee
+/// fee is an e2, so for a 2.5% fee, you would put 250
 #[update(name = "setProtocolFee")]
 #[candid_method(update, rename = "setProtocolFee")]
 fn set_protocol_fee(fee: Nat) -> MPApiResult {
@@ -281,6 +292,9 @@ fn set_protocol_fee(fee: Nat) -> MPApiResult {
     Ok(())
 }
 
+/// Make a listing for a nft
+/// price is a Nat, that should be handled as an e^n, n being the fungible canister's decimals.
+/// For example, to make a 3.14 WICP offer, the number would be 3.14e8 = 314_000_000
 #[update(name = "makeListing")]
 #[candid_method(update, rename = "makeListing")]
 pub async fn make_listing(nft_canister_id: Principal, token_id: Nat, price: Nat) -> MPApiResult {
@@ -392,6 +406,9 @@ pub async fn make_listing(nft_canister_id: Principal, token_id: Nat, price: Nat)
     Ok(())
 }
 
+/// Make an offer on a given nft
+/// price is a Nat, that should be handled as an e^n, n being the fungible canister's decimals.
+/// For example, to make a 3.14 WICP offer, the number would be 3.14e8 = 314_000_000
 #[update(name = "makeOffer")]
 #[candid_method(update, rename = "makeOffer")]
 pub async fn make_offer(nft_canister_id: Principal, token_id: Nat, price: Nat) -> MPApiResult {
@@ -502,6 +519,7 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: Nat, price: Nat) -
     Ok(())
 }
 
+/// Direct buy a nft that has been listed 
 #[update(name = "directBuy")]
 #[candid_method(update, rename = "directBuy")]
 pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResult {
@@ -561,9 +579,6 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
         None => return Err(MPApiError::InvalidOperator),
     }
 
-    // guarding agains reentrancy
-    listing.status = ListingStatus::Selling;
-
     // Auto deposit tokens
 
     // check if marketplace has allowance
@@ -577,6 +592,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
     .map_err(|_| MPApiError::Other("Error calling allowance".to_string()))?;
 
     if allowance.clone() < listing.price.clone() {
+        
         return Err(MPApiError::InsufficientFungibleAllowance);
     }
 
@@ -673,6 +689,15 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
     // remove listing
     listings.remove(&token_id.clone());
 
+    // update market cap for collection
+    collections()
+        .collections
+        .entry(nft_canister_id)
+        .and_modify(|collection_data| {
+            collection_data.fungible_volume =
+                collection_data.fungible_volume.clone() + price.clone();
+        });
+
     capq()
         .insert_into_cap(
             IndefiniteEventBuilder::new()
@@ -705,6 +730,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
     Ok(())
 }
 
+/// Accept an offer that has been made on any given nft
 #[update(name = "acceptOffer")]
 #[candid_method(update, rename = "acceptOffer")]
 pub async fn accept_offer(
@@ -918,6 +944,15 @@ pub async fn accept_offer(
         })
         .or_default();
 
+    // update market cap for collection
+    collections()
+        .collections
+        .entry(nft_canister_id)
+        .and_modify(|collection_data| {
+            collection_data.fungible_volume =
+                collection_data.fungible_volume.clone() + offer_price.clone();
+        });
+
     capq()
         .insert_into_cap(
             IndefiniteEventBuilder::new()
@@ -951,6 +986,7 @@ pub async fn accept_offer(
     Ok(())
 }
 
+/// Cancel a created listing
 #[update(name = "cancelListing")]
 #[candid_method(update, rename = "cancelListing")]
 pub async fn cancel_listing(nft_canister_id: Principal, token_id: Nat) -> MPApiResult {
@@ -1007,6 +1043,7 @@ pub async fn cancel_listing(nft_canister_id: Principal, token_id: Nat) -> MPApiR
     Ok(())
 }
 
+/// Cancel a created offer
 #[update(name = "cancelOffer")]
 #[candid_method(update, rename = "cancelOffer")]
 pub async fn cancel_offer(nft_canister_id: Principal, token_id: Nat) -> MPApiResult {
@@ -1077,6 +1114,9 @@ pub async fn cancel_offer(nft_canister_id: Principal, token_id: Nat) -> MPApiRes
     Ok(())
 }
 
+/// Deny an offer made to an owned nft
+/// 
+/// - todo: this is a seller/nft ownerd method, update variable names and verify that
 #[update(name = "denyOffer")]
 #[candid_method(update, rename = "denyOffer")]
 pub async fn deny_offer(
@@ -1151,6 +1191,8 @@ pub async fn deny_offer(
     Ok(())
 }
 
+/// # Withdraw Fungible
+/// this is a fallback method, for withdrawing held fungibles in the marketplace canister.
 #[update(name = "withdrawFungible")]
 #[candid_method(update, rename = "withdrawFungible")]
 pub async fn withdraw_fungible(
