@@ -509,6 +509,7 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: Nat, price: Nat) -
                         "price".into(),
                         DetailValue::U64(convert_nat_to_u64(price.clone()).unwrap()),
                     ),
+                    ("buyer".into(), DetailValue::Principal(buyer)),
                 ])
                 .build()
                 .unwrap(),
@@ -712,13 +713,15 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
                         "nft_canister_id".into(),
                         DetailValue::Principal(nft_canister_id),
                     ),
+                    ("buyer".into(), DetailValue::Principal(buyer)),
+                    ("seller".into(), DetailValue::Principal(token_owner.unwrap())),
                     (
                         "price".into(),
-                        DetailValue::U64(convert_nat_to_u64(price).unwrap()),
+                        DetailValue::U64(convert_nat_to_u64(price.clone()).unwrap()),
                     ),
                     (
                         "total_fees".into(),
-                        DetailValue::U64(convert_nat_to_u64(total_fees).unwrap()),
+                        DetailValue::U64(convert_nat_to_u64(total_fees.clone()).unwrap()),
                     ),
                 ])
                 .build()
@@ -968,6 +971,7 @@ pub async fn accept_offer(
                         DetailValue::Principal(nft_canister_id),
                     ),
                     ("buyer".into(), DetailValue::Principal(buyer)),
+                    ("seller".into(), DetailValue::Principal(token_owner.unwrap())),
                     (
                         "price".into(),
                         DetailValue::U64(convert_nat_to_u64(offer_price.clone()).unwrap()),
@@ -1033,6 +1037,7 @@ pub async fn cancel_listing(nft_canister_id: Principal, token_id: Nat) -> MPApiR
                         "price".into(),
                         DetailValue::U64(convert_nat_to_u64(listing.price.clone()).unwrap()),
                     ),
+                    ("seller".into(), DetailValue::Principal(seller)),
                 ])
                 .build()
                 .unwrap(),
