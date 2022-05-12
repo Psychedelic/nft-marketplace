@@ -83,6 +83,7 @@ service : (principal, principal, nat) -> {
   getTokenOffers : (principal, vec nat) -> (
       vec record { nat; vec Offer },
     ) query;
+  git_commit_hash : () -> (text) query;
   makeListing : (principal, nat, nat) -> (Result);
   makeOffer : (principal, nat, nat) -> (Result);
   setProtocolFee : (nat) -> (Result);

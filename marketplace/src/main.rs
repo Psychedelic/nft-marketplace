@@ -5,6 +5,7 @@ use crate::non_fungible_proxy::*;
 use crate::types::*;
 use crate::utils::*;
 use crate::vendor_types::*;
+use compile_time_run::{run_command, run_command_str};
 
 use cap_sdk::{
     handshake, insert, DetailValue, Event, IndefiniteEvent, IndefiniteEventBuilder, TypedEvent,
@@ -39,6 +40,12 @@ pub fn init(cap: Principal, owner: Principal, protocol_fee: Nat) {
         protocol_fee,
     });
     handshake(1_000_000_000_000, Some(cap));
+}
+
+#[query]
+#[candid_method(query)]
+fn git_commit_hash() -> String {
+    compile_time_run::run_command_str!("git", "rev-parse", "HEAD").into()
 }
 
 // to let the canister call the `aaaaa-aa` Management API `canister_status`
@@ -191,6 +198,10 @@ pub async fn get_all_balances() -> HashMap<(Principal, Principal), Nat> {
     bals.clone()
 }
 
+/// Get a balance of a user for fungibles held by marketplace
+/// 
+/// Frontends should check this, and display a popup that calls withdrawFungible,
+/// to allow users to withdraw back into their wallet.
 #[query(name = "balanceOf")]
 #[candid_method(query, rename = "balanceOf")]
 pub async fn balance_of(pid: Principal) -> HashMap<Principal, Nat> {
@@ -207,6 +218,7 @@ pub async fn balance_of(pid: Principal) -> HashMap<Principal, Nat> {
         .collect()
 }
 
+/// Get a collections floor price
 #[query(name = getFloor)]
 #[candid_method(query, rename = "getFloor")]
 pub async fn get_floor(nft_canister_id: Principal) -> NatResult {
@@ -407,6 +419,7 @@ pub async fn make_listing(nft_canister_id: Principal, token_id: Nat, price: Nat)
 }
 
 /// Make an offer on a given nft
+/// 
 /// price is a Nat, that should be handled as an e^n, n being the fungible canister's decimals.
 /// For example, to make a 3.14 WICP offer, the number would be 3.14e8 = 314_000_000
 #[update(name = "makeOffer")]
@@ -1196,7 +1209,8 @@ pub async fn deny_offer(
     Ok(())
 }
 
-/// # Withdraw Fungible
+/// Withdraw Fungible
+/// 
 /// this is a fallback method, for withdrawing held fungibles in the marketplace canister.
 #[update(name = "withdrawFungible")]
 #[candid_method(update, rename = "withdrawFungible")]
