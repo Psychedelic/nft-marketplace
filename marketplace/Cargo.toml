@@ -16,6 +16,7 @@ assert-panic = "1.0.1"
 derive_builder = "0.10.2"
 derive-new = "0.5"
 num-bigint = "0.4.3"
+compile-time-run = "0.2.12"
 cap-sdk = { git = "https://github.com/Psychedelic/cap.git", branch = "main" }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
