@@ -523,6 +523,7 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: Nat, price: Nat) -
                         DetailValue::U64(convert_nat_to_u64(price.clone()).unwrap()),
                     ),
                     ("buyer".into(), DetailValue::Principal(buyer)),
+                    ("seller".into(), DetailValue::Principal(token_owner)),
                 ])
                 .build()
                 .unwrap(),
@@ -1073,6 +1074,14 @@ pub async fn cancel_offer(nft_canister_id: Principal, token_id: Nat) -> MPApiRes
         .get(&nft_canister_id)
         .ok_or(MPApiError::NonExistentCollection)?;
 
+    let token_owner = owner_of_non_fungible(
+        &nft_canister_id,
+        &token_id,
+        collection.nft_canister_standard,
+    )
+    .await?
+    .ok_or(MPApiError::Other("error calling owner_of".to_string()))?;
+
     let mut offers = mp
         .offers
         .entry(nft_canister_id)
@@ -1122,6 +1131,7 @@ pub async fn cancel_offer(nft_canister_id: Principal, token_id: Nat) -> MPApiRes
                         DetailValue::U64(convert_nat_to_u64(offer.price.clone()).unwrap()),
                     ),
                     ("buyer".into(), DetailValue::Principal(buyer)),
+                    ("seller".into(), DetailValue::Principal(token_owner)),
                 ])
                 .build()
                 .unwrap(),
