@@ -38,7 +38,7 @@ generateMock() {
   location=$(cat $aggrCrownsDataPath | jq ".[$token_index] | .properties[4][1] | .TextContent")
   thumbnail=$(cat $aggrCrownsDataPath | jq ".[$token_index] | .properties[5][1] | .TextContent")
 
-  printf "smallgem (%s), biggem (%s), base (%s), rim (%s), location (%s), thumbnail (%s)\n\n" "$smallgem" "$biggem" "$base" "$rim" "$location" "$thumbnail"
+  printf "Traits are smallgem (%s), biggem (%s), base (%s), rim (%s), location (%s), thumbnail (%s)\n\n" "$smallgem" "$biggem" "$base" "$rim" "$location" "$thumbnail"
 
   # Mint a token for the user
   # returns MintReceiptPart  { token_id: nat64; id: nat }
