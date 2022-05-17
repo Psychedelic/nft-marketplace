@@ -23,7 +23,6 @@ fi
 
 # The location for the Crowns aggregated data (backup on v2 format)
 aggrCrownsDataPath=./crowns/migrate/03_aggregate.json
-crownsNftCanisterId="vlhm2-4iaaa-aaaam-qaatq-cai"
 
 generateMock() {
   _identityName=$1
@@ -40,9 +39,7 @@ generateMock() {
 
   printf "Traits are smallgem (%s), biggem (%s), base (%s), rim (%s), location (%s), thumbnail (%s)\n\n" "$smallgem" "$biggem" "$base" "$rim" "$location" "$thumbnail"
 
-  # Mint a token for the user
-  # returns MintReceiptPart  { token_id: nat64; id: nat }
-  printf "🤖 Mint NFT of id (%s) for user id (%s)\n\n" "$crownsNftCanisterId" "$_userPrincipal"
+  printf "🤖 Mint NFT of id (%s) for user id (%s)\n\n" "$token_index" "$_userPrincipal"
 
   # mint : (principal, nat, vec record { text; GenericValue }) -> (Result);
   mintResult=$(
