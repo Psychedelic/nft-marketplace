@@ -94,12 +94,7 @@ generateMock() {
 
   printf "🤖 The generated transactionId is (%s)\n\n" "$transactionId"
 
-  # # Show the metadata for the token
-  printf "🤖 Call tokenMetadata for token id (%s)\n\n" "$token_index"
-  dfx canister --network local \
-    call "$nftCanisterId" tokenMetadata "($token_index:nat)"
-
-  # # Show the owner of the token
+  # Show the metadata for the token
   printf "🤖 Call tokenMetadata for token id (%s)\n\n" "$token_index"
   dfx canister --network local \
     call "$nftCanisterId" tokenMetadata "($token_index:nat)"
