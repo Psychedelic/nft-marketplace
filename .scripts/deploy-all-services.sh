@@ -66,6 +66,8 @@ deployWICP() {
   # a2t6b-nznbt-igjd3-ut25i-b43cf-mt45v-g3x2g-ro6h5-kowno-dx3rz-uqe
   _mockSystemIdentity="a2t6b-nznbt-igjd3-ut25i-b43cf-mt45v-g3x2g-ro6h5-kowno-dx3rz-uqe"
 
+  printf "🤖 wICP set allowance and approve mock system identity %s\n" "$_mockSystemIdentity"
+
   dfx canister \
     call --update "$_wicpId" \
     allowance "( 
