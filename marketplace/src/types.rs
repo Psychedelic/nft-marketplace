@@ -1,6 +1,5 @@
 use crate::vendor_types::*;
 
-use cap_sdk::{insert, Event, IndefiniteEvent, TypedEvent};
 use ic_kit::{
     candid::{CandidType, Deserialize, Int, Nat},
     Principal,
@@ -158,36 +157,6 @@ impl NFTStandard {
         match self {
             NFTStandard::DIP721v2 => "DIP721v2".to_string(),
             NFTStandard::EXT => "EXT".to_string(),
-        }
-    }
-}
-
-#[derive(Default)]
-pub struct CapQ {
-    ie_records: VecDeque<IndefiniteEvent>,
-}
-
-impl CapQ {
-    pub async fn insert_into_cap(&mut self, ie: IndefiniteEvent) -> TxReceipt {
-        if let Some(failed_ie) = self.ie_records.pop_front() {
-            let _ = self.insert_into_cap_priv(failed_ie).await;
-        }
-        self.insert_into_cap_priv(ie).await
-    }
-
-    async fn insert_into_cap_priv(&mut self, ie: IndefiniteEvent) -> TxReceipt {
-        let insert_res = insert(ie.clone())
-            .await
-            .map(|tx_id| Nat::from(tx_id))
-            .map_err(|_| TxError::Other);
-
-        if insert_res.is_err() {
-            &mut self.ie_records.push_back(ie.clone());
-        }
-
-        match insert_res {
-            Ok(r) => return TxReceipt::Ok(r),
-            Err(e) => return TxReceipt::Err(e),
         }
     }
 }
