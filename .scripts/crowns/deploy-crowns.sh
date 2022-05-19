@@ -8,6 +8,11 @@ _owner=$1
 _tokenName=$2
 _tokenSymbol=$3
 
+# On the mock system for Crowns
+# a system principal id is used on `mint`
+# find in `crowns/mocks/principals.js`
+crownsMockSystemPrincipalId="a2t6b-nznbt-igjd3-ut25i-b43cf-mt45v-g3x2g-ro6h5-kowno-dx3rz-uqe"
+
 dfx canister \
   create crowns \
   --controller "$_owner"
@@ -31,3 +36,11 @@ dfx deploy \
       owners = opt vec { principal \"$_owner\" };
     }
 )"
+
+dfx canister \
+  call --update "$_nonFungibleContractAddress" \
+  setCustodians "( 
+    vec {
+      principal \"$crownsMockSystemPrincipalId\"
+    } 
+  )"
