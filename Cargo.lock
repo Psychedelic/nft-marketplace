@@ -343,7 +343,7 @@ dependencies = [
 [[package]]
 name = "cap-common"
 version = "0.2.0"
-source = "git+https://github.com/Psychedelic/cap.git?branch=main#47b612e5184692ff095b8453563f6807ad2f167e"
+source = "git+https://github.com/Psychedelic/cap.git?branch=main#1441c4ede63224f89185c95e8a63b95f1b5b2d21"
 dependencies = [
  "async-std",
  "certified-vars",
@@ -358,8 +358,8 @@ dependencies = [
 
 [[package]]
 name = "cap-sdk"
-version = "0.2.0"
-source = "git+https://github.com/Psychedelic/cap.git?branch=main#47b612e5184692ff095b8453563f6807ad2f167e"
+version = "0.2.1"
+source = "git+https://github.com/Psychedelic/cap.git?branch=main#1441c4ede63224f89185c95e8a63b95f1b5b2d21"
 dependencies = [
  "async-stream",
  "cap-sdk-core",
@@ -373,8 +373,8 @@ dependencies = [
 
 [[package]]
 name = "cap-sdk-core"
-version = "0.1.0-alpha1"
-source = "git+https://github.com/Psychedelic/cap.git?branch=main#47b612e5184692ff095b8453563f6807ad2f167e"
+version = "0.2.1"
+source = "git+https://github.com/Psychedelic/cap.git?branch=main#1441c4ede63224f89185c95e8a63b95f1b5b2d21"
 dependencies = [
  "cap-common",
  "ic-cdk 0.3.3",
@@ -827,9 +827,9 @@ dependencies = [
 
 [[package]]
 name = "ic-cdk"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8bf92c1ce281995ec4cecca2a0da8f3420af546ed807dceb46441197642f3c1f"
+checksum = "953c6f940bbf1f79460849fa61cd3ac04768f8f0deb743d185860892f65cbff2"
 dependencies = [
  "candid",
  "cfg-if",
@@ -853,12 +853,12 @@ dependencies = [
 
 [[package]]
 name = "ic-cdk-macros"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d2d6181f0a29fefb75493822339591b6244098c5ab9eb67790cc6b805d3a42b"
+checksum = "2f50910f1df55124b5374847fd2b4e3515c426f6d1ce1a23503208e80832fbc2"
 dependencies = [
  "candid",
- "ic-cdk 0.5.0",
+ "ic-cdk 0.5.1",
  "proc-macro2",
  "quote",
  "serde",
@@ -1005,9 +1005,9 @@ checksum = "884e2677b40cc8c339eaefcb701c32ef1fd2493d71118dc0ca4b6a736c93bd67"
 
 [[package]]
 name = "libc"
-version = "0.2.125"
+version = "0.2.126"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5916d2ae698f6de9bfb891ad7a8d65c09d232dc58cc4ac433c7da3b2fd84bc2b"
+checksum = "349d5a591cd28b49e1d1037471617a32ddcda5731b99419008085f72d5a53836"
 
 [[package]]
 name = "lock_api"
@@ -1064,8 +1064,8 @@ dependencies = [
  "compile-time-run",
  "derive-new",
  "derive_builder",
- "ic-cdk 0.5.0",
- "ic-cdk-macros 0.5.0",
+ "ic-cdk 0.5.1",
+ "ic-cdk-macros 0.5.1",
  "ic-kit",
  "num-bigint",
  "serde",
@@ -1271,11 +1271,11 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.38"
+version = "1.0.39"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9027b48e9d4c9175fa2218adf3557f91c1137021739951d4932f5f8268ac48aa"
+checksum = "c54b25569025b7fc9651de43004ae593a75ad88543b17178aa5e1b9c4f15f56f"
 dependencies = [
- "unicode-xid",
+ "unicode-ident",
 ]
 
 [[package]]
@@ -1448,13 +1448,13 @@ checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
 
 [[package]]
 name = "syn"
-version = "1.0.93"
+version = "1.0.95"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04066589568b72ec65f42d65a1a52436e954b168773148893c020269563decf2"
+checksum = "fbaf6116ab8924f39d52792136fb74fd60a80194cf1b1c6ffa6453eef1c3f942"
 dependencies = [
  "proc-macro2",
  "quote",
- "unicode-xid",
+ "unicode-ident",
 ]
 
 [[package]]
@@ -1526,6 +1526,12 @@ name = "typenum"
 version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dcf81ac59edc17cc8697ff311e8f5ef2d99fcbd9817b34cec66f90b6c3dfd987"
+
+[[package]]
+name = "unicode-ident"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d22af068fba1eb5edcb4aea19d382b2a3deb4c8f9d475c589b6ada9e0fd493ee"
 
 [[package]]
 name = "unicode-width"

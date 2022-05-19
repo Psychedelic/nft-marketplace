@@ -10,10 +10,6 @@ pub(crate) fn marketplace() -> &'static mut Marketplace {
     get_mut::<Marketplace>()
 }
 
-pub(crate) fn capq() -> &'static mut CapQ {
-    get_mut::<CapQ>()
-}
-
 pub(crate) fn collections() -> &'static mut Collections {
     get_mut::<Collections>()
 }

@@ -8,7 +8,7 @@ use crate::vendor_types::*;
 use compile_time_run::{run_command, run_command_str};
 
 use cap_sdk::{
-    handshake, insert, DetailValue, Event, IndefiniteEvent, IndefiniteEventBuilder, TypedEvent,
+    handshake, insert_sync, DetailValue, Event, IndefiniteEvent, IndefiniteEventBuilder, TypedEvent,
 };
 use ic_kit::{
     candid::{candid_method, encode_args, CandidType, Deserialize, Nat},
@@ -103,9 +103,7 @@ pub async fn get_protocol_fee() -> Nat {
 #[query(name = "getCollections")]
 #[candid_method(query, rename = "getCollections")]
 pub async fn get_collections() -> HashMap<Principal, Collection> {
-    collections()
-        .collections
-        .clone()
+    collections().collections.clone()
 }
 
 #[query(name = "getTokenListing")]
@@ -199,7 +197,7 @@ pub async fn get_all_balances() -> HashMap<(Principal, Principal), Nat> {
 }
 
 /// Get a balance of a user for fungibles held by marketplace
-/// 
+///
 /// Frontends should check this, and display a popup that calls withdrawFungible,
 /// to allow users to withdraw back into their wallet.
 #[query(name = "balanceOf")]
@@ -285,7 +283,6 @@ pub async fn add_collection(
 
     Ok(())
 }
-
 
 /// Set the protocol level fee
 /// fee is an e2, so for a 2.5% fee, you would put 250
@@ -389,37 +386,34 @@ pub async fn make_listing(nft_canister_id: Principal, token_id: Nat, price: Nat)
         .to_vec(),
     );
 
-    capq()
-        .insert_into_cap(
-            IndefiniteEventBuilder::new()
-                .caller(seller)
-                .operation("makeListing")
-                .details(vec![
-                    (
-                        "token_id".into(),
-                        DetailValue::U64(convert_nat_to_u64(token_id).unwrap()),
-                    ),
-                    (
-                        "nft_canister_id".into(),
-                        DetailValue::Principal(collection.nft_canister_id),
-                    ),
-                    (
-                        "price".into(),
-                        DetailValue::U64(convert_nat_to_u64(price.clone()).unwrap()),
-                    ),
-                    ("seller".into(), DetailValue::Principal(seller)),
-                ])
-                .build()
-                .unwrap(),
-        )
-        .await
-        .map_err(|_| MPApiError::CAPInsertionError)?;
+    insert_sync(
+        IndefiniteEventBuilder::new()
+            .caller(seller)
+            .operation("makeListing")
+            .details(vec![
+                (
+                    "token_id".into(),
+                    DetailValue::U64(convert_nat_to_u64(token_id).unwrap()),
+                ),
+                (
+                    "nft_canister_id".into(),
+                    DetailValue::Principal(collection.nft_canister_id),
+                ),
+                (
+                    "price".into(),
+                    DetailValue::U64(convert_nat_to_u64(price.clone()).unwrap()),
+                ),
+                ("seller".into(), DetailValue::Principal(seller)),
+            ])
+            .build()
+            .unwrap(),
+    );
 
     Ok(())
 }
 
 /// Make an offer on a given nft
-/// 
+///
 /// price is a Nat, that should be handled as an e^n, n being the fungible canister's decimals.
 /// For example, to make a 3.14 WICP offer, the number would be 3.14e8 = 314_000_000
 #[update(name = "makeOffer")]
@@ -504,37 +498,34 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: Nat, price: Nat) -
         buyer_offers.push(token_id.clone());
     }
 
-    capq()
-        .insert_into_cap(
-            IndefiniteEventBuilder::new()
-                .caller(buyer)
-                .operation("makeOffer")
-                .details(vec![
-                    (
-                        "token_id".into(),
-                        DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
-                    ),
-                    (
-                        "nft_canister_id".into(),
-                        DetailValue::Principal(nft_canister_id),
-                    ),
-                    (
-                        "price".into(),
-                        DetailValue::U64(convert_nat_to_u64(price.clone()).unwrap()),
-                    ),
-                    ("buyer".into(), DetailValue::Principal(buyer)),
-                    ("seller".into(), DetailValue::Principal(token_owner)),
-                ])
-                .build()
-                .unwrap(),
-        )
-        .await
-        .map_err(|_| MPApiError::CAPInsertionError)?;
+    insert_sync(
+        IndefiniteEventBuilder::new()
+            .caller(buyer)
+            .operation("makeOffer")
+            .details(vec![
+                (
+                    "token_id".into(),
+                    DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
+                ),
+                (
+                    "nft_canister_id".into(),
+                    DetailValue::Principal(nft_canister_id),
+                ),
+                (
+                    "price".into(),
+                    DetailValue::U64(convert_nat_to_u64(price.clone()).unwrap()),
+                ),
+                ("buyer".into(), DetailValue::Principal(buyer)),
+                ("seller".into(), DetailValue::Principal(token_owner)),
+            ])
+            .build()
+            .unwrap(),
+    );
 
     Ok(())
 }
 
-/// Direct buy a nft that has been listed 
+/// Direct buy a nft that has been listed
 #[update(name = "directBuy")]
 #[candid_method(update, rename = "directBuy")]
 pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResult {
@@ -607,7 +598,6 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
     .map_err(|_| MPApiError::Other("Error calling allowance".to_string()))?;
 
     if allowance.clone() < listing.price.clone() {
-        
         return Err(MPApiError::InsufficientFungibleAllowance);
     }
 
@@ -713,36 +703,36 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
                 collection_data.fungible_volume.clone() + price.clone();
         });
 
-    capq()
-        .insert_into_cap(
-            IndefiniteEventBuilder::new()
-                .caller(buyer)
-                .operation("directBuy")
-                .details(vec![
-                    (
-                        "token_id".into(),
-                        DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
-                    ),
-                    (
-                        "nft_canister_id".into(),
-                        DetailValue::Principal(nft_canister_id),
-                    ),
-                    ("buyer".into(), DetailValue::Principal(buyer)),
-                    ("seller".into(), DetailValue::Principal(token_owner.unwrap())),
-                    (
-                        "price".into(),
-                        DetailValue::U64(convert_nat_to_u64(price.clone()).unwrap()),
-                    ),
-                    (
-                        "total_fees".into(),
-                        DetailValue::U64(convert_nat_to_u64(total_fees.clone()).unwrap()),
-                    ),
-                ])
-                .build()
-                .unwrap(),
-        )
-        .await
-        .map_err(|_| MPApiError::CAPInsertionError)?;
+    insert_sync(
+        IndefiniteEventBuilder::new()
+            .caller(buyer)
+            .operation("directBuy")
+            .details(vec![
+                (
+                    "token_id".into(),
+                    DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
+                ),
+                (
+                    "nft_canister_id".into(),
+                    DetailValue::Principal(nft_canister_id),
+                ),
+                ("buyer".into(), DetailValue::Principal(buyer)),
+                (
+                    "seller".into(),
+                    DetailValue::Principal(token_owner.unwrap()),
+                ),
+                (
+                    "price".into(),
+                    DetailValue::U64(convert_nat_to_u64(price.clone()).unwrap()),
+                ),
+                (
+                    "total_fees".into(),
+                    DetailValue::U64(convert_nat_to_u64(total_fees.clone()).unwrap()),
+                ),
+            ])
+            .build()
+            .unwrap(),
+    );
 
     Ok(())
 }
@@ -970,36 +960,36 @@ pub async fn accept_offer(
                 collection_data.fungible_volume.clone() + offer_price.clone();
         });
 
-    capq()
-        .insert_into_cap(
-            IndefiniteEventBuilder::new()
-                .caller(seller)
-                .operation("acceptOffer")
-                .details(vec![
-                    (
-                        "token_id".into(),
-                        DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
-                    ),
-                    (
-                        "nft_canister_id".into(),
-                        DetailValue::Principal(nft_canister_id),
-                    ),
-                    ("buyer".into(), DetailValue::Principal(buyer)),
-                    ("seller".into(), DetailValue::Principal(token_owner.unwrap())),
-                    (
-                        "price".into(),
-                        DetailValue::U64(convert_nat_to_u64(offer_price.clone()).unwrap()),
-                    ),
-                    (
-                        "total_fees".into(),
-                        DetailValue::U64(convert_nat_to_u64(total_fees).unwrap()),
-                    ),
-                ])
-                .build()
-                .unwrap(),
-        )
-        .await
-        .map_err(|_| MPApiError::CAPInsertionError)?;
+    insert_sync(
+        IndefiniteEventBuilder::new()
+            .caller(seller)
+            .operation("acceptOffer")
+            .details(vec![
+                (
+                    "token_id".into(),
+                    DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
+                ),
+                (
+                    "nft_canister_id".into(),
+                    DetailValue::Principal(nft_canister_id),
+                ),
+                ("buyer".into(), DetailValue::Principal(buyer)),
+                (
+                    "seller".into(),
+                    DetailValue::Principal(token_owner.unwrap()),
+                ),
+                (
+                    "price".into(),
+                    DetailValue::U64(convert_nat_to_u64(offer_price.clone()).unwrap()),
+                ),
+                (
+                    "total_fees".into(),
+                    DetailValue::U64(convert_nat_to_u64(total_fees).unwrap()),
+                ),
+            ])
+            .build()
+            .unwrap(),
+    );
 
     Ok(())
 }
@@ -1033,31 +1023,28 @@ pub async fn cancel_listing(nft_canister_id: Principal, token_id: Nat) -> MPApiR
 
     listings.remove(&token_id.clone());
 
-    capq()
-        .insert_into_cap(
-            IndefiniteEventBuilder::new()
-                .caller(seller)
-                .operation("cancelListing")
-                .details(vec![
-                    (
-                        "token_id".into(),
-                        DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
-                    ),
-                    (
-                        "nft_canister_id".into(),
-                        DetailValue::Principal(nft_canister_id),
-                    ),
-                    (
-                        "price".into(),
-                        DetailValue::U64(convert_nat_to_u64(listing.price.clone()).unwrap()),
-                    ),
-                    ("seller".into(), DetailValue::Principal(seller)),
-                ])
-                .build()
-                .unwrap(),
-        )
-        .await
-        .map_err(|_| MPApiError::CAPInsertionError)?;
+    insert_sync(
+        IndefiniteEventBuilder::new()
+            .caller(seller)
+            .operation("cancelListing")
+            .details(vec![
+                (
+                    "token_id".into(),
+                    DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
+                ),
+                (
+                    "nft_canister_id".into(),
+                    DetailValue::Principal(nft_canister_id),
+                ),
+                (
+                    "price".into(),
+                    DetailValue::U64(convert_nat_to_u64(listing.price.clone()).unwrap()),
+                ),
+                ("seller".into(), DetailValue::Principal(seller)),
+            ])
+            .build()
+            .unwrap(),
+    );
 
     Ok(())
 }
@@ -1112,38 +1099,35 @@ pub async fn cancel_offer(nft_canister_id: Principal, token_id: Nat) -> MPApiRes
         })
         .or_default();
 
-    capq()
-        .insert_into_cap(
-            IndefiniteEventBuilder::new()
-                .caller(buyer)
-                .operation("cancelOffer")
-                .details(vec![
-                    (
-                        "token_id".into(),
-                        DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
-                    ),
-                    (
-                        "nft_canister_id".into(),
-                        DetailValue::Principal(nft_canister_id),
-                    ),
-                    (
-                        "price".into(),
-                        DetailValue::U64(convert_nat_to_u64(offer.price.clone()).unwrap()),
-                    ),
-                    ("buyer".into(), DetailValue::Principal(buyer)),
-                    ("seller".into(), DetailValue::Principal(token_owner)),
-                ])
-                .build()
-                .unwrap(),
-        )
-        .await
-        .map_err(|_| MPApiError::CAPInsertionError)?;
+    insert_sync(
+        IndefiniteEventBuilder::new()
+            .caller(buyer)
+            .operation("cancelOffer")
+            .details(vec![
+                (
+                    "token_id".into(),
+                    DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
+                ),
+                (
+                    "nft_canister_id".into(),
+                    DetailValue::Principal(nft_canister_id),
+                ),
+                (
+                    "price".into(),
+                    DetailValue::U64(convert_nat_to_u64(offer.price.clone()).unwrap()),
+                ),
+                ("buyer".into(), DetailValue::Principal(buyer)),
+                ("seller".into(), DetailValue::Principal(token_owner)),
+            ])
+            .build()
+            .unwrap(),
+    );
 
     Ok(())
 }
 
 /// Deny an offer made to an owned nft
-/// 
+///
 /// - todo: this is a seller/nft ownerd method, update variable names and verify that
 #[update(name = "denyOffer")]
 #[candid_method(update, rename = "denyOffer")]
@@ -1190,37 +1174,34 @@ pub async fn deny_offer(
         })
         .or_default();
 
-    capq()
-        .insert_into_cap(
-            IndefiniteEventBuilder::new()
-                .caller(buyer)
-                .operation("denyOffer")
-                .details(vec![
-                    (
-                        "token_id".into(),
-                        DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
-                    ),
-                    (
-                        "nft_canister_id".into(),
-                        DetailValue::Principal(nft_canister_id),
-                    ),
-                    (
-                        "price".into(),
-                        DetailValue::U64(convert_nat_to_u64(offer.price.clone()).unwrap()),
-                    ),
-                    ("buyer".into(), DetailValue::Principal(buyer)),
-                ])
-                .build()
-                .unwrap(),
-        )
-        .await
-        .map_err(|_| MPApiError::CAPInsertionError)?;
+    insert_sync(
+        IndefiniteEventBuilder::new()
+            .caller(buyer)
+            .operation("denyOffer")
+            .details(vec![
+                (
+                    "token_id".into(),
+                    DetailValue::U64(convert_nat_to_u64(token_id.clone()).unwrap()),
+                ),
+                (
+                    "nft_canister_id".into(),
+                    DetailValue::Principal(nft_canister_id),
+                ),
+                (
+                    "price".into(),
+                    DetailValue::U64(convert_nat_to_u64(offer.price.clone()).unwrap()),
+                ),
+                ("buyer".into(), DetailValue::Principal(buyer)),
+            ])
+            .build()
+            .unwrap(),
+    );
 
     Ok(())
 }
 
 /// Withdraw Fungible
-/// 
+///
 /// this is a fallback method, for withdrawing held fungibles in the marketplace canister.
 #[update(name = "withdrawFungible")]
 #[candid_method(update, rename = "withdrawFungible")]
