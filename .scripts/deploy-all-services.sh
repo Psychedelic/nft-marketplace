@@ -77,7 +77,7 @@ deployWICP() {
     call --update "$_wicpId" \
     transfer "( 
       principal \"$_mockSystemIdentity\",
-      1000000000000:nat
+      9_000_000_000_000:nat
     )"
 }
 
