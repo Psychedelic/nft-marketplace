@@ -77,7 +77,7 @@ deployWICP() {
     
   dfx canister \
     call --update "$_wicpId" \
-    transfer "( 
+    approve "( 
       principal \"$_mockSystemIdentity\",
       9_000_000_000_000:nat
     )"
