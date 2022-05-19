@@ -21,34 +21,25 @@ then
   token_index=0
 fi
 
+# The location for the Crowns aggregated data (backup on v2 format)
+aggrCrownsDataPath=./crowns/migrate/03_aggregate.json
+
 generateMock() {
   _identityName=$1
   _userPrincipal=$2
 
-  printf "🤖 Call GenerateMock for identityName (%s), token_index (%s)" "$_identityName" "$token_index"
+  printf "🤖 Call GenerateMock for identityName (%s), token_index (%s)\n\n" "$_identityName" "$token_index"
 
-  crownsNftCanisterId="vlhm2-4iaaa-aaaam-qaatq-cai"
-  filename=$(printf "%04d.mp4" "$token_index")
-  thumbnail=$(printf "thumbnails/%04d.png" "$token_index")
-  crownsCertifiedAssetsA="vzb3d-qyaaa-aaaam-qaaqq-cai"
-  crownsCertifiedAssetsB="vqcq7-gqaaa-aaaam-qaara-cai"
-  assetUrl="https://$crownsCertifiedAssetsA.raw.ic0.app/$filename"
-  thumbnailUrl="https://$crownsCertifiedAssetsA.raw.ic0.app/$thumbnail"
+  smallgem=$(cat $aggrCrownsDataPath | jq ".[$token_index] | .properties[0][1] | .TextContent")
+  biggem=$(cat $aggrCrownsDataPath | jq ".[$token_index] | .properties[1][1] | .TextContent")
+  base=$(cat $aggrCrownsDataPath | jq ".[$token_index] | .properties[2][1] | .TextContent")
+  rim=$(cat $aggrCrownsDataPath | jq ".[$token_index] | .properties[3][1] | .TextContent")
+  location=$(cat $aggrCrownsDataPath | jq ".[$token_index] | .properties[4][1] | .TextContent")
+  thumbnail=$(cat $aggrCrownsDataPath | jq ".[$token_index] | .properties[5][1] | .TextContent")
 
-  dfx canister --network ic call $crownsNftCanisterId getMetadataDip721 "($token_index:nat64)"
+  printf "Traits are smallgem (%s), biggem (%s), base (%s), rim (%s), location (%s), thumbnail (%s)\n\n" "$smallgem" "$biggem" "$base" "$rim" "$location" "$thumbnail"
 
-  # Get some data from the mainnet canister
-  mainnetMetadataResult=($(dfx canister --network ic call $crownsNftCanisterId getMetadataDip721 "($token_index:nat64)" | pcregrep -o1  '3_643_416_556 = "([a-zA-Z]*)"'))
-
-  if [[ ! "$(declare -p mainnetMetadataResult)" =~ "declare -a" ]];
-  then
-    printf "👹 Oops! Metadata array is not fullfiled, will not proceed!"
-    exit 1
-  fi
-
-  # Mint a token for the user
-  # returns MintReceiptPart  { token_id: nat64; id: nat }
-  printf "🤖 Mint NFT of id (%s) for user id (%s)\n\n" "$crownsNftCanisterId" "$_userPrincipal"
+  printf "🤖 Mint NFT of id (%s) for user id (%s)\n\n" "$token_index" "$_userPrincipal"
 
   # mint : (principal, nat, vec record { text; GenericValue }) -> (Result);
   mintResult=$(
@@ -61,37 +52,37 @@ generateMock() {
         record {
           \"smallgem\";
           variant {
-            \"TextContent\" = \"${mainnetMetadataResult[0]}\"
+            \"TextContent\" = $smallgem
           }
         };
         record {
           \"biggem\";
           variant {
-            \"TextContent\" = \"${mainnetMetadataResult[1]}\"
+            \"TextContent\" = $biggem
           }
         };
         record {
           \"base\";
           variant {
-            \"TextContent\" = \"${mainnetMetadataResult[2]}\"
+            \"TextContent\" = $base
           }
         };
         record {
           \"rim\";
           variant {
-            \"TextContent\" = \"${mainnetMetadataResult[3]}\"
+            \"TextContent\" = $rim
           }
         };
         record {
           \"location\";
           variant {
-            \"TextContent\" = \"$assetUrl\"
+            \"TextContent\" = $location
           }
         };
         record {
           \"thumbnail\";
           variant {
-            \"TextContent\" = \"$thumbnailUrl\"
+            \"TextContent\" = $thumbnail
           }
         };
       }
@@ -103,12 +94,7 @@ generateMock() {
 
   printf "🤖 The generated transactionId is (%s)\n\n" "$transactionId"
 
-  # # Show the metadata for the token
-  printf "🤖 Call tokenMetadata for token id (%s)\n\n" "$token_index"
-  dfx canister --network local \
-    call "$nftCanisterId" tokenMetadata "($token_index:nat)"
-
-  # # Show the owner of the token
+  # Show the metadata for the token
   printf "🤖 Call tokenMetadata for token id (%s)\n\n" "$token_index"
   dfx canister --network local \
     call "$nftCanisterId" tokenMetadata "($token_index:nat)"
