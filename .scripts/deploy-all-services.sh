@@ -61,6 +61,26 @@ deployWICP() {
   _wicpId="$(cd ./wicp && dfx canister id wicp)"
 
   printf "🤖 wICP Canister id is %s\n" "$_wicpId"
+
+  # set allowance to system mock generator id
+  # a2t6b-nznbt-igjd3-ut25i-b43cf-mt45v-g3x2g-ro6h5-kowno-dx3rz-uqe
+  _mockSystemIdentity="a2t6b-nznbt-igjd3-ut25i-b43cf-mt45v-g3x2g-ro6h5-kowno-dx3rz-uqe"
+
+  printf "🤖 wICP approve and set allowance for mock system identity %s\n" "$_mockSystemIdentity"
+
+  dfx canister \
+    call --update "$_wicpId" \
+    approve "( 
+      principal \"$_mockSystemIdentity\",
+      9_000_000_000_000:nat
+    )"
+
+  dfx canister \
+    call --update "$_wicpId" \
+    allowance "( 
+      principal \"$_wallet\",
+      principal \"$_mockSystemIdentity\",
+    )"
 }
 
 deployCapRouter
