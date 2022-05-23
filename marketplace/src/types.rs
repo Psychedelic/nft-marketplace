@@ -3,6 +3,7 @@ use crate::vendor_types::*;
 use ic_kit::{
     candid::{CandidType, Deserialize, Int, Nat},
     Principal,
+    macros::*
 };
 
 use std::cmp::{Eq, PartialEq};
@@ -26,6 +27,7 @@ pub enum ListingStatus {
     Selling,
 }
 
+#[derive(CandidType, Clone, Deserialize)]
 pub struct InitData {
     pub cap: Principal,
     pub owner: Principal,
@@ -96,8 +98,7 @@ pub struct TxLogEntry {
     pub memo: String,
 }
 
-#[derive(Default)]
-
+#[derive(Default, CandidType, Clone, Deserialize)]
 pub(crate) struct Marketplace {
     // collection { token: { listing } }
     pub listings: HashMap<Principal, HashMap<Nat, Listing>>,
