@@ -1258,8 +1258,14 @@ pub async fn withdraw_fungible(
 #[cfg(any(target_arch = "wasm32", test))]
 fn main() {}
 
+candid::export_service!();
+
 #[cfg(not(any(target_arch = "wasm32", test)))]
 fn main() {
-    candid::export_service!();
     std::print!("{}", __export_service());
+}
+
+#[query(name = "__get_candid_interface_tmp_hack")]
+fn export_candid() -> String {
+    __export_service()
 }
