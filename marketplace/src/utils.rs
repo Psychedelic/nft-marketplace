@@ -1,7 +1,9 @@
 use ic_kit::{
+    macros::*,
     candid::{Int, Nat},
-    ic::{get_maybe, get_mut},
+    ic::{stable_store, stable_restore, store, get_maybe, get_mut},
 };
+use cap_sdk::CapEnv;
 use num_bigint::Sign;
 
 use crate::types::*;
@@ -19,6 +21,38 @@ pub(crate) fn balances() -> &'static mut Balances {
 
 pub(crate) fn init_data() -> &'static InitData {
     get_maybe::<InitData>().unwrap()
+}
+
+#[pre_upgrade]
+fn pre_upgrade() {
+    let marketplace = marketplace();
+    let collections = collections();
+    let balances = balances();
+    let init_data = init_data();
+    stable_store((
+        marketplace,
+        collections,
+        balances,
+        init_data,
+        CapEnv::to_archive(),
+    ))
+    .unwrap();
+}
+
+#[post_upgrade]
+fn post_upgrade() {
+    let (
+        marketplace_stored,
+        collections_stored,
+        balances_stored,
+        init_data_stored,
+        cap_env_stored,
+    ): (Marketplace, Collections, Balances, InitData, CapEnv) = stable_restore().unwrap();
+    store(marketplace_stored);
+    store(collections_stored);
+    store(balances_stored);
+    store(init_data_stored);
+    CapEnv::load_from_archive(cap_env_stored);
 }
 
 pub fn convert_nat_to_u64(num: Nat) -> Result<u64, String> {
