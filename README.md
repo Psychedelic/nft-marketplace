@@ -2,7 +2,7 @@
   <img src="./.repo/images/logo-marketplace.png" width="140px" height="auto"/>
 </div>
 
-# 👑 NFT Marketplace
+# 🥝 NFT Marketplace
 
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-blue.svg)](https://conventionalcommits.org) [![Healthcheck](https://github.com/Psychedelic/nft-marketplace/actions/workflows/pr-healthcheck-runner.yml/badge.svg)](https://github.com/Psychedelic/nft-marketplace/actions/workflows/pr-healthcheck-runner.yml)
 
