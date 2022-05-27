@@ -47,7 +47,7 @@ dfx canister \
     vec {
       principal \"$crownsMockSystemPrincipalId\";
       principal \"$_owner\";
-      principal \"$testUser1\";
-      principal \"$testUser2\";
+      principal \"$_testUser1\";
+      principal \"$_testUser2\";
     } 
   )"
