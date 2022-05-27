@@ -1,8 +1,6 @@
-<div align="center" style="padding-bottom: 20px;">
-  <img src="./.repo/images/logo-marketplace.png" width="140px" height="auto"/>
-</div>
+![](https://storageapi.fleek.co/fleek-team-bucket/jelly-nft.png)
 
-# 👑 NFT Marketplace
+# 🍭 Jelly - An NFT Marketplace & Toolkit
 
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-blue.svg)](https://conventionalcommits.org) [![Healthcheck](https://github.com/Psychedelic/nft-marketplace/actions/workflows/pr-healthcheck-runner.yml/badge.svg)](https://github.com/Psychedelic/nft-marketplace/actions/workflows/pr-healthcheck-runner.yml)
 
@@ -34,9 +32,9 @@ The requirements listed here are for running the [DIP-721](spec.md) example impl
 
 We'll use Nodejs `package.json` to provide and describe convenient methods to bootstrap, build or reset the state of the provided test cases.
 
-The Marketplace interacts with [Cap](https://github.com/Psychedelic/cap), [Dab](https://github.com/Psychedelic/dab), [Crowns](https://github.com/Psychedelic/crowns) (a [DIP-721](https://github.com/Psychedelic/DIP721) token) and [wICP](https://github.com/Psychedelic/wicp) (a [DIP-20](https://github.com/Psychedelic/DIP20) token). If you haven't learn about these, learn more about them by clicking in the available links!
+Jelly interacts with [Cap](https://github.com/Psychedelic/cap), [Dab](https://github.com/Psychedelic/dab), [Crowns](https://github.com/Psychedelic/crowns) (a [DIP-721](https://github.com/Psychedelic/DIP721) token) and [wICP](https://github.com/Psychedelic/wicp) (a [DIP-20](https://github.com/Psychedelic/DIP20) token). If you haven't learn about these, learn more about them by clicking in the available links!
 
-Our Marketplace runs against these Service canisters, on mainnet and also within the local replica network when developing; As such these should be available in the network. For example, for local replica network, if you're already running the Service separatily on your own, feel free to skip the steps to initialise all the dependencies mentioned below. Otherwise, you have to pull and initialise the Git repositories far all the required Services as follows:
+Jelly runs against these Service canisters, on mainnet and also within the local replica network when developing; As such these should be available in the network. For example, for local replica network, if you're already running the Service separatily on your own, feel free to skip the steps to initialise all the dependencies mentioned below. Otherwise, you have to pull and initialise the Git repositories far all the required Services as follows:
 
 ```sh
 yarn services:init
