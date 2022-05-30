@@ -55,7 +55,7 @@ type OfferStatus = variant {
 type Result = variant { Ok; Err : MPApiError };
 type Result_1 = variant { Ok : nat; Err : MPApiError };
 type Result_2 = variant { Ok : Listing; Err : MPApiError };
-service : (principal, principal, nat) -> {
+service : (principal, nat, principal) -> {
   acceptOffer : (principal, nat, principal) -> (Result);
   addCollection : (
       principal,
@@ -71,6 +71,7 @@ service : (principal, principal, nat) -> {
   cancelListing : (principal, nat) -> (Result);
   cancelOffer : (principal, nat) -> (Result);
   denyOffer : (principal, nat, principal) -> (Result);
+  dfxInfo : () -> (text) query;
   directBuy : (principal, nat) -> (Result);
   getAllBalances : () -> (
       vec record { record { principal; principal }; nat },
@@ -83,9 +84,10 @@ service : (principal, principal, nat) -> {
   getTokenOffers : (principal, vec nat) -> (
       vec record { nat; vec Offer },
     ) query;
-  git_commit_hash : () -> (text) query;
+  gitCommitHash : () -> (text) query;
   makeListing : (principal, nat, nat) -> (Result);
   makeOffer : (principal, nat, nat) -> (Result);
+  rustToolchainInfo : () -> (text) query;
   setProtocolFee : (nat) -> (Result);
   withdrawFungible : (principal, FungibleStandard) -> (Result);
 }

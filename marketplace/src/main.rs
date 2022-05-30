@@ -33,7 +33,7 @@ mod vendor_types;
 
 #[init]
 #[candid_method(init)]
-pub fn init(cap: Principal, owner: Principal, protocol_fee: Nat) {
+pub fn init(owner: Principal, protocol_fee: Nat, cap: Principal) {
     ic_kit::ic::store(InitData {
         cap,
         owner,
@@ -42,13 +42,29 @@ pub fn init(cap: Principal, owner: Principal, protocol_fee: Nat) {
     handshake(1_000_000_000_000, Some(cap));
 }
 
-#[query]
-#[candid_method(query)]
-fn git_commit_hash() -> String {
-    compile_time_run::run_command_str!("git", "rev-parse", "HEAD").into()
+// cover metadata
+#[query(name = "gitCommitHash")]
+#[candid_method(query, rename = "gitCommitHash")]
+fn git_commit_hash() -> &'static str {
+    run_command_str!("git", "rev-parse", "HEAD")
 }
 
-// to let the canister call the `aaaaa-aa` Management API `canister_status`
+#[query(name = "rustToolchainInfo")]
+#[candid_method(query, rename = "rustToolchainInfo")]
+fn rust_toolchain_info() -> &'static str {
+    run_command_str!("rustup", "show")
+}
+
+#[query(name = "dfxInfo")]
+#[candid_method(query, rename = "dfxInfo")]
+fn dfx_info() -> &'static str {
+    run_command_str!("dfx", "--version")
+}
+
+/// Check if a given principal is included in the current canister controller list
+/// 
+/// To let the canister call the `aaaaa-aa` Management API `canister_status`,
+/// the canister needs to be a controller of itself.
 pub async fn is_controller(principal: &Principal) -> Result<(), String> {
     let caller = ic::caller();
     let self_id = ic::id();
@@ -69,6 +85,11 @@ pub async fn is_controller(principal: &Principal) -> Result<(), String> {
     }
 }
 
+/// process fees and add amounts to the fee to's balances
+/// 
+/// * `fungible_canister_id` - Principal for the fungible contract used to disperse fees in
+/// * `price` - Nat amount
+/// * `fees` - Vec of fees, (string fee purpose, principal of fee recipient, percent (e2))
 pub fn process_fees(
     fungible_canister_id: Principal,
     price: Nat,
@@ -94,18 +115,23 @@ pub fn process_fees(
 
 // QUERY METHODS //
 
+/// Get the base fee for all transactions. This is stored and processed as an e2
+/// For example, for a 2.5% fee (as per jelly) this value would equal 250:nat
 #[query(name = "getProtocolFee")]
 #[candid_method(query, rename = "getProtocolFee")]
 pub async fn get_protocol_fee() -> Nat {
     init_data().protocol_fee.clone()
 }
 
+/// Get the current registered collection data
+/// Returns fungible canister, standard types, fees attached to the collection, total volume, etc
 #[query(name = "getCollections")]
 #[candid_method(query, rename = "getCollections")]
 pub async fn get_collections() -> HashMap<Principal, Collection> {
     collections().collections.clone()
 }
 
+/// Get a tokens listing. Will return with `MPApiError::InvalidListing` if the listing does not exist.
 #[query(name = "getTokenListing")]
 #[candid_method(query, rename = "getTokenListing")]
 pub async fn get_token_listing(
@@ -129,6 +155,7 @@ pub async fn get_token_listing(
         .clone())
 }
 
+/// Get a tokens current offers. Can pass as many token ids as you want
 #[query(name = "getTokenOffers")]
 #[candid_method(query, rename = "getTokenOffers")]
 pub async fn get_token_offers(
@@ -154,6 +181,7 @@ pub async fn get_token_offers(
         .collect()
 }
 
+/// Get all the offers a buyer has made for a given collection 
 #[query(name = "getBuyerOffers")]
 #[candid_method(query, rename = "getBuyerOffers")]
 pub async fn get_buyer_offers(nft_canister_id: Principal, buyer: Principal) -> Vec<Offer> {
@@ -189,6 +217,7 @@ pub async fn get_buyer_offers(nft_canister_id: Principal, buyer: Principal) -> V
     user_offers
 }
 
+/// Get all users fungible balances held by marketplace
 #[query(name = "getAllBalances")]
 #[candid_method(query, rename = "getAllBalances")]
 pub async fn get_all_balances() -> HashMap<(Principal, Principal), Nat> {
@@ -243,13 +272,13 @@ pub async fn get_floor(nft_canister_id: Principal) -> NatResult {
 // UPDATE METHODS //
 
 /// Add a Collection
-/// - owner: principal id of the owner of the collection, collection fees will be distributed to this user
-/// - collection_fee: fee multiplied by e2, for precision. `2.50% fee` = `250:nat`
-/// - collection_name: string representing the collection name. Should match dab registry entry
-/// - nft_canister_id: principal of the nft collection
-/// - nft_canister_standard: nft standard, eg; `DIP721v2`
-/// - fungible_canister_id: principal of the fungible a collection is traded with
-/// - fungible_canister_standard: fungible standard, eg; `DIP20`
+/// * `owner` - principal id of the owner of the collection, collection fees will be distributed to this user
+/// * collection_fee` - fee multiplied by e2, for precision. `2.50% fee` = `250:nat`
+/// * collection_name` - string representing the collection name. Should match dab registry entry
+/// * nft_canister_id` - principal of the nft collection
+/// * nft_canister_standard` - nft standard, eg; `DIP721v2`
+/// * fungible_canister_id` - principal of the fungible a collection is traded with
+/// * fungible_canister_standard` - fungible standard, eg; `DIP20`
 #[update(name = "addCollection")]
 #[candid_method(update, rename = "addCollection")]
 pub async fn add_collection(
@@ -284,8 +313,8 @@ pub async fn add_collection(
     Ok(())
 }
 
-/// Set the protocol level fee
-/// fee is an e2, so for a 2.5% fee, you would put 250
+/// Set the base protocol level transaction fee
+/// fee is stored as an e2, so for a 2.5% fee the value would be `250:nat`
 #[update(name = "setProtocolFee")]
 #[candid_method(update, rename = "setProtocolFee")]
 fn set_protocol_fee(fee: Nat) -> MPApiResult {
@@ -414,8 +443,13 @@ pub async fn make_listing(nft_canister_id: Principal, token_id: Nat, price: Nat)
 
 /// Make an offer on a given nft
 ///
-/// price is a Nat, that should be handled as an e^n, n being the fungible canister's decimals.
+/// * `price` - Nat that should be handled as an e^n, n being the fungible canister's decimals.
 /// For example, to make a 3.14 WICP offer, the number would be 3.14e8 = 314_000_000
+/// 
+/// The caller should have an allowance set for marketplace  for the given fungible canister, that is
+/// equal to the total of all offers made already, plus the price for the current offer. For example,
+/// if a user has made 2 offers for 1.00 WICP each, and is making an additional offer of 1.00 WICP,
+/// the total allowance should be 3 WICP. 
 #[update(name = "makeOffer")]
 #[candid_method(update, rename = "makeOffer")]
 pub async fn make_offer(nft_canister_id: Principal, token_id: Nat, price: Nat) -> MPApiResult {
@@ -526,6 +560,19 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: Nat, price: Nat) -
 }
 
 /// Direct buy a nft that has been listed
+/// 
+/// * `nft_canister_id` - principal id of the nft collection contract
+/// * `token_id` - Token to purchase
+///
+/// ## Integrating
+/// 
+/// To use this method, an allowance for marketplace must be set prior to calling this.
+/// This fungtion will check to make sure the neccessary requirements are fullfilled, then auto-withdraw 
+/// the fungible amount from the buyer to the marketplace canister. After the funds are secured,
+/// a `transferFrom` call is made to send the nft to the buyer. On success, fungible amounts are
+/// released to the respective principal ids for the fee recipients and the seller. In the slim case where
+/// a transaction passed all checks, but an error occurred transferring the nft, the buyers balance will
+/// remain on the marketplace for withdraw using the `withdrawFungible` as a fallback
 #[update(name = "directBuy")]
 #[candid_method(update, rename = "directBuy")]
 pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResult {
@@ -806,11 +853,6 @@ pub async fn accept_offer(
             }
         }
         None => return Err(MPApiError::InvalidOperator),
-    }
-
-    if let Some(listed) = listing {
-        // guarding against reentrancy
-        listed.status = ListingStatus::Selling;
     }
 
     // Auto deposit tokens

@@ -22,8 +22,8 @@ dfx canister \
 
 dfx deploy \
   marketplace --argument "(
-    principal \"$_icHistoryRouter\",
     principal \"$_owner\",
-    $_protocol_fee:nat
+    $_protocol_fee:nat,
+    principal \"$_icHistoryRouter\",
   )" \
   $4

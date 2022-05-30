@@ -5,8 +5,11 @@ cd $(dirname $BASH_SOURCE) || exit 1
 cd ../../crowns || exit 1
 
 _owner=$1
-_tokenName=$2
-_tokenSymbol=$3
+_testUser1=$2
+_testUser2=$3
+_tokenName=$4
+_tokenSymbol=$5
+_cap=$6
 
 # On the mock system for Crowns
 # a system principal id is used on `mint`
@@ -23,8 +26,8 @@ _nonFungibleContractAddress=$(dfx canister id crowns)
 
 dfx canister \
   update-settings \
-    --controller "$_owner" \
-    --controller "$_nonFungibleContractAddress" \
+    --add-controller "$_owner" \
+    --add-controller "$_nonFungibleContractAddress" \
   "$_nonFungibleContractAddress"
 
 dfx deploy \
@@ -34,6 +37,7 @@ dfx deploy \
       logo = opt \"data:image/jpeg;base64,...\";
       symbol = opt \"$_tokenSymbol\";
       owners = opt vec { principal \"$_owner\" };
+      cap = opt principal \"$_cap\";
     }
 )"
 
@@ -41,6 +45,9 @@ dfx canister \
   call --update "$_nonFungibleContractAddress" \
   setCustodians "( 
     vec {
-      principal \"$crownsMockSystemPrincipalId\"
+      principal \"$crownsMockSystemPrincipalId\";
+      principal \"$_owner\";
+      principal \"$_testUser1\";
+      principal \"$_testUser2\";
     } 
   )"

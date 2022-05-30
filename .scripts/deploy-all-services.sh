@@ -32,8 +32,9 @@ deployDip721() {
   _owner=$1
   _tokenName=$2
   _tokenSymbol=$3
+  _icHistoryRouter=$4
 
-  yarn crowns:deploy "$_owner" "$_tokenName" "$_tokenSymbol"
+  yarn crowns:deploy "$_owner" "$_tokenName" "$_tokenSymbol" "$_icHistoryRouter"
 }
 
 deployMarketplace() {
@@ -83,7 +84,7 @@ deployCapRouter
 # deployDab
 # [ "$DEBUG" == 1 ] && echo $?
 
-deployDip721 "$DEFAULT_PRINCIPAL_ID" "Crowns" "CRW"
+deployDip721 "$DEFAULT_PRINCIPAL_ID" "$ALICE_PRINCIPAL_ID" "$BOB_PRINCIPAL_ID" "Crowns" "CRW" "$IC_HISTORY_ROUTER" 
 [ "$DEBUG" == 1 ] && echo $?
 
 deployMarketplace "$DEFAULT_PRINCIPAL_ID" "$IC_HISTORY_ROUTER" 
