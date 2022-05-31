@@ -749,6 +749,15 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
         .or_default()
         .remove(&buyer);
 
+    mp.user_offers
+        .entry(buyer)
+        .or_default()
+        .entry(nft_canister_id)
+        .and_modify(|tokens| {
+            tokens.retain(|token| token != &token_id.clone());
+        })
+        .or_default();
+
     // update market cap for collection
     collections()
         .collections
