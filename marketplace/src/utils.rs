@@ -1,9 +1,9 @@
-use ic_kit::{
-    macros::*,
-    candid::{Int, Nat},
-    ic::{stable_store, stable_restore, store, get_maybe, get_mut},
-};
 use cap_sdk::CapEnv;
+use ic_kit::{
+    candid::{Int, Nat},
+    ic::{get_maybe, get_mut, stable_restore, stable_store, store},
+    macros::*,
+};
 use num_bigint::Sign;
 
 use crate::types::*;
