@@ -155,12 +155,12 @@ pub async fn get_token_listing(
         .clone())
 }
 
-/// Get a token listings.
+/// Get a tokens listings.
 /// Parameters:
-///     nft_canister_id: NFT canister principal id
+///     nft_canister_id: NFT canister (principal) id
 ///     own: Pass `true` for retrieve own listed tokens, otherwise pass `false` for retrieve other user's listed tokens
 ///     page: Page number (start from 0)
-/// Returns listed token list based on given parameters
+/// Returns listed tokens list based on given parameters.
 #[query(name = "getListings")]
 #[candid_method(query, rename = "getListings")]
 pub async fn get_listings(nft_canister_id: Principal, own: bool, page: u128) -> Result<HashMap<Nat, Listing>, MPApiError> {
@@ -175,22 +175,28 @@ pub async fn get_listings(nft_canister_id: Principal, own: bool, page: u128) -> 
         .entry(nft_canister_id)
         .or_default();
 
-    let allTokens: Vec<Nat> = listings
+    // Filter tokens 
+    let filteredTokens: Vec<Nat> = listings
         .into_iter()
         .filter(|(_, v)| if own == true {v.seller == ic::caller()} else {v.seller != ic::caller()})
         .map(|(k, _)| k.clone())
+        .by_ref()
         .collect();
 
+    // Calculate pagination
     let start = (page * 10) as usize;
     let mut len = 10;
 
-    if start > allTokens.len() { return Ok(HashMap::new()); }
+    // Make sure we already not reached the end in that case return empty hash map
+    if start > filteredTokens.len() { return Ok(HashMap::new()); }
 
-    if start+len >= allTokens.len() {
-        len = allTokens.len() - start;
+    // If there is still data then calculate next len 
+    if start + len >= filteredTokens.len() {
+        len = filteredTokens.len() - start;
     }
 
-    Ok(allTokens[start..start+len].to_vec()
+    // Slice the filtered token for specified length and return the paginated listing
+    Ok(filteredTokens[start..start + len].to_vec()
         .into_iter()
         .map(|token_id| {
             (
