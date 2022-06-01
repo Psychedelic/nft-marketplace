@@ -30,11 +30,13 @@ deployDip721() {
   printf "🤖 Deploy DIP721 Crowns NFT Canister\n"
 
   _owner=$1
-  _tokenName=$2
-  _tokenSymbol=$3
-  _icHistoryRouter=$4
+  _user1=$2
+  _user2=$3
+  _tokenName=$4
+  _tokenSymbol=$5
+  _icHistoryRouter=$6
 
-  yarn crowns:deploy "$_owner" "$_tokenName" "$_tokenSymbol" "$_icHistoryRouter"
+  yarn crowns:deploy "$_owner" "$_user1" "$_user2" "$_tokenName" "$_tokenSymbol" "$_icHistoryRouter"
 }
 
 deployMarketplace() {
