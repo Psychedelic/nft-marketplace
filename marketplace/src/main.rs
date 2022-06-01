@@ -62,7 +62,7 @@ fn dfx_info() -> &'static str {
 }
 
 /// Check if a given principal is included in the current canister controller list
-/// 
+///
 /// To let the canister call the `aaaaa-aa` Management API `canister_status`,
 /// the canister needs to be a controller of itself.
 pub async fn is_controller(principal: &Principal) -> Result<(), String> {
@@ -86,7 +86,7 @@ pub async fn is_controller(principal: &Principal) -> Result<(), String> {
 }
 
 /// process fees and add amounts to the fee to's balances
-/// 
+///
 /// * `fungible_canister_id` - Principal for the fungible contract used to disperse fees in
 /// * `price` - Nat amount
 /// * `fees` - Vec of fees, (string fee purpose, principal of fee recipient, percent (e2))
@@ -236,7 +236,7 @@ pub async fn get_token_offers(
         .collect()
 }
 
-/// Get all the offers a buyer has made for a given collection 
+/// Get all the offers a buyer has made for a given collection
 #[query(name = "getBuyerOffers")]
 #[candid_method(query, rename = "getBuyerOffers")]
 pub async fn get_buyer_offers(nft_canister_id: Principal, buyer: Principal) -> Vec<Offer> {
@@ -500,11 +500,11 @@ pub async fn make_listing(nft_canister_id: Principal, token_id: Nat, price: Nat)
 ///
 /// * `price` - Nat that should be handled as an e^n, n being the fungible canister's decimals.
 /// For example, to make a 3.14 WICP offer, the number would be 3.14e8 = 314_000_000
-/// 
+///
 /// The caller should have an allowance set for marketplace  for the given fungible canister, that is
 /// equal to the total of all offers made already, plus the price for the current offer. For example,
 /// if a user has made 2 offers for 1.00 WICP each, and is making an additional offer of 1.00 WICP,
-/// the total allowance should be 3 WICP. 
+/// the total allowance should be 3 WICP.
 #[update(name = "makeOffer")]
 #[candid_method(update, rename = "makeOffer")]
 pub async fn make_offer(nft_canister_id: Principal, token_id: Nat, price: Nat) -> MPApiResult {
@@ -615,14 +615,14 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: Nat, price: Nat) -
 }
 
 /// Direct buy a nft that has been listed
-/// 
+///
 /// * `nft_canister_id` - principal id of the nft collection contract
 /// * `token_id` - Token to purchase
 ///
 /// ## Integrating
-/// 
+///
 /// To use this method, an allowance for marketplace must be set prior to calling this.
-/// This fungtion will check to make sure the neccessary requirements are fullfilled, then auto-withdraw 
+/// This fungtion will check to make sure the neccessary requirements are fullfilled, then auto-withdraw
 /// the fungible amount from the buyer to the marketplace canister. After the funds are secured,
 /// a `transferFrom` call is made to send the nft to the buyer. On success, fungible amounts are
 /// released to the respective principal ids for the fee recipients and the seller. In the slim case where
@@ -795,6 +795,23 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
 
     // remove listing
     listings.remove(&token_id.clone());
+
+    // remove offer from user if exists
+    mp.offers
+        .entry(nft_canister_id)
+        .or_default()
+        .entry(token_id.clone())
+        .or_default()
+        .remove(&buyer);
+
+    mp.user_offers
+        .entry(buyer)
+        .or_default()
+        .entry(nft_canister_id)
+        .and_modify(|tokens| {
+            tokens.retain(|token| token != &token_id.clone());
+        })
+        .or_default();
 
     // update market cap for collection
     collections()

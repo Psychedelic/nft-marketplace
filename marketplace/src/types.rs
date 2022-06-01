@@ -2,8 +2,8 @@ use crate::vendor_types::*;
 
 use ic_kit::{
     candid::{CandidType, Deserialize, Int, Nat},
+    macros::*,
     Principal,
-    macros::*
 };
 
 use std::cmp::{Eq, PartialEq};
