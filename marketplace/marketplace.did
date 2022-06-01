@@ -81,6 +81,9 @@ service : (principal, nat, principal) -> {
   getFloor : (principal) -> (Result_1) query;
   getProtocolFee : () -> (nat) query;
   getTokenListing : (principal, nat) -> (Result_2) query;
+  getListings : (principal, bool, nat) -> (
+    variant { Ok : vec record { nat; Listing }; Err : MPApiError }
+  ) query;
   getTokenOffers : (principal, vec nat) -> (
       vec record { nat; vec Offer },
     ) query;

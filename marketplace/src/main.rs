@@ -155,6 +155,55 @@ pub async fn get_token_listing(
         .clone())
 }
 
+/// Get a token listings.
+/// Parameters:
+///     nft_canister_id: NFT canister principal id
+///     own: Pass `true` for retrieve own listed tokens, otherwise pass `false` for retrieve other user's listed tokens
+///     page: Page number (start from 0)
+/// Returns listed token list based on given parameters
+#[query(name = "getListings")]
+#[candid_method(query, rename = "getListings")]
+pub async fn get_listings(nft_canister_id: Principal, own: bool, page: u128) -> Result<HashMap<Nat, Listing>, MPApiError> {
+    // verify collection is registered
+    let collection = collections()
+        .collections
+        .get(&nft_canister_id)
+        .ok_or(MPApiError::NonExistentCollection)?;
+
+    let listings = marketplace()
+        .listings
+        .entry(nft_canister_id)
+        .or_default();
+
+    let allTokens: Vec<Nat> = listings
+        .into_iter()
+        .filter(|(_, v)| if own == true {v.seller == ic::caller()} else {v.seller != ic::caller()})
+        .map(|(k, _)| k.clone())
+        .collect();
+
+    let start = (page * 10) as usize;
+    let mut len = 10;
+
+    if start > allTokens.len() { return Ok(HashMap::new()); }
+
+    if start+len >= allTokens.len() {
+        len = allTokens.len() - start;
+    }
+
+    Ok(allTokens[start..start+len].to_vec()
+        .into_iter()
+        .map(|token_id| {
+            (
+                token_id.clone(),
+                listings
+                    .entry(token_id)
+                    .or_default()
+                    .clone(),
+            )
+        })
+        .collect())
+}
+
 /// Get a tokens current offers. Can pass as many token ids as you want
 #[query(name = "getTokenOffers")]
 #[candid_method(query, rename = "getTokenOffers")]
