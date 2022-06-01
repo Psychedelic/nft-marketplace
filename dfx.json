@@ -31,10 +31,9 @@
       "type": "custom"
     },
     "marketplace": {
-      "build": "./build.sh",
+      "package": "marketplace",
       "candid": "marketplace/marketplace.did",
-      "wasm": "target/wasm32-unknown-unknown/release/marketplace-opt.wasm",
-      "type": "custom"
+      "type": "rust"
     }
   },
   "defaults": {
