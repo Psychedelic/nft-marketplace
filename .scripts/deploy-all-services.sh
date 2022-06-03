@@ -1,5 +1,7 @@
 #!/bin/bash
 
+. ".scripts/dfx-identity.sh"
+
 (cd "$(dirname $BASH_SOURCE)" && cd ..) || exit 1
 
 [ "$DEBUG" == 1 ] && set -x
