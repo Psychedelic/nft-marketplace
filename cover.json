@@ -1,13 +1,13 @@
 {
   "ownerId": "ffuck-kxghi-gyvia-r5htr-246cy-acq5u-2tdgd-avtvf-jyqbt-xtmf7-cae",
-  "canisterId": "o3ios-jaaaa-aaaag-qakqq-cai",
+  "canisterId": "getti-aiaaa-aaaah-abkkq-cai",
   "canisterName": "marketplace",
   "repoUrl": "psychedelic/nft-marketplace",
-  "commitHash": "8727f1cd44de699e7f0d7065b8f64c814a0681c9",
-  "rustVersion": "1.60.0",
+  "commitHash": "0e13f4dba9e729152a7591d21067bd3ffe394079",
+  "rustVersion": "1.61.0",
   "dfxVersion": "0.9.3",
   "optimizeCount": 0,
   "publicKey": "0488bb751d43a89a22e41e6966d1bd6d9d018d0dcec76d4d553436b2928be46426385cf69446eb02b3248686ed116cfa06d76323577224b042076bf53af9f3b67a",
-  "signature": "dde222855c32d7463ac35ebe063177657750d6e7c2d5426ca9b569bc0f0941e218bf3e2c804211fc35764a0352d45f65c898de56925a90bbcd0a5bed2482191f",
-  "timestamp": 1654144652978
+  "signature": "8e43ba129d9d306faa5fe2e29790426ddb76fde2e7f79cd7c3bce7eb7a3140a838411c9d1e067747ec5e989018858f1e72d585ef0a2191085a60b7dccbc91650",
+  "timestamp": 1654638999144
 }
