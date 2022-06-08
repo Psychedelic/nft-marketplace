@@ -34,6 +34,11 @@
       "package": "marketplace",
       "candid": "marketplace/marketplace.did",
       "type": "rust"
+    },
+    "marketplace-test": {
+       "package": "marketplace",
+       "candid": "marketplace/marketplace.did",
+       "type": "rust"
     }
   },
   "defaults": {
