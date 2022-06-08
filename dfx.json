@@ -34,6 +34,11 @@
       "package": "marketplace",
       "candid": "marketplace/marketplace.did",
       "type": "rust"
+    },
+    "marketplace-test": {
+       "package": "marketplace",
+       "candid": "marketplace/marketplace.did",
+       "type": "rust"
     }
   },
   "defaults": {
@@ -45,6 +50,9 @@
     "local": {
       "bind": "127.0.0.1:8000",
       "type": "ephemeral"
+    },
+    "test": {
+      "bind": "ic0.app"
     },
     "fleek-testnet": {
       "bind": "34.216.56.80:8080"

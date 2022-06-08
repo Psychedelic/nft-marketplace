@@ -1,6 +1,8 @@
 {
   "marketplace": {
-    "ic": "o3ios-jaaaa-aaaag-qakqq-cai",
-    "fleek-testnet": "yva2f-aiaaa-aaaaa-aabqa-cai"
+    "ic": "getti-aiaaa-aaaah-abkkq-cai"
+  },
+  "marketplace-test": {
+  	"ic": "o3ios-jaaaa-aaaag-qakqq-cai"
   }
 }
