@@ -603,7 +603,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
         Ok(metadata) => {
             match metadata.owner {
                 Some(principal) => {
-                    // we only care if mp is the operator, disregard current owner
+                    // we only care if mp is the operator, disregard current owner/listing
                     token_owner = principal;
                 }
                 None => return Err(MPApiError::InvalidOwner),
@@ -636,7 +636,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
 
     // Successfully auto deposited fungibles, transfer the nft from marketplace to the buyer
     match transfer_from_non_fungible(
-        &listing.seller,                  // from
+        &token_owner,                     // from
         &buyer,                           // to
         &token_id,                        // nft id
         &nft_canister_id,                 // contract
@@ -674,7 +674,7 @@ buyer, nft_canister_id, token_id, e,
 
     // transfer the funds from the MP to the seller, or
     if transfer_fungible(
-        &listing.seller,
+        &token_owner,
         &(listing.price.clone() - total_fees.clone()),
         &collection.fungible_canister_id,
         collection.fungible_canister_standard.clone(),
