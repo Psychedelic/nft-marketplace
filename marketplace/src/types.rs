@@ -11,6 +11,27 @@ use std::collections::{HashMap, VecDeque};
 
 use derive_new::*;
 
+#[derive(CandidType, Deserialize, Debug)]
+pub enum MPApiError {
+    InvalidOperator,
+    InvalidOwner,
+
+    TransferFungibleError,
+    TransferNonFungibleError,
+    InvalidListingStatus,
+    InvalidOfferStatus,
+    InvalidListing,
+    InvalidOffer,
+    InsufficientFungibleBalance,
+    InsufficientFungibleAllowance,
+    InsufficientNonFungibleBalance,
+    Unauthorized,
+    NoDeposit,
+    CAPInsertionError,
+    NonExistentCollection,
+    Other(String),
+}
+
 #[derive(Clone, CandidType, Debug, Deserialize, Eq, PartialEq)]
 pub enum OfferStatus {
     Uninitialized,
@@ -29,7 +50,7 @@ pub enum ListingStatus {
 
 #[derive(CandidType, Clone, Deserialize)]
 pub struct InitData {
-    pub cap: Principal,
+    pub cap: Option<Principal>,
     pub owner: Principal,
     pub protocol_fee: Nat,
 }
@@ -108,25 +129,6 @@ pub(crate) struct Marketplace {
 
     // user: (collection, token)
     pub user_offers: HashMap<Principal, HashMap<Principal, Vec<Nat>>>,
-}
-
-#[derive(CandidType, Deserialize, Debug)]
-pub enum MPApiError {
-    TransferFungibleError,
-    TransferNonFungibleError,
-    InvalidListingStatus,
-    InvalidOfferStatus,
-    InvalidListing,
-    InvalidOffer,
-    InsufficientFungibleBalance,
-    InsufficientFungibleAllowance,
-    InsufficientNonFungibleBalance,
-    Unauthorized,
-    InvalidOperator,
-    NoDeposit,
-    CAPInsertionError,
-    NonExistentCollection,
-    Other(String),
 }
 
 pub type MPApiResult = Result<(), MPApiError>;

@@ -24,6 +24,6 @@ dfx deploy \
   marketplace --argument "(
     principal \"$_owner\",
     $_protocol_fee:nat,
-    principal \"$_icHistoryRouter\",
+    opt principal \"$_icHistoryRouter\",
   )" \
   $4

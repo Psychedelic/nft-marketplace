@@ -1,9 +1,9 @@
 use ic_kit::candid::{CandidType, Deserialize, Int, Nat, Principal};
 use std::collections::HashMap;
 
-// BEGIN ServiceBalance //
+// BEGIN DIP721v2 //
 
-#[derive(CandidType, Clone, Deserialize)]
+#[derive(CandidType, Clone, Deserialize, Debug)]
 pub enum GenericValue {
     BoolContent(bool),
     TextContent(String),
@@ -22,6 +22,50 @@ pub enum GenericValue {
     FloatContent(f64), // motoko only support f64
     NestedContent(Vec<(String, GenericValue)>),
 }
+
+#[derive(CandidType, Clone, Deserialize, Debug)]
+pub struct TokenMetadata {
+    pub token_identifier: Nat,
+    pub owner: Option<Principal>,
+    pub operator: Option<Principal>,
+    pub is_burned: bool,
+    pub properties: Vec<(String, GenericValue)>,
+    pub minted_at: u64,
+    pub minted_by: Principal,
+    pub transferred_at: Option<u64>,
+    pub transferred_by: Option<Principal>,
+    pub approved_at: Option<u64>,
+    pub approved_by: Option<Principal>,
+    pub burned_at: Option<u64>,
+    pub burned_by: Option<Principal>,
+}
+
+#[derive(CandidType, Debug, Deserialize)]
+pub enum ApiError {
+    Unauthorized,
+    InvalidTokenId,
+    ZeroAddress,
+    Other,
+}
+
+#[derive(CandidType, Deserialize, Debug)]
+pub enum NftError {
+    UnauthorizedOwner,
+    UnauthorizedOperator,
+    OwnerNotFound,
+    OperatorNotFound,
+    TokenNotFound,
+    ExistedNFT,
+    SelfApprove,
+    SelfTransfer,
+    TxNotFound,
+    Other(String),
+}
+
+pub type TxReceiptDIP721v2 = Result<Nat, ApiError>;
+pub type OwnerResult = Result<Principal, NftError>;
+
+// END DIP721v2 //
 
 #[derive(CandidType, Clone, Deserialize)]
 pub struct BalanceMetadata {
@@ -73,35 +117,6 @@ pub enum TransferResponseErrors {
 pub type TransferResponse = Result<Balance, TransferResponseErrors>;
 
 // END EXT //
-
-// BEGIN DIP721v2 //
-
-#[derive(CandidType, Debug, Deserialize)]
-pub enum ApiError {
-    Unauthorized,
-    InvalidTokenId,
-    ZeroAddress,
-    Other,
-}
-
-#[derive(CandidType, Deserialize, Debug)]
-pub enum NftError {
-    UnauthorizedOwner,
-    UnauthorizedOperator,
-    OwnerNotFound,
-    OperatorNotFound,
-    TokenNotFound,
-    ExistedNFT,
-    SelfApprove,
-    SelfTransfer,
-    TxNotFound,
-    Other(String),
-}
-
-pub type TxReceiptDIP721v2 = Result<Nat, ApiError>;
-pub type OwnerResult = Result<Principal, NftError>;
-
-// END DIP721v2 //
 
 // BEGIN DIP20 //
 
