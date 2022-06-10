@@ -155,6 +155,61 @@ pub async fn get_token_listing(
         .clone())
 }
 
+/// Get a tokens listings.
+/// Parameters:
+///     nft_canister_id: NFT canister (principal) id
+///     own: Pass `true` for retrieve own listed tokens, otherwise pass `false` for retrieve other user's listed tokens
+///     page: Page number (start from 0)
+/// Returns listed tokens list based on given parameters.
+#[query(name = "getListings")]
+#[candid_method(query, rename = "getListings")]
+pub async fn get_listings(nft_canister_id: Principal, own: bool, page: u128) -> Result<HashMap<Nat, Listing>, MPApiError> {
+    // verify collection is registered
+    let collection = collections()
+        .collections
+        .get(&nft_canister_id)
+        .ok_or(MPApiError::NonExistentCollection)?;
+
+    let listings = marketplace()
+        .listings
+        .entry(nft_canister_id)
+        .or_default();
+
+    // Filter tokens 
+    let filteredTokens: Vec<Nat> = listings
+        .into_iter()
+        .filter(|(_, v)| if own == true {v.seller == ic::caller()} else {v.seller != ic::caller()})
+        .map(|(k, _)| k.clone())
+        .by_ref()
+        .collect();
+
+    // Calculate pagination
+    let start = (page * 10) as usize;
+    let mut len = 10;
+
+    // Make sure we already not reached the end in that case return empty hash map
+    if start > filteredTokens.len() { return Ok(HashMap::new()); }
+
+    // If there is still data then calculate next len 
+    if start + len >= filteredTokens.len() {
+        len = filteredTokens.len() - start;
+    }
+
+    // Slice the filtered token for specified length and return the paginated listing
+    Ok(filteredTokens[start..start + len].to_vec()
+        .into_iter()
+        .map(|token_id| {
+            (
+                token_id.clone(),
+                listings
+                    .entry(token_id)
+                    .or_default()
+                    .clone(),
+            )
+        })
+        .collect())
+}
+
 /// Get a tokens current offers. Can pass as many token ids as you want
 #[query(name = "getTokenOffers")]
 #[candid_method(query, rename = "getTokenOffers")]
