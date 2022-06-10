@@ -27,7 +27,7 @@ pub async fn transfer_fungible(
     amount: &Nat,
     contract: &Principal,
     fungible_canister_standard: FungibleStandard,
-) -> U64Result {
+) -> NatResult {
     match fungible_canister_standard {
         FungibleStandard::DIP20 => Dip20Proxy::transfer(to, amount, contract).await,
     }
@@ -72,14 +72,13 @@ impl Dip20Proxy {
             .map_err(|err| MPApiError::TransferFromFungibleError(format!("{:?}", err)))
     }
 
-    pub async fn transfer(to: &Principal, amount: &Nat, contract: &Principal) -> U64Result {
+    pub async fn transfer(to: &Principal, amount: &Nat, contract: &Principal) -> NatResult {
         let call_res: Result<(TxReceipt,), (RejectionCode, String)> =
             ic::call(*contract, "transfer", (*to, amount.clone())).await;
         call_res
             .map_err(|_| MPApiError::TransferFungibleError)?
             .0
             .map_err(|_| MPApiError::TransferFungibleError)
-            .map(|res| convert_nat_to_u64(res).unwrap())
     }
 
     pub async fn balance_of(contract: &Principal, owner: &Principal) -> NatResult {

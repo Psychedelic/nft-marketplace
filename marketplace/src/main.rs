@@ -941,10 +941,7 @@ seller, nft_canister_id, token_id, e,
                     DetailValue::Principal(nft_canister_id),
                 ),
                 ("buyer".into(), DetailValue::Principal(buyer)),
-                (
-                    "seller".into(),
-                    DetailValue::Principal(token_owner.unwrap()),
-                ),
+                ("seller".into(), DetailValue::Principal(seller)),
                 (
                     "price".into(),
                     DetailValue::U64(convert_nat_to_u64(offer_price.clone()).unwrap()),
