@@ -10,24 +10,6 @@ type Collection = record {
   nft_canister_id : principal;
 };
 type FungibleStandard = variant { DIP20 };
-type GenericValue = variant {
-  Nat64Content : nat64;
-  Nat32Content : nat32;
-  BoolContent : bool;
-  Nat8Content : nat8;
-  Int64Content : int64;
-  IntContent : int;
-  NatContent : nat;
-  Nat16Content : nat16;
-  Int32Content : int32;
-  Int8Content : int8;
-  FloatContent : float64;
-  Int16Content : int16;
-  BlobContent : vec nat8;
-  NestedContent : Vec;
-  Principal : principal;
-  TextContent : text;
-};
 type Listing = record {
   fee : vec record { text; principal; nat };
   status : ListingStatus;
@@ -37,11 +19,13 @@ type Listing = record {
 };
 type ListingStatus = variant { Selling; Uninitialized; Created };
 type MPApiError = variant {
+  TransferFromFungibleError : text;
   NonExistentCollection;
   NoDeposit;
   InvalidListingStatus;
   InsufficientFungibleBalance;
   InvalidListing;
+  TransferFromNonFungibleError : text;
   TransferNonFungibleError;
   Unauthorized;
   InsufficientFungibleAllowance;
@@ -74,43 +58,6 @@ type OfferStatus = variant {
 type Result = variant { Ok; Err : MPApiError };
 type Result_1 = variant { Ok : nat; Err : MPApiError };
 type Result_2 = variant { Ok : Listing; Err : MPApiError };
-type Result_3 = variant { Ok : TokenMetadata; Err : MPApiError };
-type TokenMetadata = record {
-  transferred_at : opt nat64;
-  transferred_by : opt principal;
-  owner : opt principal;
-  operator : opt principal;
-  approved_at : opt nat64;
-  approved_by : opt principal;
-  properties : vec record { text; GenericValue };
-  is_burned : bool;
-  token_identifier : nat;
-  burned_at : opt nat64;
-  burned_by : opt principal;
-  minted_at : nat64;
-  minted_by : principal;
-};
-type Vec = vec record {
-  text;
-  variant {
-    Nat64Content : nat64;
-    Nat32Content : nat32;
-    BoolContent : bool;
-    Nat8Content : nat8;
-    Int64Content : int64;
-    IntContent : int;
-    NatContent : nat;
-    Nat16Content : nat16;
-    Int32Content : int32;
-    Int8Content : int8;
-    FloatContent : float64;
-    Int16Content : int16;
-    BlobContent : vec nat8;
-    NestedContent : Vec;
-    Principal : principal;
-    TextContent : text;
-  };
-};
 service : (principal, nat, opt principal) -> {
   acceptOffer : (principal, nat, principal) -> (Result);
   addCollection : (
@@ -145,6 +92,5 @@ service : (principal, nat, opt principal) -> {
   makeOffer : (principal, nat, nat) -> (Result);
   rustToolchainInfo : () -> (text) query;
   setProtocolFee : (nat) -> (Result);
-  test : (principal, nat) -> (Result_3);
   withdrawFungible : (principal, FungibleStandard) -> (Result);
 }
