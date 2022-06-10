@@ -33,13 +33,13 @@ mod vendor_types;
 
 #[init]
 #[candid_method(init)]
-pub fn init(owner: Principal, protocol_fee: Nat, cap: Principal) {
+pub fn init(owner: Principal, protocol_fee: Nat, cap: Option<Principal>) {
     ic_kit::ic::store(InitData {
         cap,
         owner,
         protocol_fee,
     });
-    handshake(1_000_000_000_000, Some(cap));
+    handshake(1_000_000_000_000, cap);
 }
 
 // cover metadata
@@ -596,73 +596,32 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
         .get(&nft_canister_id)
         .ok_or(MPApiError::NonExistentCollection)?;
 
-    // check if the NFT is owned by the seller still
-    let token_owner = owner_of_non_fungible(
-        &nft_canister_id,
-        &token_id,
-        collection.nft_canister_standard,
-    )
-    .await?;
-
-    // check if caller/seller is the token owner
-    match token_owner {
-        Some(principal) => {
-            if (principal != listing.seller) {
-                return Err(MPApiError::Unauthorized);
+    // check token owner and operator
+    let token_owner: Principal;
+    let token_metadata = DIP721v2Proxy::token_metadata(&token_id.clone(), &nft_canister_id).await;
+    match token_metadata {
+        Ok(metadata) => {
+            match metadata.owner {
+                Some(principal) => {
+                    // we only care if mp is the operator, disregard current owner/listing
+                    token_owner = principal;
+                }
+                None => return Err(MPApiError::InvalidOwner),
+            }
+            match metadata.operator {
+                Some(principal) => {
+                    if (principal != self_id) {
+                        return Err(MPApiError::InvalidOperator);
+                    }
+                }
+                None => return Err(MPApiError::InvalidOperator),
             }
         }
-        None => return Err(MPApiError::Unauthorized),
+        Err(e) => return Err(e),
     }
 
-    // check if mp is the operator still
-    let token_operator = operator_of_non_fungible(
-        &nft_canister_id,
-        &token_id,
-        collection.nft_canister_standard,
-    )
-    .await?;
-
-    // check if caller/seller is the token owner
-    match token_operator {
-        Some(principal) => {
-            if (principal != self_id) {
-                return Err(MPApiError::InvalidOperator);
-            }
-        }
-        None => return Err(MPApiError::InvalidOperator),
-    }
-
-    // Auto deposit tokens
-
-    // check if marketplace has allowance
-    let allowance = allowance_fungible(
-        &collection.fungible_canister_id,
-        &buyer,
-        &self_id,
-        collection.fungible_canister_standard.clone(),
-    )
-    .await
-    .map_err(|_| MPApiError::Other("Error calling allowance".to_string()))?;
-
-    if allowance.clone() < listing.price.clone() {
-        return Err(MPApiError::InsufficientFungibleAllowance);
-    }
-
-    // check buyer wallet balance
-    let balance = balance_of_fungible(
-        &collection.fungible_canister_id,
-        &buyer,
-        collection.fungible_canister_standard.clone(),
-    )
-    .await
-    .map_err(|_| MPApiError::Other("Error calling balanceOf".to_string()))?;
-
-    if balance.clone() < listing.price.clone() {
-        return Err(MPApiError::InsufficientFungibleBalance);
-    }
-
-    // auto deposit funds to mp from buyer
-    if transfer_from_fungible(
+    // Claim funds from user wallet
+    match transfer_from_fungible(
         &buyer,
         &self_id,
         &listing.price.clone(),
@@ -670,46 +629,41 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
         collection.fungible_canister_standard.clone(),
     )
     .await
-    .is_err()
     {
-        balances().failed_tx_log_entries.push(TxLogEntry::new(
-            self_id.clone(),
-            listing.seller.clone(),
-            format!(
-                "accept_offer failed for user {} for contract {} for token id {}; transfer 2",
-                listing.seller, nft_canister_id, token_id,
-            ),
-        ));
-        return Err(MPApiError::TransferFungibleError);
+        Err(e) => return Err(e),
+        Ok(_) => {}
     }
 
     // Successfully auto deposited fungibles, transfer the nft from marketplace to the buyer
-    if transfer_from_non_fungible(
-        &listing.seller,                  // from
+    match transfer_from_non_fungible(
+        &token_owner,                     // from
         &buyer,                           // to
         &token_id,                        // nft id
         &nft_canister_id,                 // contract
         collection.nft_canister_standard, // nft type
     )
     .await
-    .is_err()
     {
-        // add deposited funds to buyer mp balance
-        *balances()
-            .balances
-            .entry((collection.fungible_canister_id, buyer))
-            .or_default() += listing.price.clone();
+        Err(e) => {
+            // error transferring nft
+            // add deposited funds to buyer mp balance (fallback to avoid extra transactions/time/cycles)
+            *balances()
+                .balances
+                .entry((collection.fungible_canister_id, buyer))
+                .or_default() += listing.price.clone();
 
-        balances().failed_tx_log_entries.push(TxLogEntry::new(
-            self_id.clone(),
-            buyer.clone(),
-            format!(
-        "accept_offer non fungible failed for user {} for contract {} for token id {}; transfer 1",
-        buyer, nft_canister_id, token_id,
-      ),
-        ));
+            balances().failed_tx_log_entries.push(TxLogEntry::new(
+                buyer.clone(),
+                token_owner.clone(),
+                format!(
+"direct buy non fungible failed for user {} for contract {} for token id {}; error: {:?}",
+buyer, nft_canister_id, token_id, e,
+),
+            ));
 
-        return Err(MPApiError::TransferNonFungibleError);
+            return Err(e);
+        }
+        Ok(_) => {}
     }
 
     let total_fees = process_fees(
@@ -717,11 +671,10 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
         listing.price.clone(),
         listing.fee.clone(),
     );
-    ic::print(total_fees.to_string());
 
     // transfer the funds from the MP to the seller, or
     if transfer_fungible(
-        &listing.seller,
+        &token_owner,
         &(listing.price.clone() - total_fees.clone()),
         &collection.fungible_canister_id,
         collection.fungible_canister_standard.clone(),
@@ -781,10 +734,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
                     DetailValue::Principal(nft_canister_id),
                 ),
                 ("buyer".into(), DetailValue::Principal(buyer)),
-                (
-                    "seller".into(),
-                    DetailValue::Principal(token_owner.unwrap()),
-                ),
+                ("seller".into(), DetailValue::Principal(token_owner)),
                 (
                     "price".into(),
                     DetailValue::U64(convert_nat_to_u64(price.clone()).unwrap()),
@@ -837,94 +787,49 @@ pub async fn accept_offer(
 
     let listing = listings.get_mut(&token_id.clone());
 
-    // check if the NFT is owned by the seller still
-    let token_owner = owner_of_non_fungible(
-        &nft_canister_id,
-        &token_id,
-        collection.nft_canister_standard,
-    )
-    .await?;
-
-    // check if caller/seller is the token owner
-    match token_owner {
-        Some(principal) => {
-            if (principal != seller) {
-                return Err(MPApiError::Unauthorized);
+    // check token owner and operator
+    let token_owner: Principal;
+    let token_metadata = DIP721v2Proxy::token_metadata(&token_id.clone(), &nft_canister_id).await;
+    match token_metadata {
+        Ok(metadata) => {
+            match metadata.owner {
+                Some(principal) => {
+                    // error if caller is not the token owner
+                    if (principal != seller) {
+                        return Err(MPApiError::Unauthorized);
+                    }
+                    token_owner = principal;
+                }
+                None => return Err(MPApiError::InvalidOwner),
+            }
+            match metadata.operator {
+                Some(principal) => {
+                    if (principal != self_id) {
+                        return Err(MPApiError::InvalidOperator);
+                    }
+                }
+                None => return Err(MPApiError::InvalidOperator),
             }
         }
-        None => return Err(MPApiError::Unauthorized),
+        Err(e) => return Err(e),
     }
 
-    // check if mp is the operator still
-    let token_operator = operator_of_non_fungible(
-        &nft_canister_id,
-        &token_id,
-        collection.nft_canister_standard,
-    )
-    .await?;
-
-    match token_operator {
-        Some(principal) => {
-            if (principal != self_id) {
-                return Err(MPApiError::InvalidOperator);
-            }
-        }
-        None => return Err(MPApiError::InvalidOperator),
-    }
-
-    // Auto deposit tokens
-
-    // check if marketplace has allowance
-    let allowance = allowance_fungible(
-        &collection.fungible_canister_id,
+    // Claim funds from user wallet
+    match transfer_from_fungible(
         &buyer,
         &self_id,
-        collection.fungible_canister_standard.clone(),
-    )
-    .await
-    .map_err(|_| MPApiError::Other("Error calling allowance".to_string()))?;
-
-    if allowance.clone() < offer_price.clone() {
-        return Err(MPApiError::InsufficientFungibleAllowance);
-    }
-
-    // check buyer wallet balance
-    let balance = balance_of_fungible(
-        &collection.fungible_canister_id,
-        &buyer,
-        collection.fungible_canister_standard.clone(),
-    )
-    .await
-    .map_err(|_| MPApiError::Other("Error calling balanceOf".to_string()))?;
-
-    if balance.clone() < offer_price.clone() {
-        return Err(MPApiError::InsufficientFungibleBalance);
-    }
-
-    // auto deposit funds to mp from buyer
-    if transfer_from_fungible(
-        &buyer,
-        &self_id,
-        &offer_price.clone(),
+        &offer.price.clone(),
         &collection.fungible_canister_id,
         collection.fungible_canister_standard.clone(),
     )
     .await
-    .is_err()
     {
-        balances().failed_tx_log_entries.push(TxLogEntry::new(
-            self_id.clone(),
-            seller.clone(),
-            format!(
-                "accept_offer failed for user {} for contract {} for token id {}; transfer 2",
-                seller, nft_canister_id, token_id,
-            ),
-        ));
-        return Err(MPApiError::TransferFungibleError);
+        Err(e) => return Err(e),
+        Ok(_) => {}
     }
 
-    // Successfully auto deposited fungibles from buyer, transfer the nft from the seller to the buyer
-    if transfer_from_non_fungible(
+    // Successfully auto deposited fungibles, transfer the nft from marketplace to the buyer
+    match transfer_from_non_fungible(
         &seller,                          // from
         &buyer,                           // to
         &token_id,                        // nft id
@@ -932,24 +837,27 @@ pub async fn accept_offer(
         collection.nft_canister_standard, // nft type
     )
     .await
-    .is_err()
     {
-        // add deposited funds to buyer mp balance
-        *balances()
-            .balances
-            .entry((collection.fungible_canister_id, buyer))
-            .or_default() += offer_price.clone();
+        Err(e) => {
+            // error transferring nft
+            // add deposited funds to buyer mp balance (fallback to avoid extra transactions/time/cycles)
+            *balances()
+                .balances
+                .entry((collection.fungible_canister_id, buyer))
+                .or_default() += offer.price.clone();
 
-        balances().failed_tx_log_entries.push(TxLogEntry::new(
-            self_id.clone(),
-            buyer.clone(),
-            format!(
-        "accept_offer non fungible failed for user {} for contract {} for token id {}; transfer 1",
-        buyer, nft_canister_id, token_id,
-      ),
-        ));
+            balances().failed_tx_log_entries.push(TxLogEntry::new(
+                seller.clone(),
+                buyer.clone(),
+                format!(
+"accept offer non fungible failed for user {} for contract {} for token id {}; error: {:?}",
+seller, nft_canister_id, token_id, e,
+),
+            ));
 
-        return Err(MPApiError::TransferNonFungibleError);
+            return Err(e);
+        }
+        Ok(_) => {}
     }
 
     let total_fees = process_fees(
@@ -1033,10 +941,7 @@ pub async fn accept_offer(
                     DetailValue::Principal(nft_canister_id),
                 ),
                 ("buyer".into(), DetailValue::Principal(buyer)),
-                (
-                    "seller".into(),
-                    DetailValue::Principal(token_owner.unwrap()),
-                ),
+                ("seller".into(), DetailValue::Principal(seller)),
                 (
                     "price".into(),
                     DetailValue::U64(convert_nat_to_u64(offer_price.clone()).unwrap()),

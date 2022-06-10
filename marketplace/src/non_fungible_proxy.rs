@@ -17,18 +17,10 @@ pub async fn transfer_from_non_fungible(
     token_id: &Nat,
     contract: &Principal,
     nft_type: NFTStandard,
-) -> U64Result {
+) -> NatResult {
     match nft_type {
         DIP721v2 => DIP721v2Proxy::transfer_from(from, to, token_id, contract).await,
-        EXT => {
-            EXTProxy::transfer_from(
-                from,
-                to,
-                &convert_nat_to_u64(token_id.clone()).unwrap(),
-                contract,
-            )
-            .await
-        }
+        EXT => unimplemented!(),
     }
 }
 
@@ -69,12 +61,25 @@ pub async fn operator_of_non_fungible(
 pub(crate) struct DIP721v2Proxy {}
 
 impl DIP721v2Proxy {
+    pub async fn token_metadata(
+        token_id: &Nat,
+        contract: &Principal,
+    ) -> Result<TokenMetadata, MPApiError> {
+        let call_res: Result<(Result<TokenMetadata, NftError>,), (RejectionCode, String)> =
+            ic::call(*contract, "tokenMetadata", (Nat::from(token_id.clone()),)).await;
+
+        call_res
+            .map_err(|err| MPApiError::Other(format!("{:?}", err)))?
+            .0
+            .map_err(|err| MPApiError::Other(format!("{:?}", err)))
+    }
+
     pub async fn transfer_from(
         from: &Principal,
         to: &Principal,
         token_id: &Nat,
         contract: &Principal,
-    ) -> U64Result {
+    ) -> NatResult {
         let call_res: Result<(Result<Nat, NftError>,), (RejectionCode, String)> = ic::call(
             *contract,
             "transferFrom",
@@ -83,10 +88,9 @@ impl DIP721v2Proxy {
         .await;
 
         call_res
-            .map_err(|_| MPApiError::Other("".to_string()))?
+            .map_err(|err| MPApiError::TransferFromNonFungibleError(format!("{:?}", err)))?
             .0
-            .map_err(|_| MPApiError::TransferFungibleError)
-            .map(|res| convert_nat_to_u64(res).unwrap())
+            .map_err(|err| MPApiError::TransferFromNonFungibleError(format!("{:?}", err)))
     }
 
     pub async fn transfer(
@@ -98,9 +102,9 @@ impl DIP721v2Proxy {
             ic::call(*contract, "transfer", (*to, Nat::from(token_id.clone()))).await;
 
         let res = call_res
-            .map_err(|_| MPApiError::Other("".to_string()))?
+            .map_err(|err| MPApiError::Other(format!("{:?}", err)))?
             .0
-            .map_err(|_| MPApiError::TransferFungibleError)
+            .map_err(|err| MPApiError::Other(format!("{:?}", err)))
             .map(|res| convert_nat_to_u64(res).unwrap());
 
         match &res {
@@ -117,9 +121,9 @@ impl DIP721v2Proxy {
             ic::call(*contract, "ownerOf", (Nat::from(token_id.clone()),)).await;
 
         call_res
-            .map_err(|_| MPApiError::Other("".to_string()))?
+            .map_err(|err| MPApiError::Other(format!("{:?}", err)))?
             .0
-            .map_err(|_| MPApiError::TransferFungibleError)
+            .map_err(|err| MPApiError::Other(format!("{:?}", err)))
     }
 
     pub async fn operator_of(
@@ -130,9 +134,9 @@ impl DIP721v2Proxy {
             ic::call(*contract, "operatorOf", (Nat::from(token_id.clone()),)).await;
 
         call_res
-            .map_err(|_| MPApiError::Other("".to_string()))?
+            .map_err(|err| MPApiError::Other(format!("{:?}", err)))?
             .0
-            .map_err(|e| MPApiError::Other("DIP721v2 Error".to_string()))
+            .map_err(|err| MPApiError::Other(format!("{:?}", err)))
     }
 }
 
