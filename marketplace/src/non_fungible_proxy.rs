@@ -29,7 +29,7 @@ pub async fn transfer_non_fungible(
     token_id: &Nat,
     contract: &Principal,
     nft_type: NFTStandard,
-) -> Result<Nat, MPApiError> {
+) -> NatResult {
     match nft_type {
         DIP721v2 => DIP721v2Proxy::transfer(contract, to, token_id).await,
         EXT => EXTProxy::transfer(to, token_id, contract).await,
