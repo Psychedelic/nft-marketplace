@@ -88,9 +88,9 @@ impl DIP721v2Proxy {
         .await;
 
         call_res
-            .map_err(|err| MPApiError::Other(format!("{:?}", err)))?
+            .map_err(|err| MPApiError::TransferFromNonFungibleError(format!("{:?}", err)))?
             .0
-            .map_err(|err| MPApiError::Other(format!("{:?}", err)))
+            .map_err(|err| MPApiError::TransferFromNonFungibleError(format!("{:?}", err)))
     }
 
     pub async fn transfer(

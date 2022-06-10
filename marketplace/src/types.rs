@@ -15,6 +15,8 @@ use derive_new::*;
 pub enum MPApiError {
     InvalidOperator,
     InvalidOwner,
+    TransferFromFungibleError(String),
+    TransferFromNonFungibleError(String),
 
     TransferFungibleError,
     TransferNonFungibleError,
