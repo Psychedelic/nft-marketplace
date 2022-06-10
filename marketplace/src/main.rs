@@ -558,14 +558,6 @@ pub async fn make_offer(nft_canister_id: Principal, token_id: Nat, price: Nat) -
 
     Ok(())
 }
-//r7inp-6aaaa-aaaaa-aaabq-cai
-#[update]
-#[candid_method(update)]
-pub async fn test(nft_canister_id: Principal, token_id: Nat) -> Result<TokenMetadata, MPApiError> {
-    let resp = DIP721v2Proxy::token_metadata(&token_id.clone(), &nft_canister_id).await;
-
-    resp
-}
 
 /// Direct buy a nft that has been listed
 ///
