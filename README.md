@@ -6,6 +6,8 @@
 
 The NFT Marketplace is the backend Service for our DIP-721 implementation, and soon a multi-standard NFT Marketplace.
 
+> 🚧 IMPORTANT 🚧 - Jelly is currently in it's first version of development as we move towards a full marketplace protocol. This repo should be treated and such and is subject to change. 
+
 ## 📒 Table of Contents
 
 - [Service Flow Docs](/docs/service.md)
