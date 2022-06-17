@@ -34,7 +34,7 @@ fn pre_upgrade() {
         collections,
         balances,
         init_data,
-        CapEnv::to_archive(),
+        cap_sdk::archive(),
     ))
     .unwrap();
 }
@@ -47,12 +47,12 @@ fn post_upgrade() {
         balances_stored,
         init_data_stored,
         cap_env_stored,
-    ): (Marketplace, Collections, Balances, InitData, CapEnv) = stable_restore().unwrap();
+    ): (Marketplace, Collections, Balances, InitData, cap_sdk::Archive) = stable_restore().unwrap();
     store(marketplace_stored);
     store(collections_stored);
     store(balances_stored);
     store(init_data_stored);
-    CapEnv::load_from_archive(cap_env_stored);
+    cap_sdk::from_archive(cap_env_stored);
 }
 
 pub fn convert_nat_to_u64(num: Nat) -> Result<u64, String> {
