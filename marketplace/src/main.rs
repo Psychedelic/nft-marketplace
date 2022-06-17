@@ -61,6 +61,26 @@ fn dfx_info() -> &'static str {
     run_command_str!("dfx", "--version")
 }
 
+#[query]
+#[candid_method(query)]
+fn failed_log() -> Vec<TxLogEntry> {
+    balances().failed_tx_log_entries.clone()
+}
+
+#[update]
+#[candid_method(update)]
+async fn fix_balance(fungible_canister_id: Principal, user: Principal, amount: Nat) -> MPApiResult {
+    if let Err(e) = is_controller(&ic::caller()).await {
+        return Err(MPApiError::Unauthorized);
+    }
+    *balances()
+        .balances
+        .entry((fungible_canister_id, user))
+        .or_default() = amount.clone();
+
+    Ok(())
+}
+
 /// Check if a given principal is included in the current canister controller list
 ///
 /// To let the canister call the `aaaaa-aa` Management API `canister_status`,
@@ -591,6 +611,8 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
         return Err(MPApiError::InvalidListingStatus);
     }
 
+    let price = listing.price.clone();
+
     let collection = collections()
         .collections
         .get(&nft_canister_id)
@@ -624,7 +646,7 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
     match transfer_from_fungible(
         &buyer,
         &self_id,
-        &listing.price.clone(),
+        &price.clone(),
         &collection.fungible_canister_id,
         collection.fungible_canister_standard.clone(),
     )
@@ -650,14 +672,14 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
             *balances()
                 .balances
                 .entry((collection.fungible_canister_id, buyer))
-                .or_default() += listing.price.clone();
+                .or_default() += price.clone();
 
             balances().failed_tx_log_entries.push(TxLogEntry::new(
                 buyer.clone(),
                 token_owner.clone(),
                 format!(
-"direct buy non fungible failed for user {} for contract {} for token id {}; error: {:?}",
-buyer, nft_canister_id, token_id, e,
+"direct buy non fungible failed for user {} for contract {} for token id {}; price {:?}; error: {:?}",
+buyer, nft_canister_id, token_id, price.clone(), e,
 ),
             ));
 
@@ -668,14 +690,14 @@ buyer, nft_canister_id, token_id, e,
 
     let total_fees = process_fees(
         collection.fungible_canister_id,
-        listing.price.clone(),
+        price.clone(),
         listing.fee.clone(),
     );
 
     // transfer the funds from the MP to the seller, or
     if transfer_fungible(
         &token_owner,
-        &(listing.price.clone() - total_fees.clone()),
+        &(price.clone() - total_fees.clone()),
         &collection.fungible_canister_id,
         collection.fungible_canister_standard.clone(),
     )
@@ -686,10 +708,8 @@ buyer, nft_canister_id, token_id, e,
         *balances()
             .balances
             .entry((collection.fungible_canister_id, listing.seller))
-            .or_default() += listing.price.clone() - total_fees.clone();
+            .or_default() += price.clone() - total_fees.clone();
     }
-
-    let price = listing.price.clone();
 
     // remove listing
     listings.remove(&token_id.clone());
@@ -850,8 +870,8 @@ pub async fn accept_offer(
                 seller.clone(),
                 buyer.clone(),
                 format!(
-"accept offer non fungible failed for user {} for contract {} for token id {}; error: {:?}",
-seller, nft_canister_id, token_id, e,
+"accept offer non fungible failed for user {} for contract {} for token id {}; price: {:?}; error: {:?}",
+seller, nft_canister_id, token_id, offer_price.clone(), e,
 ),
             ));
 
