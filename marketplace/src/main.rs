@@ -119,7 +119,7 @@ pub fn process_fees(
 
     for (_, principal, fee) in fees {
         // divide by 100 * 100 to allow 2 digits of precision in the fee percentage
-        let amount: Nat = price.clone() * fee.clone() / Nat::from(10000);
+        let amount: Nat = (price.clone() * fee.clone()) / Nat::from(10000);
 
         total_fee += amount.clone();
 
@@ -667,12 +667,27 @@ pub async fn direct_buy(nft_canister_id: Principal, token_id: Nat) -> MPApiResul
     .await
     {
         Err(e) => {
-            // error transferring nft
-            // add deposited funds to buyer mp balance (fallback to avoid extra transactions/time/cycles)
-            *balances()
-                .balances
-                .entry((collection.fungible_canister_id, buyer))
-                .or_default() += price.clone();
+            // error transferring nft, sale failed
+
+            // send funds back to buyer
+            match transfer_fungible(
+                &buyer,
+                &price.clone(),
+                &collection.fungible_canister_id,
+                collection.fungible_canister_standard.clone(),
+            )
+            .await
+            {
+                Err(e) => {
+                    // auto withdraw failed, fallback to withdrawFungible
+                    // add deposited funds to buyer mp balance (fallback to avoid extra transactions/time/cycles)
+                    *balances()
+                        .balances
+                        .entry((collection.fungible_canister_id, buyer))
+                        .or_default() += price.clone();
+                }
+                Ok(_) => {}
+            }
 
             balances().failed_tx_log_entries.push(TxLogEntry::new(
                 buyer.clone(),
@@ -707,7 +722,7 @@ buyer, nft_canister_id, token_id, price.clone(), e,
         // fallback to sellers mp balance
         *balances()
             .balances
-            .entry((collection.fungible_canister_id, listing.seller))
+            .entry((collection.fungible_canister_id, token_owner))
             .or_default() += price.clone() - total_fees.clone();
     }
 
@@ -838,7 +853,7 @@ pub async fn accept_offer(
     match transfer_from_fungible(
         &buyer,
         &self_id,
-        &offer.price.clone(),
+        &offer_price.clone(),
         &collection.fungible_canister_id,
         collection.fungible_canister_standard.clone(),
     )
@@ -859,12 +874,27 @@ pub async fn accept_offer(
     .await
     {
         Err(e) => {
-            // error transferring nft
-            // add deposited funds to buyer mp balance (fallback to avoid extra transactions/time/cycles)
-            *balances()
-                .balances
-                .entry((collection.fungible_canister_id, buyer))
-                .or_default() += offer.price.clone();
+            // error transferring nft, sale failed
+
+            // send funds back to buyer
+            match transfer_fungible(
+                &buyer,
+                &offer_price.clone(),
+                &collection.fungible_canister_id,
+                collection.fungible_canister_standard.clone(),
+            )
+            .await
+            {
+                Err(e) => {
+                    // auto withdraw failed, fallback to withdrawFungible
+                    // add deposited funds to buyer mp balance (fallback to avoid extra transactions/time/cycles)
+                    *balances()
+                        .balances
+                        .entry((collection.fungible_canister_id, buyer))
+                        .or_default() += offer_price.clone();
+                }
+                Ok(_) => {}
+            }
 
             balances().failed_tx_log_entries.push(TxLogEntry::new(
                 seller.clone(),
@@ -901,17 +931,17 @@ seller, nft_canister_id, token_id, offer_price.clone(), e,
     // successfully transferred nft to buyer, release funds to seller
     if transfer_fungible(
         &seller,
-        &(offer.price.clone() - total_fees.clone()),
+        &(offer_price.clone() - total_fees.clone()),
         &collection.fungible_canister_id,
         collection.fungible_canister_standard.clone(),
     )
     .await
     .is_err()
     {
-        // add deposited funds to buyer mp balance
+        // add deposited funds to seller balance
         *balances()
             .balances
-            .entry((collection.fungible_canister_id, buyer))
+            .entry((collection.fungible_canister_id, seller))
             .or_default() += offer_price.clone() - total_fees.clone();
     }
 
