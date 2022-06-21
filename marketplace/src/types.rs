@@ -141,25 +141,8 @@ pub enum FungibleStandard {
     DIP20,
 }
 
-impl FungibleStandard {
-    pub fn to_string(&self) -> String {
-        match self {
-            FungibleStandard::DIP20 => "DIP20".to_string(),
-        }
-    }
-}
-
 #[derive(Copy, Clone, CandidType, Deserialize)]
 pub enum NFTStandard {
     DIP721v2,
     EXT,
-}
-
-impl NFTStandard {
-    pub fn to_string(&self) -> String {
-        match self {
-            NFTStandard::DIP721v2 => "DIP721v2".to_string(),
-            NFTStandard::EXT => "EXT".to_string(),
-        }
-    }
 }
