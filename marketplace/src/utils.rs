@@ -1,7 +1,7 @@
 use cap_sdk::CapEnv;
 use ic_kit::{
     candid::{CandidType, Deserialize, Int, Nat, Principal},
-    ic::{get_maybe, get_mut, stable_restore, stable_store, store},
+    ic::{stable_restore, stable_store, store},
     macros::*,
 };
 use num_bigint::Sign;
@@ -56,92 +56,45 @@ pub(crate) fn init_data<T, F: FnOnce(&InitData) -> T>(f: F) -> T {
     INIT_DATA.with(|init_data| f(&init_data.borrow()))
 }
 
-#[pre_upgrade]
-fn pre_upgrade() {
-    let marketplace = marketplace(|marketplace| marketplace.clone());
-    let collections = collections(|collections| collections.clone());
-    let balances = balances(|balances| balances.clone());
-    let init_data = init_data(|init_data| init_data.clone());
-    stable_store((
-        marketplace,
-        collections,
-        balances,
-        init_data,
-        cap_sdk::archive(),
-    ))
-    .unwrap();
-}
+pub(crate) fn remove_offer(nft_canister_id: &Principal, token_id: &Nat, user: &Principal) {
+    marketplace_mut(|mp| {
+        let mut offers = mp.offers.entry(*nft_canister_id).or_default();
 
-// BEGIN POST_UPGRADE #1 //
+        let mut token_offers = offers.get_mut(token_id).unwrap();
+        token_offers.remove(&user);
 
-#[derive(Clone, CandidType, Default, Deserialize)]
-pub struct OldCollections {
-    pub collections: HashMap<Principal, Collection>,
-}
+        if (token_offers.is_empty()) {
+            offers.remove(&token_id.clone());
+        }
 
-#[post_upgrade]
-fn post_upgrade() {
-    let (
-        marketplace_stored,
-        collections_stored,
-        balances_stored,
-        init_data_stored,
-        cap_env_stored,
-    ): (Marketplace, OldCollections, Balances, InitData, cap_sdk::Archive) = stable_restore().unwrap();
-    marketplace_mut(|marketplace| {
-        marketplace.listings = marketplace_stored.listings;
-        marketplace.offers = marketplace_stored.offers;
-        marketplace.user_offers = marketplace_stored.user_offers;
+        mp.user_offers
+            .entry(*user)
+            .or_default()
+            .entry(*nft_canister_id)
+            .and_modify(|tokens| {
+                tokens.retain(|token| token != &token_id.clone());
+            })
+            .or_default();
     });
+}
+
+pub(crate) fn remove_listing(nft_canister_id: &Principal, token_id: &Nat) {
+    marketplace_mut(|mp| {
+        let listings = mp.listings.entry(*nft_canister_id).or_default();
+        listings.remove(token_id);
+    });
+}
+
+pub(crate) fn inc_volume(nft_canister_id: &Principal, amount: &Nat) {
+    // update market cap for collection
     collections_mut(|collections| {
-        collections.extend(collections_stored.collections);
+        collections
+            .entry(*nft_canister_id)
+            .and_modify(|collection_data| {
+                collection_data.fungible_volume += amount.clone();
+            });
     });
-    balances_mut(|balances| {
-        balances.balances = balances_stored.balances;
-        balances.failed_tx_log_entries = balances_stored.failed_tx_log_entries;
-    });
-    init_data_mut(|init_data| {
-        init_data.cap = init_data_stored.cap;
-        init_data.owner = init_data_stored.owner;
-        init_data.protocol_fee = init_data_stored.protocol_fee;
-    });
-    cap_sdk::from_archive(cap_env_stored);
 }
-
-// END POST_UPGRADE #1 //
-
-// BEGIN POST_UPGRADE #2 //
-
-// #[post_upgrade]
-fn _post_upgrade() {
-    let (
-        marketplace_stored,
-        collections_stored,
-        balances_stored,
-        init_data_stored,
-        cap_env_stored,
-    ): (Marketplace, Collections, Balances, InitData, cap_sdk::Archive) = stable_restore().unwrap();
-    marketplace_mut(|marketplace| {
-        marketplace.listings = marketplace_stored.listings;
-        marketplace.offers = marketplace_stored.offers;
-        marketplace.user_offers = marketplace_stored.user_offers;
-    });
-    collections_mut(|collections| {
-        collections.extend(collections_stored);
-    });
-    balances_mut(|balances| {
-        balances.balances = balances_stored.balances;
-        balances.failed_tx_log_entries = balances_stored.failed_tx_log_entries;
-    });
-    init_data_mut(|init_data| {
-        init_data.cap = init_data_stored.cap;
-        init_data.owner = init_data_stored.owner;
-        init_data.protocol_fee = init_data_stored.protocol_fee;
-    });
-    cap_sdk::from_archive(cap_env_stored);
-}
-
-// END POST_UPGRADE #2 //
 
 pub fn convert_nat_to_u64(num: Nat) -> Result<u64, String> {
     let u64_digits = num.0.to_u64_digits();

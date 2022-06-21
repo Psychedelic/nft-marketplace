@@ -28,6 +28,7 @@ use std::default::Default;
 mod fungible_proxy;
 mod non_fungible_proxy;
 mod types;
+mod upgrade;
 mod utils;
 mod vendor_types;
 
@@ -71,7 +72,7 @@ fn failed_log() -> Vec<TxLogEntry> {
 #[candid_method(update)]
 async fn fix_balance(fungible_canister_id: Principal, user: Principal, amount: Nat) -> MPApiResult {
     if let Err(e) = is_controller(&ic::caller()).await {
-        return Err(MPApiError::Unauthorized);
+        return Err(MPApiError::Other(format!("{:?}", e)));
     }
 
     balances_mut(|balances| {
@@ -336,7 +337,7 @@ pub async fn add_collection(
     fungible_canister_standard: FungibleStandard,
 ) -> MPApiResult {
     if let Err(e) = is_controller(&ic::caller()).await {
-        return Err(MPApiError::Unauthorized);
+        return Err(MPApiError::Other(format!("{:?}", e)));
     }
 
     collections_mut(|collections| {
@@ -365,7 +366,7 @@ pub async fn add_collection(
 #[candid_method(update, rename = "setProtocolFee")]
 async fn set_protocol_fee(fee: Nat) -> MPApiResult {
     if let Err(e) = is_controller(&ic::caller()).await {
-        return Err(MPApiError::Unauthorized);
+        return Err(MPApiError::Other(format!("{:?}", e)));
     }
     // commit to state
     init_data_mut(|init_data| {
@@ -757,37 +758,9 @@ buyer, nft_canister_id, token_id, price.clone(), e,
     }
 
     // commit to state
-    marketplace_mut(|mp| {
-        // remove listing
-        listings.remove(&token_id.clone());
-
-        // remove offer from user if exists
-        mp.offers
-            .entry(nft_canister_id)
-            .or_default()
-            .entry(token_id.clone())
-            .or_default()
-            .remove(&buyer);
-
-        mp.user_offers
-            .entry(buyer)
-            .or_default()
-            .entry(nft_canister_id)
-            .and_modify(|tokens| {
-                tokens.retain(|token| token != &token_id.clone());
-            })
-            .or_default();
-    });
-
-    // update market cap for collection
-    collections_mut(|collections| {
-        collections
-            .entry(nft_canister_id)
-            .and_modify(|collection_data| {
-                collection_data.fungible_volume =
-                    collection_data.fungible_volume.clone() + price.clone();
-            });
-    });
+    remove_listing(&nft_canister_id, &token_id);
+    remove_offer(&nft_canister_id, &token_id, &buyer);
+    inc_volume(&nft_canister_id, &price);
 
     // insert (async with fallback) event to cap
     insert_sync(
@@ -972,49 +945,9 @@ seller, nft_canister_id, token_id, offer_price.clone(), e,
     }
 
     // commit to state
-    marketplace_mut(|mp| {
-        let offers = mp
-            .offers
-            .entry(nft_canister_id)
-            .or_default()
-            .entry(token_id.clone())
-            .or_default();
-
-        let listings = mp.listings.entry(nft_canister_id).or_default();
-
-        let listing = listings.get_mut(&token_id.clone());
-
-        // remove listing and offer
-        listings.remove(&token_id.clone());
-        offers.remove(&buyer);
-
-        // avoid keeping an empty object for a token if no more offers
-        if (offers.is_empty()) {
-            mp.offers
-                .entry(nft_canister_id)
-                .or_default()
-                .remove(&token_id.clone());
-        }
-
-        mp.user_offers
-            .entry(buyer)
-            .or_default()
-            .entry(nft_canister_id)
-            .and_modify(|tokens| {
-                tokens.retain(|token| token != &token_id.clone());
-            })
-            .or_default();
-    });
-
-    // update market cap for collection
-    collections_mut(|collections| {
-        collections
-            .entry(nft_canister_id)
-            .and_modify(|collection_data| {
-                collection_data.fungible_volume =
-                    collection_data.fungible_volume.clone() + offer_price.clone();
-            });
-    });
+    remove_listing(&nft_canister_id, &token_id);
+    remove_offer(&nft_canister_id, &token_id, &buyer);
+    inc_volume(&nft_canister_id, &offer_price);
 
     // insert (async with fallback) event to cap
     insert_sync(
@@ -1057,53 +990,53 @@ pub async fn cancel_listing(nft_canister_id: Principal, token_id: Nat) -> MPApiR
         .get(&nft_canister_id)
         .ok_or(MPApiError::NonExistentCollection)?;
 
+    let mut mp = marketplace(|marketplace| marketplace.clone());
+
+    let seller = ic::caller();
+
+    let listings = mp.listings.entry(nft_canister_id).or_default();
+
+    let listing = listings
+        .get(&token_id.clone())
+        .ok_or(MPApiError::InvalidListing)?
+        .clone();
+
+    if (seller != listing.seller) {
+        return Err(MPApiError::Unauthorized);
+    }
+
+    if listing.status != ListingStatus::Created {
+        return Err(MPApiError::InvalidListingStatus);
+    }
+
     // commit to state
-    marketplace_mut(|mp| {
-        let seller = ic::caller();
+    remove_listing(&nft_canister_id, &token_id);
 
-        let listings = mp.listings.entry(nft_canister_id).or_default();
+    // insert (async with fallback) event to cap
+    insert_sync(
+        IndefiniteEventBuilder::new()
+            .caller(seller)
+            .operation("cancelListing")
+            .details(vec![
+                (
+                    "token_id".into(),
+                    DetailValue::U64(convert_nat_to_u64(token_id).unwrap()),
+                ),
+                (
+                    "nft_canister_id".into(),
+                    DetailValue::Principal(nft_canister_id),
+                ),
+                (
+                    "price".into(),
+                    DetailValue::U64(convert_nat_to_u64(listing.price).unwrap()),
+                ),
+                ("seller".into(), DetailValue::Principal(seller)),
+            ])
+            .build()
+            .unwrap(),
+    );
 
-        let listing = listings
-            .get(&token_id.clone())
-            .ok_or(MPApiError::InvalidListing)?
-            .clone();
-
-        if (seller != listing.seller) {
-            return Err(MPApiError::Unauthorized);
-        }
-
-        if listing.status != ListingStatus::Created {
-            return Err(MPApiError::InvalidListingStatus);
-        }
-
-        listings.remove(&token_id);
-
-        // insert (async with fallback) event to cap
-        insert_sync(
-            IndefiniteEventBuilder::new()
-                .caller(seller)
-                .operation("cancelListing")
-                .details(vec![
-                    (
-                        "token_id".into(),
-                        DetailValue::U64(convert_nat_to_u64(token_id).unwrap()),
-                    ),
-                    (
-                        "nft_canister_id".into(),
-                        DetailValue::Principal(nft_canister_id),
-                    ),
-                    (
-                        "price".into(),
-                        DetailValue::U64(convert_nat_to_u64(listing.price).unwrap()),
-                    ),
-                    ("seller".into(), DetailValue::Principal(seller)),
-                ])
-                .build()
-                .unwrap(),
-        );
-
-        Ok(())
-    })
+    Ok(())
 }
 
 /// Cancel a created offer
@@ -1123,67 +1056,49 @@ pub async fn cancel_offer(nft_canister_id: Principal, token_id: Nat) -> MPApiRes
     .await?
     .ok_or_else(|| MPApiError::Other("error calling owner_of".to_string()))?;
 
+    let buyer = ic::caller();
+
+    let mut mp = marketplace(|mp| mp.offers.clone());
+    let mut offers = mp
+        .entry(nft_canister_id)
+        .or_default()
+        .entry(token_id.clone())
+        .or_default();
+
+    let offer = offers
+        .get(&buyer)
+        .ok_or(MPApiError::InvalidListing)?
+        .clone();
+
     // commit to state
-    marketplace_mut(|mp| {
-        let buyer = ic::caller();
+    remove_offer(&nft_canister_id, &token_id, &buyer);
 
-        let mut offers = mp
-            .offers
-            .entry(nft_canister_id)
-            .or_default()
-            .entry(token_id.clone())
-            .or_default();
+    // insert (async with fallback) event to cap
+    insert_sync(
+        IndefiniteEventBuilder::new()
+            .caller(buyer)
+            .operation("cancelOffer")
+            .details(vec![
+                (
+                    "token_id".into(),
+                    DetailValue::U64(convert_nat_to_u64(token_id).unwrap()),
+                ),
+                (
+                    "nft_canister_id".into(),
+                    DetailValue::Principal(nft_canister_id),
+                ),
+                (
+                    "price".into(),
+                    DetailValue::U64(convert_nat_to_u64(offer.price).unwrap()),
+                ),
+                ("buyer".into(), DetailValue::Principal(buyer)),
+                ("seller".into(), DetailValue::Principal(token_owner)),
+            ])
+            .build()
+            .unwrap(),
+    );
 
-        let offer = offers
-            .get(&buyer)
-            .ok_or(MPApiError::InvalidListing)?
-            .clone();
-
-        offers.remove(&buyer);
-
-        if (offers.is_empty()) {
-            mp.offers
-                .entry(nft_canister_id)
-                .or_default()
-                .remove(&token_id);
-        }
-
-        mp.user_offers
-            .entry(buyer)
-            .or_default()
-            .entry(nft_canister_id)
-            .and_modify(|tokens| {
-                tokens.retain(|token| token != &token_id.clone());
-            })
-            .or_default();
-
-        // insert (async with fallback) event to cap
-        insert_sync(
-            IndefiniteEventBuilder::new()
-                .caller(buyer)
-                .operation("cancelOffer")
-                .details(vec![
-                    (
-                        "token_id".into(),
-                        DetailValue::U64(convert_nat_to_u64(token_id).unwrap()),
-                    ),
-                    (
-                        "nft_canister_id".into(),
-                        DetailValue::Principal(nft_canister_id),
-                    ),
-                    (
-                        "price".into(),
-                        DetailValue::U64(convert_nat_to_u64(offer.price).unwrap()),
-                    ),
-                    ("buyer".into(), DetailValue::Principal(buyer)),
-                    ("seller".into(), DetailValue::Principal(token_owner)),
-                ])
-                .build()
-                .unwrap(),
-        );
-
-        Ok(())
-    })
+    Ok(())
 }
 
 /// Deny an offer made to an owned nft
@@ -1229,25 +1144,7 @@ pub async fn deny_offer(
         .clone();
 
     // commit to state
-    marketplace_mut(|mp| {
-        mp.offers.remove(&buyer);
-
-        if (offers.is_empty()) {
-            mp.offers
-                .entry(nft_canister_id)
-                .or_default()
-                .remove(&token_id.clone());
-        }
-
-        mp.user_offers
-            .entry(buyer)
-            .or_default()
-            .entry(nft_canister_id)
-            .and_modify(|tokens| {
-                tokens.retain(|token| token != &token_id.clone());
-            })
-            .or_default();
-    });
+    remove_offer(&nft_canister_id, &token_id, &buyer);
 
     // insert (async with fallback) event to cap
     insert_sync(
