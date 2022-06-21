@@ -66,7 +66,7 @@ impl DIP721v2Proxy {
         contract: &Principal,
     ) -> Result<TokenMetadata, MPApiError> {
         let call_res: Result<(Result<TokenMetadata, NftError>,), (RejectionCode, String)> =
-            ic::call(*contract, "tokenMetadata", (Nat::from(token_id.clone()),)).await;
+            ic::call(*contract, "tokenMetadata", (token_id.clone(),)).await;
 
         call_res
             .map_err(|err| MPApiError::Other(format!("{:?}", err)))?
@@ -80,12 +80,8 @@ impl DIP721v2Proxy {
         token_id: &Nat,
         contract: &Principal,
     ) -> NatResult {
-        let call_res: Result<(Result<Nat, NftError>,), (RejectionCode, String)> = ic::call(
-            *contract,
-            "transferFrom",
-            (*from, *to, Nat::from(token_id.clone())),
-        )
-        .await;
+        let call_res: Result<(Result<Nat, NftError>,), (RejectionCode, String)> =
+            ic::call(*contract, "transferFrom", (*from, *to, token_id.clone())).await;
 
         call_res
             .map_err(|err| MPApiError::TransferFromNonFungibleError(format!("{:?}", err)))?
@@ -99,7 +95,7 @@ impl DIP721v2Proxy {
         token_id: &Nat,
     ) -> Result<Nat, MPApiError> {
         let call_res: Result<(Result<Nat, NftError>,), (RejectionCode, String)> =
-            ic::call(*contract, "transfer", (*to, Nat::from(token_id.clone()))).await;
+            ic::call(*contract, "transfer", (*to, token_id.clone())).await;
 
         let res = call_res
             .map_err(|err| MPApiError::Other(format!("{:?}", err)))?
@@ -108,7 +104,7 @@ impl DIP721v2Proxy {
             .map(|res| convert_nat_to_u64(res).unwrap());
 
         match &res {
-            Ok(val) => Ok(Nat::from(val.clone())),
+            Ok(val) => Ok(Nat::from(*val)),
             _ => Err(MPApiError::TransferFungibleError),
         }
     }
@@ -118,7 +114,7 @@ impl DIP721v2Proxy {
         token_id: &Nat,
     ) -> Result<Option<Principal>, MPApiError> {
         let call_res: Result<(Result<Option<Principal>, NftError>,), (RejectionCode, String)> =
-            ic::call(*contract, "ownerOf", (Nat::from(token_id.clone()),)).await;
+            ic::call(*contract, "ownerOf", (token_id.clone(),)).await;
 
         call_res
             .map_err(|err| MPApiError::Other(format!("{:?}", err)))?
@@ -131,7 +127,7 @@ impl DIP721v2Proxy {
         token_id: &Nat,
     ) -> Result<Option<Principal>, MPApiError> {
         let call_res: Result<(Result<Option<Principal>, NftError>,), (RejectionCode, String)> =
-            ic::call(*contract, "operatorOf", (Nat::from(token_id.clone()),)).await;
+            ic::call(*contract, "operatorOf", (token_id.clone(),)).await;
 
         call_res
             .map_err(|err| MPApiError::Other(format!("{:?}", err)))?
@@ -153,9 +149,9 @@ impl EXTProxy {
             *contract,
             "transfer",
             (TransferRequest {
-                from: User::principal(from.clone()),
-                to: User::principal(to.clone()),
-                token: token_id.clone(),
+                from: User::principal(*from),
+                to: User::principal(*to),
+                token: *token_id,
                 amount: Nat::from(1),
                 memo: vec![],
                 notify: false,
