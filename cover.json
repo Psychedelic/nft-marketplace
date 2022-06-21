@@ -3,11 +3,11 @@
   "canisterId": "getti-aiaaa-aaaah-abkkq-cai",
   "canisterName": "marketplace",
   "repoUrl": "psychedelic/nft-marketplace",
-  "commitHash": "0e13f4dba9e729152a7591d21067bd3ffe394079",
+  "commitHash": "7125405ff74b34d1901d79aef0cae2d635b4a663",
   "rustVersion": "1.61.0",
   "dfxVersion": "0.9.3",
-  "optimizeCount": 0,
+  "optimizeCount": 1,
   "publicKey": "0488bb751d43a89a22e41e6966d1bd6d9d018d0dcec76d4d553436b2928be46426385cf69446eb02b3248686ed116cfa06d76323577224b042076bf53af9f3b67a",
-  "signature": "8e43ba129d9d306faa5fe2e29790426ddb76fde2e7f79cd7c3bce7eb7a3140a838411c9d1e067747ec5e989018858f1e72d585ef0a2191085a60b7dccbc91650",
-  "timestamp": 1654638999144
+  "signature": "69308967fe9628bda478397f5cd2241b1e1d3adf6037b23c0e753936b92af97341d4ad3acffdfe841e525387a31d8a372fd4294339906b870e0c39474f210654",
+  "timestamp": 1655501695903
 }

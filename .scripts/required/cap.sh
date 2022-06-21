@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CANISTER_CAP_ID=$(cd ./cap && dfx canister id ic-history-router)
+CANISTER_CAP_ID=$(cd ./cap && dfx canister id cap-router)
 
 if [ -z "$CANISTER_CAP_ID" ];
 then
