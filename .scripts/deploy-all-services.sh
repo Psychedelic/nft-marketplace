@@ -6,7 +6,7 @@
 
 [ "$DEBUG" == 1 ] && set -x
 
-IC_HISTORY_ROUTER=$(cd ./cap && dfx canister id cap-router)
+IC_HISTORY_ROUTER=$(cd ./cap && dfx canister id ic-history-router)
 
 DEFAULT_PRINCIPAL_ID=$(dfx identity get-principal)
 
@@ -15,7 +15,7 @@ deployCapRouter() {
 
   yarn cap:start
 
-  _icHistoryRouter=$(cd ./cap && dfx canister id cap-router)
+  _icHistoryRouter=$(cd ./cap && dfx canister id ic-history-router)
 
   printf "CAP IC History router -> %s\n" "$_icHistoryRouter"
 
