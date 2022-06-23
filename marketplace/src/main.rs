@@ -170,12 +170,8 @@ pub async fn get_token_listing(
         .get(&nft_canister_id)
         .ok_or(MPApiError::NonExistentCollection)?;
 
-    marketplace_mut(|marketplace| {
-        let listings = marketplace
-            .listings
-            .entry(nft_canister_id)
-            .or_default()
-            .clone();
+    marketplace_mut(|mp| {
+        let listings = mp.listings.entry(nft_canister_id).or_default().clone();
         Ok(listings
             .get(&token_id)
             .ok_or(MPApiError::InvalidListing)?
@@ -192,14 +188,13 @@ pub async fn get_token_offers(
     nft_canister_id: Principal,
     token_ids: Vec<Nat>,
 ) -> HashMap<Nat, Vec<Offer>> {
-    marketplace(|marketplace| {
+    marketplace(|mp| {
         token_ids
             .into_iter()
             .map(|token_id| {
                 (
                     token_id.clone(),
-                    marketplace
-                        .offers
+                    mp.offers
                         .clone()
                         .entry(nft_canister_id)
                         .or_default()
@@ -224,20 +219,20 @@ pub async fn get_buyer_offers(nft_canister_id: Principal, buyer: Principal) -> V
     //     .get(&nft_canister_id)
     //     .ok_or(MPApiError::NonExistentCollection)?;
 
-    marketplace(|marketplace| {
-        let mut offers = marketplace
+    marketplace(|mp| {
+        let mut offers = mp
             .offers
             .clone()
             .entry(nft_canister_id)
             .or_default()
             .clone();
-        let listings = marketplace
+        let listings = mp
             .listings
             .clone()
             .entry(nft_canister_id)
             .or_default()
             .clone();
-        let token_list = marketplace
+        let token_list = mp
             .user_offers
             .clone()
             .entry(buyer)
@@ -297,8 +292,8 @@ pub async fn get_floor(nft_canister_id: Principal) -> NatResult {
         .get(&nft_canister_id)
         .ok_or(MPApiError::NonExistentCollection)?;
 
-    marketplace(|marketplace| {
-        let listings = marketplace
+    marketplace(|mp| {
+        let listings = mp
             .listings
             .get(&nft_canister_id)
             .ok_or_else(|| MPApiError::Other("No Listings".to_string()))?;
@@ -990,9 +985,9 @@ pub async fn cancel_listing(nft_canister_id: Principal, token_id: Nat) -> MPApiR
         .get(&nft_canister_id)
         .ok_or(MPApiError::NonExistentCollection)?;
 
-    let mut mp = marketplace(|marketplace| marketplace.clone());
-
     let seller = ic::caller();
+
+    let mut mp = marketplace(|mp| mp.clone());
 
     let listings = mp.listings.entry(nft_canister_id).or_default();
 
@@ -1047,6 +1042,7 @@ pub async fn cancel_offer(nft_canister_id: Principal, token_id: Nat) -> MPApiRes
     let collection = c
         .get(&nft_canister_id)
         .ok_or(MPApiError::NonExistentCollection)?;
+    let buyer = ic::caller();
 
     let token_owner = owner_of_non_fungible(
         &nft_canister_id,
@@ -1055,8 +1051,6 @@ pub async fn cancel_offer(nft_canister_id: Principal, token_id: Nat) -> MPApiRes
     )
     .await?
     .ok_or_else(|| MPApiError::Other("error calling owner_of".to_string()))?;
-
-    let buyer = ic::caller();
 
     let mut mp = marketplace(|mp| mp.offers.clone());
     let mut offers = mp
