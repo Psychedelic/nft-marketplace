@@ -20,48 +20,8 @@ fn pre_upgrade() {
   .unwrap();
 }
 
-// BEGIN POST_UPGRADE #1 //
-
-#[derive(Clone, CandidType, Default, Deserialize)]
-pub struct OldCollections {
-  pub collections: HashMap<Principal, Collection>,
-}
-
 #[post_upgrade]
-fn post_upgrade() {
-  let (
-        marketplace_stored,
-        collections_stored,
-        balances_stored,
-        init_data_stored,
-        cap_env_stored,
-    ): (Marketplace, OldCollections, Balances, InitData, cap_sdk::Archive) = stable_restore().unwrap();
-  marketplace_mut(|marketplace| {
-    marketplace.listings = marketplace_stored.listings;
-    marketplace.offers = marketplace_stored.offers;
-    marketplace.user_offers = marketplace_stored.user_offers;
-  });
-  collections_mut(|collections| {
-    collections.extend(collections_stored.collections);
-  });
-  balances_mut(|balances| {
-    balances.balances = balances_stored.balances;
-    balances.failed_tx_log_entries = balances_stored.failed_tx_log_entries;
-  });
-  init_data_mut(|init_data| {
-    init_data.cap = init_data_stored.cap;
-    init_data.owner = init_data_stored.owner;
-    init_data.protocol_fee = init_data_stored.protocol_fee;
-  });
-  cap_sdk::from_archive(cap_env_stored);
-}
-
-// END POST_UPGRADE #1 //
-
-// BEGIN POST_UPGRADE #2 //
-
-// #[post_upgrade]
-fn _post_upgrade() {
+fn post_upgrade_a() {
   let (
       marketplace_stored,
       collections_stored,
@@ -88,5 +48,3 @@ fn _post_upgrade() {
   });
   cap_sdk::from_archive(cap_env_stored);
 }
-
-// END POST_UPGRADE #2 //
