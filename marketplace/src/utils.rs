@@ -63,6 +63,11 @@ pub(crate) fn remove_offer(nft_canister_id: &Principal, token_id: &Nat, user: &P
 
         token_offers.remove(&user);
 
+        // save storage space
+        if (token_offers.is_empty()) {
+            offers.remove(&token_id.clone());
+        }
+
         mp.user_offers
             .entry(*user)
             .or_default()
