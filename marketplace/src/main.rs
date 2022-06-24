@@ -64,8 +64,12 @@ fn dfx_info() -> &'static str {
 
 #[query]
 #[candid_method(query)]
-fn failed_log() -> Vec<TxLogEntry> {
-    balances(|balances| balances.failed_tx_log_entries.clone())
+async fn failed_log() -> Result<Vec<TxLogEntry>, MPApiError> {
+    if let Err(e) = is_controller(&ic::caller()).await {
+        return Err(MPApiError::Other(format!("{:?}", e)));
+    }
+
+    Ok(balances(|balances| balances.failed_tx_log_entries.clone()))
 }
 
 #[update]
@@ -81,6 +85,83 @@ async fn fix_balance(fungible_canister_id: Principal, user: Principal, amount: N
             .entry((fungible_canister_id, user))
             .or_default() = amount.clone();
     });
+
+    Ok(())
+}
+
+#[update]
+#[candid_method(update)]
+async fn op_remove_listing(nft_canister_id: Principal, token_id: Nat) -> MPApiResult {
+    if let Err(e) = is_controller(&ic::caller()).await {
+        return Err(MPApiError::Other(format!("{:?}", e)));
+    }
+
+    let c = collections(|collections| collections.clone());
+    let collection = c
+        .get(&nft_canister_id)
+        .ok_or(MPApiError::NonExistentCollection)?;
+
+    // get token owner
+    let token_owner = owner_of_non_fungible(
+        &nft_canister_id,
+        &token_id,
+        collection.nft_canister_standard,
+    )
+    .await?
+    .ok_or_else(|| MPApiError::Other("error calling owner_of".to_string()))?;
+
+    // get clone of Listing
+    let token_listing = marketplace(|marketplace| {
+        marketplace
+            .listings
+            .clone()
+            .entry(nft_canister_id)
+            .or_default()
+            .entry(token_id.clone())
+            .or_default()
+            .clone()
+    });
+
+    // calculate fee amount
+    let total_fees: Nat = (token_listing.price.clone() * Nat::from(350)) / Nat::from(10000);
+
+    // remove listing and offer, and increase increase volume
+    remove_listing(&nft_canister_id, &token_id);
+    remove_offer(&nft_canister_id, &token_id, &token_owner);
+    inc_volume(&nft_canister_id, &token_listing.price);
+
+    // insert cap Event
+    // insert (async with fallback) event to cap
+    insert_sync(
+        IndefiniteEventBuilder::new()
+            .caller(token_owner)
+            .operation("directBuy")
+            .details(vec![
+                (
+                    "token_id".into(),
+                    DetailValue::U64(convert_nat_to_u64(token_id).unwrap()),
+                ),
+                (
+                    "nft_canister_id".into(),
+                    DetailValue::Principal(nft_canister_id),
+                ),
+                ("buyer".into(), DetailValue::Principal(token_owner)),
+                (
+                    "seller".into(),
+                    DetailValue::Principal(token_listing.seller),
+                ),
+                (
+                    "price".into(),
+                    DetailValue::U64(convert_nat_to_u64(token_listing.price).unwrap()),
+                ),
+                (
+                    "total_fees".into(),
+                    DetailValue::U64(convert_nat_to_u64(total_fees).unwrap()),
+                ),
+            ])
+            .build()
+            .unwrap(),
+    );
 
     Ok(())
 }

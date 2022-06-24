@@ -56,8 +56,10 @@ type OfferStatus = variant {
   Created;
 };
 type Result = variant { Ok; Err : MPApiError };
-type Result_1 = variant { Ok : nat; Err : MPApiError };
-type Result_2 = variant { Ok : Listing; Err : MPApiError };
+type Result_1 = variant { Ok : vec TxLogEntry; Err : MPApiError };
+type Result_2 = variant { Ok : nat; Err : MPApiError };
+type Result_3 = variant { Ok : Listing; Err : MPApiError };
+type TxLogEntry = record { to : principal; from : principal; memo : text };
 service : (principal, nat, opt principal) -> {
   acceptOffer : (principal, nat, principal) -> (Result);
   addCollection : (
@@ -76,20 +78,23 @@ service : (principal, nat, opt principal) -> {
   denyOffer : (principal, nat, principal) -> (Result);
   dfxInfo : () -> (text) query;
   directBuy : (principal, nat) -> (Result);
+  failed_log : () -> (Result_1) query;
+  fix_balance : (principal, principal, nat) -> (Result);
   getAllBalances : () -> (
       vec record { record { principal; principal }; nat },
     ) query;
   getBuyerOffers : (principal, principal) -> (vec Offer) query;
   getCollections : () -> (vec record { principal; Collection }) query;
-  getFloor : (principal) -> (Result_1) query;
+  getFloor : (principal) -> (Result_2) query;
   getProtocolFee : () -> (nat) query;
-  getTokenListing : (principal, nat) -> (Result_2) query;
+  getTokenListing : (principal, nat) -> (Result_3) query;
   getTokenOffers : (principal, vec nat) -> (
       vec record { nat; vec Offer },
     ) query;
   gitCommitHash : () -> (text) query;
   makeListing : (principal, nat, nat) -> (Result);
   makeOffer : (principal, nat, nat) -> (Result);
+  op_remove_listing : (principal, nat) -> (Result);
   rustToolchainInfo : () -> (text) query;
   setProtocolFee : (nat) -> (Result);
   withdrawFungible : (principal, FungibleStandard) -> (Result);
