@@ -59,10 +59,11 @@ pub(crate) fn init_data<T, F: FnOnce(&InitData) -> T>(f: F) -> T {
 pub(crate) fn remove_offer(nft_canister_id: &Principal, token_id: &Nat, user: &Principal) {
     marketplace_mut(|mp| {
         let mut offers = mp.offers.entry(*nft_canister_id).or_default();
+        let mut token_offers = offers.entry(token_id.clone()).or_default();
 
-        let mut token_offers = offers.get_mut(token_id).unwrap();
         token_offers.remove(&user);
 
+        // save storage space
         if (token_offers.is_empty()) {
             offers.remove(&token_id.clone());
         }
