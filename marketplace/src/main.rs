@@ -64,8 +64,12 @@ fn dfx_info() -> &'static str {
 
 #[query]
 #[candid_method(query)]
-fn failed_log() -> Vec<TxLogEntry> {
-    balances(|balances| balances.failed_tx_log_entries.clone())
+async fn failed_log() -> Result<Vec<TxLogEntry>, MPApiError> {
+    if let Err(e) = is_controller(&ic::caller()).await {
+        return Err(MPApiError::Other(format!("{:?}", e)));
+    }
+
+    Ok(balances(|balances| balances.failed_tx_log_entries.clone()))
 }
 
 #[update]
