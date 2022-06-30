@@ -4,7 +4,7 @@
   "description": "NFT Marketplace template",
   "main": "index.js",
   "scripts": {
-    "cap:start": "cd ./cap && dfx deploy ic-history-router",
+    "cap:start": "cd ./cap && dfx deploy cap-router",
     "cap:reset": "cd ./cap && rm -rf .dfx",
     "dab:start": "cd ./dab && dfx deploy nft",
     "dab:reset": "cd ./dab && rm -rf .dfx",
