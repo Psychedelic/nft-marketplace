@@ -90,4 +90,4 @@ DFX_VERSION="0.8.4" sh -ci "$(curl -fsSL https://sdk.dfinity.org/install.sh)"
 
 ## 💡 Conclusion
 
-This was a brief explanation of how the dfx files are generated and can be used. Its also advised to check the [Plug Extension docs](https://docs.plugwallet.ooo) for information about it. As noted above the NFT Marketplace talks to the IC via the Plug Extension and as such its advised to understand how Plug works by visiting the [Plug Wallet docs](https://docs.plugwallet.ooo/).
+This was a brief explanation of how the dfx files are generated and can be used. Its also advised to check the [Plug Extension docs](https://docs.plugwallet.ooo) for information about it. As noted above Jelly talks to the IC via the Plug Extension and as such its advised to understand how Plug works by visiting the [Plug Wallet docs](https://docs.plugwallet.ooo/).
