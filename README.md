@@ -70,6 +70,8 @@ yarn services:start
 
 Bare in mind that you'll have to deploy the DIP-721, set allowances, etc on your own, depending on your use-case.
 
+⚠️ Regarding [Cap handshake](https://github.com/Psychedelic/cap/blob/main/docs/Rust-SDK.md#handshake), the root bucket is only created after the first insert! Until an event is inserted, there'll be no root bucket id; If you fail to consider this, it might cause confusion when you try to `get_user_root_buckets`, etc. As the root bucket id will not be available or provided!
+
 The 🚑 [Healtcheck](./.scripts/healthcheck.sh) provides a description of how this can look like for the use-case where a DIP-721 is listed for sale, a user gets a sale offer and accepts it.
 
 ```sh
