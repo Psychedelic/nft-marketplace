@@ -96,5 +96,6 @@ service : (principal, nat, opt principal) -> {
   makeOffer : (principal, nat, nat) -> (Result);
   rustToolchainInfo : () -> (text) query;
   setProtocolFee : (nat) -> (Result);
+  verify_listing : (principal, nat) -> (Result);
   withdrawFungible : (principal, FungibleStandard) -> (Result);
 }
