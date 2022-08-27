@@ -375,6 +375,89 @@ async fn set_protocol_fee(fee: Nat) -> MPApiResult {
     Ok(())
 }
 
+/// Verify a listing, and cancel if allowance is expired
+#[update]
+#[candid_method]
+pub async fn verify_listing(nft_canister_id: Principal, token_id: Nat) -> MPApiResult {
+    let caller = ic::caller();
+    // lock to controllers only for now
+    if let Err(e) = is_controller(&caller).await {
+        return Err(MPApiError::Other(format!("{:?}", e)));
+    }
+
+    let collections = collections(|collections| collections.clone());
+    let collection = collections
+        .get(&nft_canister_id)
+        .ok_or(MPApiError::NonExistentCollection)?;
+
+    let self_id = ic::id();
+
+    let mut error: Option<MPApiError> = None;
+
+    let (price, seller) = marketplace(|mp| {
+        let all_listings = mp.listings.clone();
+
+        let listing = all_listings
+            .get(&nft_canister_id)
+            .ok_or(MPApiError::NonExistentCollection)?;
+
+        let listing = listing.get(&token_id).ok_or(MPApiError::InvalidListing)?;
+
+        Ok((listing.price.clone(), listing.seller.clone()))
+    })?;
+
+    // check if mp is the operator still
+    let token_operator = operator_of_non_fungible(
+        &nft_canister_id,
+        &token_id,
+        collection.nft_canister_standard,
+    )
+    .await?;
+
+    match token_operator {
+        Some(principal) => {
+            if (principal != self_id) {
+                error = Some(MPApiError::Other(
+                    "Cancelling listing, token is not approved for this marketplace".to_string(),
+                ));
+            }
+        }
+        None => (),
+    }
+
+    if error.is_some() {
+        // commit to state
+        remove_listing(&nft_canister_id, &token_id);
+
+        // insert (async with fallback) event to cap
+        insert_sync(
+            IndefiniteEventBuilder::new()
+                .caller(Principal::anonymous())
+                .operation("cancelListing")
+                .details(vec![
+                    (
+                        "token_id".into(),
+                        DetailValue::U64(convert_nat_to_u64(token_id).unwrap()),
+                    ),
+                    (
+                        "nft_canister_id".into(),
+                        DetailValue::Principal(nft_canister_id),
+                    ),
+                    (
+                        "price".into(),
+                        DetailValue::U64(convert_nat_to_u64(price).unwrap()),
+                    ),
+                    ("seller".into(), DetailValue::Principal(seller)),
+                ])
+                .build()
+                .unwrap(),
+        );
+        return Err(error.unwrap());
+    } else {
+        Ok(())
+    }
+}
+
 /// Make a listing for a nft
 /// price is a Nat, that should be handled as an e^n, n being the fungible canister's decimals.
 /// For example, to make a 3.14 WICP offer, the number would be 3.14e8 = 314_000_000
