@@ -422,7 +422,11 @@ pub async fn verify_listing(nft_canister_id: Principal, token_id: Nat) -> MPApiR
                 ));
             }
         }
-        None => (),
+        None => {
+            error = Some(MPApiError::Other(
+                "Cancelling listing, token is not approved for this marketplace".to_string(),
+            ))
+        }
     }
 
     if error.is_some() {
