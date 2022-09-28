@@ -10,8 +10,8 @@ cd "$(dirname $BASH_SOURCE)" && cd .. || exit 1
   fee=1
   creationTime=0
   collectionName="Crowns"
-  nonFungibleContractAddress=$(cd crowns && dfx canister id crowns)
-  fungibleContractAddress=$(cd wicp && dfx canister id wicp)
+  nonFungibleContractAddress=$(cd ../jelly && dfx canister id crowns)
+  fungibleContractAddress=$(cd ../jelly && dfx canister id wicp)
 
   echo "ownerPrincipalId > $ownerPrincipalId"
   echo "marketplaceId > $marketplaceId"
